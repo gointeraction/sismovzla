@@ -1,0 +1,24 @@
+{
+  "short_name": "SismoVZLA",
+  "name": "SismoVZLA: Respuesta Ciudadana de Emergencia",
+  "description": "Plataforma de emergencia para reporte de daños y búsqueda de personas en Caracas, Aragua, Carabobo y La Guaira.",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/color/192/earthquake.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://img.icons8.com/color/512/earthquake.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#09090b",
+  "theme_color": "#dc2626",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/"
+}

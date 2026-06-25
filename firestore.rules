@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /incidents/{incidentId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['type', 'severity', 'description', 'state', 'latitude', 'longitude', 'resolved', 'verified', 'createdAt', 'reportedBy'])
+                    && request.resource.data.type is string
+                    && request.resource.data.severity is number
+                    && request.resource.data.severity >= 1 && request.resource.data.severity <= 5
+                    && request.resource.data.description is string
+                    && request.resource.data.description.size() <= 2000
+                    && request.resource.data.state is string
+                    && request.resource.data.latitude is number
+                    && request.resource.data.longitude is number
+                    && request.resource.data.resolved is bool
+                    && request.resource.data.verified is bool
+                    && (!('audioUrl' in request.resource.data) || (request.resource.data.audioUrl is string && request.resource.data.audioUrl.size() <= 80000));
+      allow update: if request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if true;
+    }
+    match /people_search/{personId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['name', 'name_slug', 'last_known_loc', 'status', 'contact_info', 'registeredBy', 'createdAt'])
+                    && request.resource.data.name is string
+                    && request.resource.data.status in ['Buscado', 'Localizado', 'Hospitalizado'];
+      allow update: if request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if true;
+    }
+    match /dispatches/{dispatchId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['incidentId', 'incidentType', 'incidentState', 'incidentDesc', 'agency', 'priority', 'resources', 'notes', 'dispatchedAt', 'status']);
+      allow update: if request.resource.data.dispatchedAt == resource.data.dispatchedAt;
+      allow delete: if true;
+    }
+    match /shelters/{shelterId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['name', 'state', 'address', 'latitude', 'longitude', 'type', 'capacityStatus', 'verified', 'updatedAt', 'updatedBy'])
+                    && request.resource.data.name is string
+                    && request.resource.data.state in ['Caracas', 'La Guaira', 'Aragua', 'Carabobo', 'Otros']
+                    && request.resource.data.type in ['Refugio', 'Hospital', 'Centro de Acopio', 'Punto de Agua']
+                    && request.resource.data.capacityStatus in ['Verde', 'Amarillo', 'Rojo'];
+      allow update: if true;
+      allow delete: if true;
+    }
+  }
+}

@@ -1,0 +1,178 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-display: "Orbitron", sans-serif;
+}
+
+@keyframes pulse-map {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.animate-pulse-map {
+  animation: pulse-map 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Custom styles to enhance immersive aesthetics */
+.glow-red {
+  box-shadow: 0 0 20px rgba(211, 47, 47, 0.4);
+}
+
+.glow-green {
+  box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+}
+
+.glow-orange {
+  box-shadow: 0 0 20px rgba(255, 152, 0, 0.3);
+}
+
+/* Scrollbar styling for a cleaner look */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
+
+/* ==========================================================================
+   TEMA CLARO CIVIL / LIGHT MODE TÁCTICO
+   ========================================================================== */
+body.light-theme {
+  background-color: #f3f4f6 !important;
+  color: #111827 !important;
+}
+
+body.light-theme #sismovzla-app {
+  background-color: #f3f4f6 !important;
+  color: #111827 !important;
+}
+
+body.light-theme header,
+body.light-theme [class*="bg-[#0a0a0a]"],
+body.light-theme [class*="bg-[#121212]"],
+body.light-theme [class*="bg-[#080808]"],
+body.light-theme [class*="bg-[#0d0d0d]"],
+body.light-theme [class*="bg-[#050505]"],
+body.light-theme [class*="from-[#121212]"],
+body.light-theme [class*="to-[#080808]"],
+body.light-theme [class*="to-[#0d0d0d]"],
+body.light-theme [class*="to-[#050505]"],
+body.light-theme [class*="bg-black"] {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: #1f2937 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04) !important;
+}
+
+body.light-theme [class*="text-white"] {
+  color: #1f2937 !important;
+}
+
+body.light-theme [class*="border-white"] {
+  border-color: #e5e7eb !important;
+}
+
+body.light-theme [class*="text-white/"] {
+  color: #4b5563 !important;
+}
+
+body.light-theme input,
+body.light-theme select,
+body.light-theme textarea {
+  background-color: #f9fafb !important;
+  color: #111827 !important;
+  border-color: #d1d5db !important;
+}
+
+body.light-theme input::placeholder,
+body.light-theme textarea::placeholder {
+  color: #9ca3af !important;
+}
+
+/* Mantener intactos los botones y medallas de color */
+body.light-theme button[class*="bg-[#D32F2F]"],
+body.light-theme button[class*="bg-red-"],
+body.light-theme [class*="bg-[#D32F2F]"] {
+  background-color: #D32F2F !important;
+  color: #ffffff !important;
+}
+
+body.light-theme button[class*="bg-emerald-"],
+body.light-theme button[class*="bg-[#4CAF50]"],
+body.light-theme [class*="bg-[#4CAF50]"] {
+  background-color: #10b981 !important;
+  color: #ffffff !important;
+}
+
+body.light-theme button[class*="bg-blue-"] {
+  background-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+/* ==========================================================================
+   CORRECCIÓN DE LEGIBILIDAD PARA ALERTAS Y MEDALLAS EN MODO CLARO
+   ========================================================================== */
+body.light-theme [class*="text-red-200"],
+body.light-theme [class*="text-red-300"],
+body.light-theme [class*="text-red-400"] {
+  color: #b91c1c !important; /* rojo oscuro nítido de alto contraste */
+}
+
+body.light-theme [class*="text-blue-200"],
+body.light-theme [class*="text-blue-300"],
+body.light-theme [class*="text-blue-400"] {
+  color: #1d4ed8 !important; /* azul oscuro nítido de alto contraste */
+}
+
+body.light-theme [class*="text-emerald-200"],
+body.light-theme [class*="text-emerald-300"],
+body.light-theme [class*="text-emerald-400"],
+body.light-theme [class*="text-green-200"],
+body.light-theme [class*="text-green-300"],
+body.light-theme [class*="text-green-400"] {
+  color: #047857 !important; /* verde oscuro nítido */
+}
+
+body.light-theme [class*="text-amber-200"],
+body.light-theme [class*="text-amber-300"],
+body.light-theme [class*="text-amber-400"],
+body.light-theme [class*="text-yellow-200"],
+body.light-theme [class*="text-yellow-300"],
+body.light-theme [class*="text-yellow-400"] {
+  color: #b45309 !important; /* ámbar oscuro nítido */
+}
+
+/* Fondos suaves pastel para recuadros de alerta en modo claro */
+body.light-theme [class*="bg-red-950/"] {
+  background-color: #fee2e2 !important; /* fondo rosa/rojo muy suave */
+  border-color: #f87171 !important;
+}
+
+body.light-theme [class*="bg-blue-950/"] {
+  background-color: #dbeafe !important; /* fondo celeste muy suave */
+  border-color: #60a5fa !important;
+}
+
+body.light-theme [class*="bg-emerald-950/"],
+body.light-theme [class*="bg-[#4CAF50]/10"] {
+  background-color: #d1fae5 !important; /* fondo verde menta muy suave */
+  border-color: #34d399 !important;
+}

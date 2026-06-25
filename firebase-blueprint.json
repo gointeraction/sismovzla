@@ -1,0 +1,121 @@
+{
+  "entities": {
+    "Incident": {
+      "title": "Incident",
+      "description": "Un reporte de incidente de emergencia o colapso tras los sismos.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["Rescate", "Médico", "Fuga de Gas", "Derrumbe", "Otros"]
+        },
+        "severity": {
+          "type": "integer"
+        },
+        "description": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string",
+          "enum": ["Caracas", "La Guaira", "Aragua", "Carabobo", "Otros"]
+        },
+        "latitude": {
+          "type": "number"
+        },
+        "longitude": {
+          "type": "number"
+        },
+        "mediaUrl": {
+          "type": "string"
+        },
+        "resolved": {
+          "type": "boolean"
+        },
+        "verified": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "integer"
+        },
+        "reportedBy": {
+          "type": "string"
+        },
+        "reporterContact": {
+          "type": "string"
+        }
+      },
+      "required": ["type", "severity", "description", "state", "latitude", "longitude", "resolved", "verified", "createdAt", "reportedBy"]
+    },
+    "PersonSearch": {
+      "title": "PersonSearch",
+      "description": "Una persona reportada como buscada o localizada.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "name_slug": {
+          "type": "string"
+        },
+        "last_known_loc": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Buscado", "Localizado", "Hospitalizado"]
+        },
+        "contact_info": {
+          "type": "string"
+        },
+        "registeredBy": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "integer"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": ["name", "name_slug", "last_known_loc", "status", "contact_info", "registeredBy", "createdAt"]
+    },
+    "Dispatch": {
+      "title": "Dispatch",
+      "description": "Una orden de despacho y cooperación enviada a un cuerpo de respuesta.",
+      "type": "object",
+      "properties": {
+        "incidentId": { "type": "string" },
+        "incidentType": { "type": "string" },
+        "incidentState": { "type": "string" },
+        "incidentDesc": { "type": "string" },
+        "agency": { "type": "string" },
+        "priority": { "type": "string", "enum": ["Alta", "Media", "Baja"] },
+        "resources": { "type": "string" },
+        "notes": { "type": "string" },
+        "dispatchedAt": { "type": "integer" },
+        "status": { "type": "string", "enum": ["Despachado", "En Ruta", "Atendiendo", "Completado"] }
+      },
+      "required": ["incidentId", "incidentType", "incidentState", "incidentDesc", "agency", "priority", "resources", "notes", "dispatchedAt", "status"]
+    }
+  },
+  "firestore": {
+    "/incidents/{incidentId}": {
+      "schema": {
+        "$ref": "#/entities/Incident"
+      },
+      "description": "Colección de incidentes reportados."
+    },
+    "/people_search/{personId}": {
+      "schema": {
+        "$ref": "#/entities/PersonSearch"
+      },
+      "description": "Colección de personas buscadas o localizadas."
+    },
+    "/dispatches/{dispatchId}": {
+      "schema": {
+        "$ref": "#/entities/Dispatch"
+      },
+      "description": "Colección de despachos tácticos de respuesta y salvamento."
+    }
+  }
+}

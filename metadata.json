@@ -1,0 +1,11 @@
+{
+  "name": "SismoVZLA",
+  "description": "Plataforma de emergencia para reporte de daños y búsqueda de personas en Caracas, Aragua, Carabobo y La Guaira.",
+  "requestFramePermissions": [
+    "geolocation",
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SismoVZLA - Modo Offline de Emergencia</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background: #09090b; 
+            color: #f4f4f5; 
+            padding: 24px; 
+            margin: 0;
+            line-height: 1.5;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #3f3f46;
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+        }
+        .offline-badge {
+            background: #f59e0b;
+            color: #000;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+        h1 { font-size: 24px; margin: 0 0 8px 0; color: #dc2626; font-weight: 800; }
+        p { font-size: 14px; color: #a1a1aa; margin: 0; }
+        .card { 
+            background: #18181b; 
+            border: 1px solid #27272a; 
+            padding: 16px; 
+            border-radius: 12px; 
+            margin-bottom: 16px; 
+        }
+        .card h3 { 
+            margin: 0 0 10px 0; 
+            color: #f4f4f5; 
+            font-size: 15px; 
+            font-weight: 700; 
+            border-bottom: 1px solid #27272a;
+            padding-bottom: 6px;
+        }
+        ul { margin: 0; padding-left: 20px; font-size: 13px; color: #d4d4d8; }
+        li { margin-bottom: 8px; }
+        .emergency-btn { 
+            background: #dc2626; 
+            color: white; 
+            padding: 14px; 
+            display: block; 
+            text-decoration: none; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            text-align: center;
+            font-size: 14px;
+            margin-top: 24px;
+            transition: background 0.2s;
+        }
+        .emergency-btn:active {
+            background: #b91c1c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <span class="offline-badge">MODO OFFLINE (SIN RED)</span>
+            <h1>SismoVZLA</h1>
+            <p>La red móvil está inoperativa o saturada. Conserva tu batería.</p>
+        </div>
+        
+        <div class="card">
+            <h3>🚨 Primeros Auxilios Inmediatos</h3>
+            <ul>
+                <li><strong>Hemorragias:</strong> Presiona firme sobre la herida con un paño limpio. No quites el paño si se empapa de sangre; pon otro encima.</li>
+                <li><strong>Inconsciente:</strong> Si respira, ponlo de medio lado (Posición lateral de seguridad) para evitar asfixia.</li>
+                <li><strong>No Mover:</strong> Evita trasladar heridos con posible trauma de columna o cráneo a menos que haya peligro inminente de derrumbe o incendio.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h3>📍 Puntos de Reunión de Emergencia</h3>
+            <ul>
+                <li><strong>Caracas:</strong> Parque Generalísimo Francisco de Miranda (La Carlota), Parque Los Caobos.</li>
+                <li><strong>Maracay (Aragua):</strong> Estadio José Pérez Colmenares, Parque Las Delicias.</li>
+                <li><strong>Valencia (Carabobo):</strong> Parque Fernando Peñalver, Paseo Cabriales.</li>
+                <li><strong>La Guaira:</strong> Polideportivo José María Vargas, áreas abiertas de El Cardonal.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h3>📻 Consejos de Resiliencia</h3>
+            <ul>
+                <li>Utiliza mensajes de texto (SMS) en vez de llamadas de voz; ocupan menos ancho de banda.</li>
+                <li>Sintoniza la radio nacional en tu teléfono si posees antena (FM/AM).</li>
+                <li>Si estás atrapado, usa objetos metálicos para golpear estructuras en series de tres.</li>
+            </ul>
+        </div>
+
+        <a href="tel:911" class="emergency-btn">LLAMAR AL 911 VENEZUELA</a>
+    </div>
+</body>
+</html>
