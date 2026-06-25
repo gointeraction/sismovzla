@@ -227,6 +227,35 @@ export default function SurvivalSection() {
         </div>
       )}
 
+      {/* Standalone HTML Manual Portable Banner */}
+      <div className="bg-gradient-to-r from-emerald-950/80 via-[#121212] to-[#121212] border border-emerald-500/40 rounded-2xl p-6 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
+          <div className="p-3.5 bg-emerald-600 text-white rounded-xl shadow-[0_0_15px_rgba(16,185,129,0.4)] shrink-0">
+            <BookOpen className="w-7 h-7" />
+          </div>
+          <div>
+            <span className="text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-400 px-2.5 py-0.5 rounded border border-emerald-500/30 uppercase">
+              DISTRIBUCIÓN ESTÁTICA SIN RED
+            </span>
+            <h3 className="text-lg font-display font-black text-white tracking-tight mt-1">
+              MANUAL OPERATIVO COMPLETO (HTML PORTABLE)
+            </h3>
+            <p className="text-xs text-white/60 mt-0.5 max-w-xl font-sans">
+              Versión autónoma en un único archivo HTML estático. Puede abrirlo o guardarlo en su terminal/PC para transferirlo por Bluetooth, SD o USB sin requerir conexión móvil.
+            </p>
+          </div>
+        </div>
+
+        <a
+          href="/manual_operativo.html"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full sm:w-auto px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-mono font-bold text-xs uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-2 border border-emerald-400/30 shrink-0"
+        >
+          <BookOpen className="w-4 h-4" /> ABRIR / GUARDAR MANUAL HTML
+        </a>
+      </div>
+
       {/* Emergency Tools Card */}
       <div className="bg-gradient-to-br from-[#1c1212] to-[#080808] border border-[#D32F2F]/30 rounded-xl p-5.5 shadow-[0_4px_25px_rgba(211,47,47,0.1)]" id="survival-tools">
         <h3 className="text-lg font-display font-black text-[#D32F2F] mb-3 flex items-center gap-2.5 uppercase tracking-wide">

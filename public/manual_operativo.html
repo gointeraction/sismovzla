@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SismoVZLA — Manual Operativo de Auxilio y Respuesta Táctica</title>
+    <style>
+        :root {
+            --bg-main: #09090b;
+            --bg-card: #18181b;
+            --border-color: #27272a;
+            --accent-red: #dc2626;
+            --accent-emerald: #10b981;
+            --accent-blue: #3b82f6;
+            --accent-amber: #f59e0b;
+            --text-main: #f4f4f5;
+            --text-muted: #a1a1aa;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 24px 16px;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header {
+            background: linear-gradient(135deg, #450a0a, #18181b);
+            border: 1px solid #7f1d1d;
+            border-radius: 16px;
+            padding: 32px 24px;
+            text-align: center;
+            margin-bottom: 32px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .badge {
+            background: var(--accent-red);
+            color: white;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 4px 12px;
+            border-radius: 6px;
+            display: inline-block;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+        h1 { font-size: 28px; font-weight: 900; margin-bottom: 8px; letter-spacing: -0.5px; }
+        p.subtitle { color: var(--text-muted); font-size: 14px; max-width: 600px; margin: 0 auto 20px auto; }
+        .app-link-btn {
+            display: inline-block;
+            background: var(--accent-emerald);
+            color: #000;
+            font-weight: 800;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 32px;
+        }
+        .btn-print {
+            background: #27272a;
+            color: white;
+            border: 1px solid #3f3f46;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        h2 {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--accent-red);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        h3 { font-size: 16px; color: #fff; margin: 16px 0 8px 0; font-weight: 700; }
+        ul, ol { margin-left: 20px; color: #d4d4d8; font-size: 14px; }
+        li { margin-bottom: 8px; }
+        .alert-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #fcd34d;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            margin: 16px 0;
+        }
+        .phone-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .phone-card {
+            background: #09090b;
+            border: 1px solid var(--border-color);
+            padding: 14px;
+            border-radius: 10px;
+        }
+        .phone-card strong { color: var(--accent-emerald); display: block; font-size: 18px; font-family: monospace; }
+        .phone-card span { font-size: 13px; font-weight: bold; color: #fff; }
+        .phone-card p { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+        footer {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 48px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 24px;
+        }
+        @media print {
+            body { background: #fff; color: #000; }
+            header, section, .phone-card { background: #fff; border-color: #ccc; color: #000; box-shadow: none; }
+            h2 { color: #b91c1c; }
+            ul, ol, .phone-card span { color: #222; }
+            .action-bar, .app-link-btn { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <span class="badge">DOCUMENTO ESTÁTICO AUTÓNOMO — MODO OFF-LINE</span>
+        <h1>SISMOVZLA — Manual de Respuesta Táctica</h1>
+        <p class="subtitle">Guía oficial comunitaria ante sismos severos, fallas masivas de telecomunicaciones, triaje de heridos y búsqueda de personas en Venezuela.</p>
+        <a href="https://sismovzla.web.app" target="_blank" class="app-link-btn">🌐 ACCEDER A LA APLICACIÓN WEB OFICIAL</a>
+    </header>
+
+    <div class="action-bar">
+        <div>
+            <strong style="font-size: 14px;">📄 Archivo Portable Estático (HTML)</strong>
+            <div style="font-size: 12px; color: var(--text-muted);">Compatible con pendrives, memoria SD y transferencia Bluetooth sin red.</div>
+        </div>
+        <button onclick="window.print()" class="btn-print">🖨️ IMPRIMIR / GUARDAR COMO PDF</button>
+    </div>
+
+    <section>
+        <h2>🚨 1. Protocolo de Primeros Auxilios Inmediatos</h2>
+        <ol>
+            <li><strong>Control de Hemorragias:</strong> Aplique presión directa e ininterrumpida sobre la herida con tela limpia o gasa. Si el vendaje se empapa de sangre, <em>no lo retire</em>; coloque otra capa de tela firme encima y mantenga la compresión.</li>
+            <li><strong>Estado de Inconsciencia:</strong> Verifique respiración. Si la persona respira espontáneamente, gírela con cuidado hacia un lado (Posición Lateral de Seguridad) para evitar asfixia por vómito o saliva.</li>
+            <li><strong>Reanimación Cardiopulmonar (RCP):</strong> Si no detecta respiración ni pulso, coloque el talón de ambas manos en el centro del tórax e inicie compresiones rápidas y profundas (ritmo continuo de 100 a 120 compresiones por minuto).</li>
+            <li><strong>Fracturas e Inmovilización:</strong> No intente enderezar miembros deformados. Fije la extremidad lesionada utilizando tablas, cartón rígido o revistas gruesas amarradas con tiras de tela por encima y debajo de la articulación afectada.</li>
+            <li><strong>Quemaduras:</strong> Irrigue el área con agua limpia a temperatura ambiente durante 10 minutos. Jamás aplique hielo, cremas, aceites ni despegue ropa quemada adherida a la piel.</li>
+        </ol>
+    </section>
+
+    <section>
+        <h2>🏚️ 2. Conducta Táctica Durante Derrumbes</h2>
+        <ul>
+            <li><strong>Triángulo de la Vida:</strong> Si queda atrapado bajo escombros, accurrúquese en posición fetal junto a muebles macizos (ej. base de sofás o armarios pesados) que puedan dejar un espacio vital si cae el techo.</li>
+            <li><strong>Señalización Acústica:</strong> Evite gritar continuamente; agotará sus pulmones y tragarás polvo tóxico. Golpee tuberías de metal o paredes de concreto en series regulares de tres golpes (patrón universal S.O.S.).</li>
+            <li><strong>Protección Respiratoria:</strong> Cubra boca y fosas nasales con su camisa o un pañuelo preferiblemente húmedo para filtrar micropartículas de cemento.</li>
+            <li><strong>Prevención de Incendios:</strong> No encienda cerillas ni mecheros por peligro de explosión ante tuberías de gas fracturadas. Utilice linternas LED.</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>🩸 3. Módulo de Banco de Sangre & Triaje Ciudadano</h2>
+        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 12px;">Ante desastres masivos, los bancos de sangre requieren clasificación rápida para donantes en reserva:</p>
+        <ul>
+            <li><strong>Criterios de Calificación Previa:</strong> Ciudadanos entre 18 y 65 años de edad, con peso corporal superior a 50 kilogramos, sin cuadros febriles recientes e intervalos mínimos de 3 meses (hombres) o 4 meses (mujeres) desde su última donación.</li>
+            <li><strong>Registro Asincrónico:</strong> Ingrese a la pestaña <strong>[06] BANCO DE SANGRE</strong> de la aplicación SismoVZLA para inscribir su grupo sanguíneo (`O+`, `O-`, `A+`, `B-`, etc.). El sistema guardará su ficha localmente aunque no posea internet.</li>
+            <li><strong>Potestad de Remisión:</strong> Los Operadores Tácticos autorizados seleccionarán en la app a los voluntarios calificados y emitirán órdenes de remisión oficiales hacia centros de transfusión habilitados (*Hospital Domingo Luciani, HUC, Hospital Central de Maracay, Cruz Roja*).</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>✏️ 4. Edición y Corrección Táctica de Incidentes</h2>
+        <div class="alert-box">
+            ⚠ Exclusivo para personal autorizado con credencial de coordinación `RESISTENCIA_2026` o Administradores.
+        </div>
+        <ul>
+            <li><strong>Objetivo Operativo:</strong> Rectificar reportes ciudadanos enviados con coordenadas inexactas o niveles de gravedad erróneos para optimizar el despacho de ambulancias y rescatistas.</li>
+            <li><strong>Cómo Editar:</strong> Acceda a la pestaña <strong>[ADM] COORDINADOR</strong> de la plataforma web, localice el incidente en la tabla administrativa y presione el botón <strong>✏ EDITAR</strong>.</li>
+            <li><strong>Parámetros Modificables:</strong> Gravedad Táctica (Escala 1 al 5), Entidad Federal y Descripción detallada del suceso. Los cambios se reflejarán instantáneamente en el mapa táctico de todos los operadores conectados.</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>🏢 5. Monitoreo de Refugios & Acopio</h2>
+        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 12px;">Consulte el semáforo de disponibilidad en la sección [05] REFUGIOS:</p>
+        <ul>
+            <li>🟢 <strong>Estatus Verde:</strong> Refugio con plazas disponibles y servicios operativos de agua/primeros auxilios.</li>
+            <li>🟡 <strong>Estatus Amarillo:</strong> Centro de acopio o refugio operando cerca del límite de su capacidad instalada.</li>
+            <li>🔴 <strong>Estatus Rojo:</strong> Estructura colapsada o saturada; no dirigir más ciudadanos evacuados a este punto.</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>📞 6. Directorio Telefónico de Auxilio Nacional</h2>
+        <p style="font-size: 13px; color: var(--text-muted);">En contingencias, priorice el envío de mensajes de texto (SMS) antes que llamadas de voz.</p>
+        
+        <div class="phone-grid">
+            <div class="phone-card">
+                <span>Emergencias Venezuela</span>
+                <strong>911</strong>
+                <p>Despacho médico, policial y rescate nacional</p>
+            </div>
+            <div class="phone-card">
+                <span>Bomberos Caracas</span>
+                <strong>0212-5454545</strong>
+                <p>Comandancia General del Distrito Capital</p>
+            </div>
+            <div class="phone-card">
+                <span>Protección Civil</span>
+                <strong>0800-7248454</strong>
+                <p>Coordinación Nacional de Desastres</p>
+            </div>
+            <div class="phone-card">
+                <span>Cruz Roja Venezolana</span>
+                <strong>0212-5781283</strong>
+                <p>Atención médica humanitaria de emergencia</p>
+            </div>
+            <div class="phone-card">
+                <span>Bomberos Aragua</span>
+                <strong>0243-2422222</strong>
+                <p>Emergencias en Maracay y región central</p>
+            </div>
+            <div class="phone-card">
+                <span>Protección Civil Carabobo</span>
+                <strong>0241-8586414</strong>
+                <p>Rescate y contingencias en Valencia</p>
+            </div>
+            <div class="phone-card">
+                <span>Bomberos La Guaira</span>
+                <strong>0212-3311911</strong>
+                <p>Emergencias en el Litoral Central</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p><strong>SISMOVZLA — Nodo de Contingencia Humanitaria</strong></p>
+        <p style="margin-top: 4px;">Plataforma web oficial: <a href="https://sismovzla.web.app" style="color: var(--accent-blue);">https://sismovzla.web.app</a></p>
+        <p style="margin-top: 8px; font-size: 11px;">Documento de dominio público diseñado para copia y distribución física descentralizada ante desastres naturales.</p>
+    </footer>
+</div>
+
+</body>
+</html>
