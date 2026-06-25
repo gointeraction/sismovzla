@@ -38,6 +38,25 @@ const EMERGENCY_GUIDES: Guide[] = [
       "Cierre la llave de paso: Si localiza la bombona o tubería principal, cierre la válvula inmediatamente.",
       "Evacuación: Abandone el área a pie y alerte a los vecinos en el trayecto sin usar timbres."
     ]
+  },
+  {
+    title: "Triaje y Registro de Donantes de Sangre",
+    category: "Banco de Sangre",
+    steps: [
+      "Criterios previos de aptitud: Edad entre 18 y 65 años, peso corporal superior a 50 kg, más de 3 meses (hombres) o 4 meses (mujeres) desde su última donación.",
+      "Inscripción en contingencia: Acceda a la pestaña [06] BANCO DE SANGRE de esta app para indicar su grupo sanguíneo y responder el test clínico rápido.",
+      "Derivación hospitalaria: Los Operadores Tácticos autorizados emitirán una orden oficial remitiéndolo a hospitales habilitados (Hospital Domingo Luciani, HUC, Maracay, Cruz Roja).",
+      "Recomendación previa: Ingiere abundante agua fresca antes de la extracción y mantenga su móvil encendido para llamada de convocatoria."
+    ]
+  },
+  {
+    title: "Edición y Corrección Táctica de Reportes",
+    category: "Coordinación",
+    steps: [
+      "Potestad de corrección: Los Operadores Tácticos y Administradores acreditados tienen autorización oficial para modificar reportes ciudadanos inexactos.",
+      "Procedimiento de edición: Ingrese a la pestaña [ADM] COORDINADOR, ubique el incidente en la tabla administrativa y presione el botón ✏ EDITAR.",
+      "Optimización de despacho: Corrija la gravedad real del daño (1 a 5), reasigne la entidad federal o precise la ubicación exacta para guiar a los rescatistas."
+    ]
   }
 ];
 
