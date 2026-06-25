@@ -111,7 +111,6 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
 
 Las contribuciones ciudadanas para optimizar el rendimiento en redes degradadas, traducir manuales de supervivencia o ampliar el directorio hospitalario son bienvenidas. 
 
-Únete a nuestro nodo de coordinación en Telegram: [SismoVZLA Canal Oficial](https://t.me/+q9ScOcEulV9kY2Q5).
 
 <br />
 
