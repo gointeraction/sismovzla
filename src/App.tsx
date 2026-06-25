@@ -317,88 +317,88 @@ export default function App() {
 
       {/* Primary HUD Navigation Tabs */}
       <nav className="border-b border-white/10 bg-black/40 sticky top-[49px] sm:top-[51px] z-40 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 flex overflow-x-auto scrollbar-none gap-1">
+        <div className="max-w-7xl mx-auto px-2 flex items-center justify-start xl:justify-center overflow-x-auto scrollbar-none gap-1">
           <button
             onClick={() => setActiveTab('map_reports')}
-            className={`py-4 px-5 border-b-2 font-mono font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all flex items-center gap-2 ${
+            className={`py-3.5 px-2.5 md:px-3.5 border-b-2 font-mono font-bold text-[11px] md:text-xs uppercase tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
               activeTab === 'map_reports'
                 ? 'border-[#D32F2F] text-white bg-white/5 shadow-[inset_0_-4px_10px_rgba(211,47,47,0.15)]'
                 : 'border-transparent text-white/60 hover:text-white hover:bg-white/5'
             }`}
           >
-            <Clock className="w-4 h-4 text-[#D32F2F]" />
+            <Clock className="w-4 h-4 text-[#D32F2F] shrink-0" />
             [01] MONITOREO
           </button>
 
           <button
             onClick={() => setActiveTab('report_form')}
-            className={`py-4 px-5 border-b-2 font-mono font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all flex items-center gap-2 ${
+            className={`py-3.5 px-2.5 md:px-3.5 border-b-2 font-mono font-bold text-[11px] md:text-xs uppercase tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
               activeTab === 'report_form'
                 ? 'border-[#D32F2F] text-white bg-white/5 shadow-[inset_0_-4px_10px_rgba(211,47,47,0.15)]'
                 : 'border-transparent text-white/60 hover:text-white hover:bg-white/5'
             }`}
           >
-            <AlertTriangle className="w-4 h-4 text-[#FF9800]" />
+            <AlertTriangle className="w-4 h-4 text-[#FF9800] shrink-0" />
             [02] NUEVO REPORTE
           </button>
 
           <button
             onClick={() => setActiveTab('missing_search')}
-            className={`py-4 px-5 border-b-2 font-mono font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all flex items-center gap-2 ${
+            className={`py-3.5 px-2.5 md:px-3.5 border-b-2 font-mono font-bold text-[11px] md:text-xs uppercase tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
               activeTab === 'missing_search'
                 ? 'border-[#D32F2F] text-white bg-white/5 shadow-[inset_0_-4px_10px_rgba(211,47,47,0.15)]'
                 : 'border-transparent text-white/60 hover:text-white hover:bg-white/5'
             }`}
           >
-            <Heart className="w-4 h-4 text-red-400" />
+            <Heart className="w-4 h-4 text-red-400 shrink-0" />
             [03] BUSCAR PERSONAS
           </button>
 
           <button
             onClick={() => setActiveTab('survival_guides')}
-            className={`py-4 px-5 border-b-2 font-mono font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all flex items-center gap-2 ${
+            className={`py-3.5 px-2.5 md:px-3.5 border-b-2 font-mono font-bold text-[11px] md:text-xs uppercase tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
               activeTab === 'survival_guides'
                 ? 'border-[#D32F2F] text-white bg-white/5 shadow-[inset_0_-4px_10px_rgba(211,47,47,0.15)]'
                 : 'border-transparent text-white/60 hover:text-white hover:bg-white/5'
             }`}
           >
-            <Compass className="w-4 h-4 text-[#4CAF50]" />
+            <Compass className="w-4 h-4 text-[#4CAF50] shrink-0" />
             [04] AUXILIOS OFF-LINE
           </button>
 
           <button
             onClick={() => setActiveTab('shelters')}
-            className={`py-4 px-5 border-b-2 font-mono font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all flex items-center gap-2 ${
+            className={`py-3.5 px-2.5 md:px-3.5 border-b-2 font-mono font-bold text-[11px] md:text-xs uppercase tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
               activeTab === 'shelters'
                 ? 'border-[#D32F2F] text-white bg-white/5 shadow-[inset_0_-4px_10px_rgba(211,47,47,0.15)]'
                 : 'border-transparent text-white/60 hover:text-white hover:bg-white/5'
             }`}
           >
-            <Building className="w-4 h-4 text-emerald-400" />
+            <Building className="w-4 h-4 text-emerald-400 shrink-0" />
             [05] REFUGIOS & ACOPIO
           </button>
 
           <button
             onClick={() => setActiveTab('blood_donors')}
-            className={`py-4 px-5 border-b-2 font-mono font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all flex items-center gap-2 ${
+            className={`py-3.5 px-2.5 md:px-3.5 border-b-2 font-mono font-bold text-[11px] md:text-xs uppercase tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
               activeTab === 'blood_donors'
                 ? 'border-[#D32F2F] text-white bg-white/5 shadow-[inset_0_-4px_10px_rgba(211,47,47,0.15)]'
                 : 'border-transparent text-white/60 hover:text-white hover:bg-white/5'
             }`}
           >
-            <Droplet className="w-4 h-4 text-red-500" />
+            <Droplet className="w-4 h-4 text-red-500 shrink-0" />
             [06] BANCO DE SANGRE
           </button>
 
           <button
             onClick={() => setActiveTab('volunteer_gate')}
-            className={`py-4 px-5 border-b-2 font-mono font-bold text-xs uppercase tracking-wider whitespace-nowrap transition-all flex items-center gap-2 ml-auto ${
+            className={`py-3.5 px-2.5 md:px-3.5 border-b-2 font-mono font-bold text-[11px] md:text-xs uppercase tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
               activeTab === 'volunteer_gate'
                 ? 'border-blue-500 text-white bg-white/5 shadow-[inset_0_-4px_10px_rgba(59,130,246,0.15)]'
                 : 'border-transparent text-white/40 hover:text-white/70 hover:bg-white/5'
             }`}
           >
-            <ShieldCheck className="w-4 h-4 text-blue-400" />
+            <ShieldCheck className="w-4 h-4 text-blue-400 shrink-0" />
             [ADM] COORDINADOR
           </button>
         </div>
