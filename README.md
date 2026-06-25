@@ -8,7 +8,6 @@
 [![Stack](https://img.shields.io/badge/Frontend-React_19_%2B_TypeScript-3178C6?style=for-the-badge&logo=react&logoColor=white)](https://react.dev)
 [![Estilos](https://img.shields.io/badge/UI-Tailwind_CSS_v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
 
-[🌐 Sitio Web Oficial](https://sismovzla.web.app) • [💬 Canal Oficial Telegram](https://t.me/+q9ScOcEulV9kY2Q5) • [📄 Reportar Incidencia](https://github.com/gointeraction/sismovzla/issues)
 
 <br />
 </div>
