@@ -8,10 +8,12 @@ import {
   updateDoc, 
   deleteDoc, 
   orderBy, 
-  limit 
+  limit,
+  deleteField
 } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Incident, PersonSearch } from '../types';
+import { Incident, PersonSearch, StructuralEvaluation } from '../types';
+import { StructuralEvaluationModule, createDefaultEvaluation } from './StructuralEvaluationModule';
 import { 
   Building2, 
   Send, 
@@ -109,6 +111,8 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
     reporterContact: ''
   });
   const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [includeStructuralEdit, setIncludeStructuralEdit] = useState(false);
+  const [editEvaluation, setEditEvaluation] = useState<StructuralEvaluation>(createDefaultEvaluation());
 
   // Filtering and Sorting States
   const [filterSeverity, setFilterSeverity] = useState<string>('all');
@@ -312,6 +316,13 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
       description: inc.description,
       reporterContact: inc.reporterContact || ''
     });
+    if (inc.structuralEvaluation) {
+      setIncludeStructuralEdit(true);
+      setEditEvaluation(inc.structuralEvaluation);
+    } else {
+      setIncludeStructuralEdit(false);
+      setEditEvaluation(createDefaultEvaluation());
+    }
   };
 
   const handleSaveEdit = async (e: React.FormEvent) => {
@@ -320,14 +331,20 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
     setIsSavingEdit(true);
     try {
       const incRef = doc(db, 'incidents', editingIncident.id);
-      await updateDoc(incRef, {
+      const updateData: any = {
         type: editForm.type,
         state: editForm.state,
         address: editForm.address.trim() || null,
         severity: Number(editForm.severity),
         description: editForm.description,
         reporterContact: editForm.reporterContact
-      });
+      };
+      if (includeStructuralEdit) {
+        updateData.structuralEvaluation = editEvaluation;
+      } else {
+        updateData.structuralEvaluation = deleteField();
+      }
+      await updateDoc(incRef, updateData);
       if (selectedIncident?.id === editingIncident.id) {
         setSelectedIncident({
           ...selectedIncident,
@@ -336,7 +353,8 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
           address: editForm.address.trim() || undefined,
           severity: Number(editForm.severity),
           description: editForm.description,
-          reporterContact: editForm.reporterContact
+          reporterContact: editForm.reporterContact,
+          structuralEvaluation: includeStructuralEdit ? editEvaluation : undefined
         });
       }
       setEditingIncident(null);
@@ -1502,7 +1520,7 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
       {/* Edit Incident Modal */}
       {editingIncident && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#121212] border border-white/15 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in duration-200">
+          <div className="bg-[#121212] border border-white/15 rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <h3 className="text-base font-display font-black text-white uppercase tracking-wide flex items-center gap-2">
                 <Pencil className="w-4 h-4 text-blue-400" />
@@ -1593,6 +1611,31 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
                   className="w-full bg-black/60 border border-white/15 rounded-lg p-3 text-white focus:outline-none focus:border-blue-400 font-sans text-sm leading-relaxed"
                   required
                 />
+              </div>
+
+              {/* Optional Structural Evaluation Section inside Edit Modal */}
+              <div className="pt-4 border-t border-white/10">
+                <label className="flex items-center gap-3 p-3.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-300 cursor-pointer select-none transition-all hover:bg-amber-500/25">
+                  <input
+                    type="checkbox"
+                    checked={includeStructuralEdit}
+                    onChange={(e) => setIncludeStructuralEdit(e.target.checked)}
+                    className="accent-amber-500 w-4 h-4 rounded cursor-pointer"
+                  />
+                  <span className="font-mono font-black text-xs uppercase tracking-wide flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-amber-400" />
+                    ¿Adjuntar o Modificar Evaluación Estructural (COVENIN 1756 / ATC-20)?
+                  </span>
+                </label>
+
+                {includeStructuralEdit && (
+                  <div className="mt-4 pt-2 border-t border-amber-500/20">
+                    <StructuralEvaluationModule
+                      value={editEvaluation}
+                      onChange={setEditEvaluation}
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center justify-end gap-3 border-t border-white/10 pt-4 mt-6">
