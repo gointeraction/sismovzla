@@ -63,6 +63,8 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
 - **Dictamen Técnico de Habitabilidad**: Formulario clínico opcional para clasificar edificaciones tras sismos severos (🟢 **Verde - Habitable**, 🟡 **Amarillo - Restringido**, 🔴 **Rojo - No Habitable**).
 - **Inspección Exhaustiva A-F**: Registro estandarizado de daños en columnas, vigas, losas, derivas globales, riesgos geotécnicos e instalaciones tecnológicas según normas COVENIN 1756, ATC-20 y FEMA 154 adaptadas para Venezuela.
 - **Acciones Inmediatas y CIV**: Identificación de acciones críticas en escena (*Ej: acordonamiento de perímetro, apuntalamiento de urgencia, corte de servicios*) y acreditación oficial por número CIV / INCES del evaluador.
+- **Usabilidad y Navegación en Cuadrícula (*Grid 4 Pasos*)**: Flujo guiado paso a paso (*Edificio ➔ Daños A-C ➔ Riesgos D-F ➔ Dictamen*) con selectores proporcionales diseñados para pantallas táctiles en tierra.
+- **Adjuntar o Editar a Posteriori**: Comisión técnica u operadores (`TACTICO_2026`) pueden incorporar por primera vez o corregir el informe estructural sobre reportes ya existentes mediante el modal **`✏ EDITAR`**, sincronizando el semáforo de habitabilidad en vivo hacia el mapa georeferenciado.
 
 ---
 
