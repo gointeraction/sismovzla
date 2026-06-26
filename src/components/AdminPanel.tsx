@@ -35,7 +35,8 @@ import {
   ArrowUpDown,
   Pencil,
   X,
-  Save
+  Save,
+  MapPin
 } from 'lucide-react';
 import { ImageLightbox } from './ImageLightbox';
 
