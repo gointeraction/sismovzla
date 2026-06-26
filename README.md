@@ -59,6 +59,11 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
   - **Operador Táctico** (`TACTICO_2026`): Verificación oficial de emergencias, resolución de incidentes, órdenes de despacho a agencias (*911, Bomberos, PC*) y **✏ edición directa de correcciones en Firestore**.
   - **Coordinador / Admin** (`SISMO_CRISIS_ADMIN`): Administración absoluta y purga de documentos.
 
+### 8. 🏛️ Evaluación Estructural Post-Sismo (COVENIN 1756 / ATC-20)
+- **Dictamen Técnico de Habitabilidad**: Formulario clínico opcional para clasificar edificaciones tras sismos severos (🟢 **Verde - Habitable**, 🟡 **Amarillo - Restringido**, 🔴 **Rojo - No Habitable**).
+- **Inspección Exhaustiva A-F**: Registro estandarizado de daños en columnas, vigas, losas, derivas globales, riesgos geotécnicos e instalaciones tecnológicas según normas COVENIN 1756, ATC-20 y FEMA 154 adaptadas para Venezuela.
+- **Acciones Inmediatas y CIV**: Identificación de acciones críticas en escena (*Ej: acordonamiento de perímetro, apuntalamiento de urgencia, corte de servicios*) y acreditación oficial por número CIV / INCES del evaluador.
+
 ---
 
 ## 🏗️ Stack Tecnológico

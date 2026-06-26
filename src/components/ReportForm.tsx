@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Incident } from '../types';
-import { MapPin, AlertTriangle, Image as ImageIcon, Camera, Loader, WifiOff, CheckCircle, Mic, Square, Trash2, Volume2 } from 'lucide-react';
+import { MapPin, AlertTriangle, Image as ImageIcon, Camera, Loader, WifiOff, CheckCircle, Mic, Square, Trash2, Volume2, Building2 } from 'lucide-react';
 import { ImageLightbox } from './ImageLightbox';
+import { StructuralEvaluation } from '../types';
+import { StructuralEvaluationModule, createDefaultEvaluation } from './StructuralEvaluationModule';
 
 interface ReportFormProps {
   onReportSuccess: (incident: Incident) => void;
@@ -16,6 +18,8 @@ export default function ReportForm({ onReportSuccess, userId }: ReportFormProps)
   const [severity, setSeverity] = useState<number>(3);
   const [description, setDescription] = useState('');
   const [address, setAddress] = useState('');
+  const [includeEvaluation, setIncludeEvaluation] = useState(false);
+  const [evaluationData, setEvaluationData] = useState<StructuralEvaluation>(createDefaultEvaluation());
   const [manualLat, setManualLat] = useState('');
   const [manualLng, setManualLng] = useState('');
   const [state, setState] = useState<Incident['state']>('Caracas');
@@ -201,7 +205,8 @@ export default function ReportForm({ onReportSuccess, userId }: ReportFormProps)
       verified: false,
       createdAt: Date.now(),
       reportedBy: 'Ciudadano Anónimo',
-      reporterContact: reporterContact.trim() || undefined
+      reporterContact: reporterContact.trim() || undefined,
+      structuralEvaluation: includeEvaluation ? evaluationData : undefined
     };
 
     if (!navigator.onLine) {
@@ -247,6 +252,8 @@ export default function ReportForm({ onReportSuccess, userId }: ReportFormProps)
     setReporterContact('');
     setImagePreviews([]);
     setAudioPreview(null);
+    setIncludeEvaluation(false);
+    setEvaluationData(createDefaultEvaluation());
   };
 
   return (
@@ -548,6 +555,31 @@ export default function ReportForm({ onReportSuccess, userId }: ReportFormProps)
         <p className="text-[10px] text-white/40 font-mono mt-1.5 leading-normal">
           Formato WebM/OPUS ultra-liviano optimizado para escombros. Transmite relato verbal ocupando solo ~4KB.
         </p>
+      </div>
+
+      {/* Optional Post-Earthquake Structural Evaluation Checklist Toggle */}
+      <div className="border border-amber-500/30 rounded-xl p-4 bg-amber-500/5 space-y-4 font-mono">
+        <label className="flex items-center gap-3 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={includeEvaluation}
+            onChange={(e) => setIncludeEvaluation(e.target.checked)}
+            className="w-5 h-5 accent-amber-500 rounded cursor-pointer"
+          />
+          <div className="flex items-center gap-2 text-amber-400 font-black text-xs sm:text-sm uppercase">
+            <Building2 className="w-4 h-4 shrink-0" />
+            ¿ADJUNTAR CHECKLIST DE EVALUACIÓN ESTRUCTURAL POST-SISMO (COVENIN 1756)?
+          </div>
+        </label>
+
+        {includeEvaluation && (
+          <div className="pt-2">
+            <StructuralEvaluationModule
+              value={evaluationData}
+              onChange={setEvaluationData}
+            />
+          </div>
+        )}
       </div>
 
       {/* Submit Button */}

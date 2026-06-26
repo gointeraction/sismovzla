@@ -389,6 +389,11 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
           text += `  ${idx + 1}. [SEV: ${inc.severity}] | ESTADO: ${inc.state.toUpperCase()} | TIPO: ${inc.type.toUpperCase()}\n`;
           text += `     COORDENADAS: Lat ${inc.latitude.toFixed(5)}, Lon ${inc.longitude.toFixed(5)}\n`;
           text += `     DESCRIPCIÓN: ${inc.description}\n`;
+          if (inc.structuralEvaluation) {
+            const ev = inc.structuralEvaluation.formulario_evaluacion_post_sismo;
+            text += `     EVAL. ESTRUCTURAL COVENIN 1756: [${ev.resumen_final.clasificacion.toUpperCase()}]\n`;
+            text += `       Ingeniero: ${ev.datos_edificacion.ingeniero_evaluador.nombre || 'N/A'} (CIV ${ev.datos_edificacion.ingeniero_evaluador.cod_inces_civ || 'Sin CIV'})\n`;
+          }
           text += `     REPORTE POR: ${inc.reportedBy} | VERIFICADO: ${inc.verified ? 'SI' : 'PENDIENTE'}\n`;
           text += `     ------------------------------------------------------------\n`;
         });
@@ -929,6 +934,12 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
                           <MapPin className="w-3 h-3 text-red-400 shrink-0" /> {inc.address}
                         </p>
                       )}
+                      {inc.structuralEvaluation && (
+                        <div className="mt-1.5 flex items-center gap-1.5 px-2 py-1 rounded text-[9px] font-mono font-black uppercase bg-amber-500/20 text-amber-300 border border-amber-500/30 w-fit">
+                          <Building2 className="w-3 h-3 text-amber-400 shrink-0" />
+                          {inc.structuralEvaluation.formulario_evaluacion_post_sismo.resumen_final.clasificacion}
+                        </div>
+                      )}
 
                       <div className="flex items-center justify-between border-t border-white/5 pt-2 mt-1 text-[10px] font-mono">
                         <span className="text-white/40">{new Date(inc.createdAt).toLocaleTimeString('es-VE', {hour:'2-digit', minute:'2-digit'})} VET</span>
@@ -1010,6 +1021,34 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
                         <span className="text-[10px] text-red-400 font-bold uppercase block">Dirección Manual Exacta:</span>
                         {selectedIncident.address}
                       </div>
+                    </div>
+                  )}
+
+                  {selectedIncident.structuralEvaluation && (
+                    <div className="mt-3 border border-amber-500/40 rounded-xl p-3.5 bg-amber-500/10 font-mono text-xs space-y-2.5 shadow-lg">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-amber-500/20 pb-2 gap-1">
+                        <span className="font-black text-amber-400 flex items-center gap-1.5 uppercase text-[11px]">
+                          <Building2 className="w-4 h-4 text-amber-400" /> Dictamen Estructural (COVENIN 1756):
+                        </span>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-black bg-black text-amber-300 border border-amber-500/40 w-fit">
+                          {selectedIncident.structuralEvaluation.formulario_evaluacion_post_sismo.resumen_final.clasificacion}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-white/80 pt-1">
+                        <div>
+                          <span className="text-white/40 block text-[9px] font-bold uppercase">Ingeniero Evaluador</span>
+                          {selectedIncident.structuralEvaluation.formulario_evaluacion_post_sismo.datos_edificacion.ingeniero_evaluador.nombre || 'N/A'} ({selectedIncident.structuralEvaluation.formulario_evaluacion_post_sismo.datos_edificacion.ingeniero_evaluador.cod_inces_civ || 'Sin CIV'})
+                        </div>
+                        <div>
+                          <span className="text-white/40 block text-[9px] font-bold uppercase">Datos Edificación</span>
+                          {selectedIncident.structuralEvaluation.formulario_evaluacion_post_sismo.datos_edificacion.uso} | {selectedIncident.structuralEvaluation.formulario_evaluacion_post_sismo.datos_edificacion.no_pisos} piso(s)
+                        </div>
+                      </div>
+                      {selectedIncident.structuralEvaluation.formulario_evaluacion_post_sismo.resumen_final.justificacion && (
+                        <div className="bg-black/50 p-2 rounded text-white/90 italic border border-white/5 text-[11px]">
+                          "{selectedIncident.structuralEvaluation.formulario_evaluacion_post_sismo.resumen_final.justificacion}"
+                        </div>
+                      )}
                     </div>
                   )}
 
