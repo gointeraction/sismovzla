@@ -11,6 +11,7 @@ import AdminPanel from './components/AdminPanel';
 import SheltersModule from './components/SheltersModule';
 import BloodDonorsModule from './components/BloodDonorsModule';
 import HospitalPatientsModule from './components/HospitalPatientsModule';
+import { ReportsConsoleModule } from './components/ReportsConsoleModule';
 import { 
   ShieldAlert, 
   Wifi, 
@@ -31,7 +32,8 @@ import {
   Send,
   Share2,
   Check,
-  Droplet
+  Droplet,
+  Printer
 } from 'lucide-react';
 
 export default function App() {
@@ -66,7 +68,7 @@ export default function App() {
   const isVolunteerVerified = volunteerRole !== 'none';
   const [selectedStateFilter, setSelectedStateFilter] = useState<Incident['state'] | 'Todos'>('Todos');
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [activeTab, setActiveTab] = useState<'map_reports' | 'report_form' | 'survival_guides' | 'missing_search' | 'shelters' | 'blood_donors' | 'hospital_patients' | 'volunteer_gate'>('map_reports');
+  const [activeTab, setActiveTab] = useState<'map_reports' | 'report_form' | 'survival_guides' | 'missing_search' | 'shelters' | 'blood_donors' | 'hospital_patients' | 'reports_console' | 'volunteer_gate'>('map_reports');
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState('');
   const [isLightMode, setIsLightMode] = useState(() => localStorage.getItem('sismovzla_light_mode') === 'true');
@@ -404,6 +406,18 @@ export default function App() {
           </button>
 
           <button
+            onClick={() => setActiveTab('reports_console')}
+            className={`py-2 px-3 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+              activeTab === 'reports_console'
+                ? 'bg-violet-600 text-white shadow-[0_0_15px_rgba(139,92,246,0.5)] border border-violet-400 font-black'
+                : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5'
+            }`}
+          >
+            <Printer className="w-3.5 h-3.5 text-violet-300 shrink-0" />
+            <span className="text-[10px] opacity-70">[08]</span> REPORTES
+          </button>
+
+          <button
             onClick={() => setActiveTab('volunteer_gate')}
             className={`py-2 px-3 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ml-auto ${
               activeTab === 'volunteer_gate'
@@ -527,6 +541,16 @@ export default function App() {
         {activeTab === 'hospital_patients' && (
           <div className="space-y-6 animate-fade-in" id="tab-hospital-patients">
             <HospitalPatientsModule 
+              isVerified={isVolunteerVerified}
+              role={volunteerRole}
+            />
+          </div>
+        )}
+
+        {activeTab === 'reports_console' && (
+          <div className="space-y-6 animate-fade-in" id="tab-reports-console">
+            <ReportsConsoleModule 
+              incidents={incidents}
               isVerified={isVolunteerVerified}
               role={volunteerRole}
             />
