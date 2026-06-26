@@ -67,9 +67,15 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
 - **Adjuntar o Editar a Posteriori**: Comisión técnica u operadores (`TACTICO_2026`) pueden incorporar por primera vez o corregir el informe estructural sobre reportes ya existentes mediante el modal **`✏ EDITAR`**, sincronizando el semáforo de habitabilidad en vivo hacia el mapa georeferenciado.
 
 ### 9. 🏥 Base de Datos de Personas en Centros Asistenciales (OCR Masivo + Doble Chequeo)
-- **Carga Masiva por Foto / OCR (*IA Vision*)**: Digitalización instantánea de listados de papel en puertas de hospitales, interpretando automáticamente Nombre Completo, Cédula y Edad.
-- **Deduplicación & Regla de Doble Chequeo**: Verificación en tiempo real contra la base nacional en Firestore. Si la cédula coincide con un paciente censado en otro hospital, **crea automáticamente un segundo registro intermitente en color rojo** (`⚠️ DOBLE CHEQUEO REQUERIDO`) para que comisiones de rescate verifiquen físicamente la ubicación real.
-- **Censo Nacional Asistencial**: Buscador público interactivo por cédula o apellido con filtros por centro clínico.
+- **Directorio Georeferenciado Oficial**: Integración exacta de los **9 centros asistenciales prioritarios de Caracas y La Guaira** (*Hospital Domingo Luciani, HUC, Cruz Roja Carlos J. Bello, Miguel Pérez Carreño, Periférico de Catia, Periférico de Pariata, Vargas de La Guaira, Militar Carlos Arvelo, Los Magallanes de Catia*). Al seleccionar un hospital en los formularios clínicos, el sistema muestra en tiempo real su dirección completa y coordenadas GPS exactas con botón de copia rápida.
+- **Carga Masiva por Foto / OCR (*IA Vision*)**: Digitalización instantánea de listados de papel pegados en puertas de hospitales, interpretando automáticamente Nombre Completo, Cédula y Edad.
+- **Deduplicación & Regla de Doble Chequeo**: Verificación en tiempo real contra la base nacional en Firestore. Si la cédula coincide con un paciente censado en otro hospital diferente, **crea automáticamente un segundo registro intermitente en color rojo** (`⚠️ DOBLE CHEQUEO REQUERIDO`) para que comisiones de rescate verifiquen físicamente la ubicación real del ciudadano.
+- **Censo Nacional & Mapas GPS**: Buscador público interactivo y pestaña dedicada `📍 Directorio & Coordenadas` con enlaces de navegación directa en Google Maps.
+
+### 10. 🎨 Usabilidad y Rediseño Ergonómico UX/UI (`Pills Navbar`)
+- **Carrusel Compacto de Píldoras Flotantes**: Reemplazo total de la antigua barra de navegación desbordada por un menú tipo *Pills* de alta ergonomía visual (`[01] MAPA`, `[02] REPORTE`, `[03] PERSONAS`, `[04] AUXILIOS`, `[05] REFUGIOS`, `[06] SANGRE`, `[07] HOSPITALES`, `[ADM] COORDINADOR`).
+- **Codificación Cromática Diferenciada**: Asignación de colores tácticos únicos por módulo que resplandecen al activarse (`drop-shadow`), eliminando el cansancio visual y previniendo errores de selección en pantallas pequeñas o celulares bajo condiciones de estrés.
+- **Desplazamiento Horizontal Suave**: Integración nativa `scroll-smooth` sin barra de desplazamiento visible, garantizando acceso instantáneo a todas las opciones del sistema en cualquier resolución.
 
 
 ---
