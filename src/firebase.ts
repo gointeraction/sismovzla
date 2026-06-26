@@ -33,7 +33,7 @@ const db = initializeFirestore(app, {
     tabManager: persistentMultipleTabManager(),
   }),
   ignoreUndefinedProperties: true,
-}, isMirrorNode ? "(default)" : "ai-studio-f3f26e74-6430-4ef9-aee7-153a8a133537");
+}, "ai-studio-f3f26e74-6430-4ef9-aee7-153a8a133537");
 
 const auth = getAuth(app);
 
