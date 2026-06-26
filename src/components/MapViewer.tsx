@@ -109,14 +109,14 @@ export default function MapViewer({
         zoomControl: true,
       });
 
-      // CartoDB Positron (light_all) or Dark Matter tile layer
+      // OpenStreetMap Standard (light) or Carto Dark Matter tile layer
       const initialTile = mapTheme === 'light'
-        ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+        ? 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
         : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
 
       tileLayerRef.current = L.tileLayer(initialTile, {
         maxZoom: 19,
-        attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+        attribution: '&copy; OpenStreetMap contributors'
       }).addTo(map);
 
       mapRef.current = map;
@@ -137,19 +137,25 @@ export default function MapViewer({
   useEffect(() => {
     if (!tileLayerRef.current) return;
     const tileUrl = mapTheme === 'light'
-      ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+      ? 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
       : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
     tileLayerRef.current.setUrl(tileUrl);
   }, [mapTheme]);
 
-  // Invalidate Leaflet canvas size when full screen mode toggles
+  // Invalidate Leaflet canvas size and reset internal transform matrix when full screen mode toggles
   useEffect(() => {
     if (!mapRef.current) return;
-    const t1 = setTimeout(() => mapRef.current?.invalidateSize(false), 50);
-    const t2 = setTimeout(() => mapRef.current?.invalidateSize(false), 200);
-    const t3 = setTimeout(() => {
-      mapRef.current?.invalidateSize(false);
-    }, 500);
+    const forceRedraw = () => {
+      if (!mapRef.current) return;
+      mapRef.current.invalidateSize(false);
+      const center = mapRef.current.getCenter();
+      const zoom = mapRef.current.getZoom();
+      mapRef.current.setView(center, zoom, { animate: false });
+    };
+
+    const t1 = setTimeout(forceRedraw, 50);
+    const t2 = setTimeout(forceRedraw, 250);
+    const t3 = setTimeout(forceRedraw, 600);
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
