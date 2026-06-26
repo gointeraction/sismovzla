@@ -16,7 +16,11 @@ import {
   Filter,
   Eye,
   Trash2,
-  Phone
+  Phone,
+  Sun,
+  Moon,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { ImageLightbox } from './ImageLightbox';
 
@@ -36,9 +40,12 @@ export default function MapViewer({
   const [viewMode, setViewMode] = useState<'map' | 'list'>('list'); // Default to list for low network speed resilience
   const [selectedTypeFilter, setSelectedTypeFilter] = useState<Incident['type'] | 'Todos'>('Todos');
   const [verificationFilter, setVerificationFilter] = useState<'Todos' | 'Verificados' | 'No Verificados'>('Todos');
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [mapTheme, setMapTheme] = useState<'light' | 'dark'>('light'); // default clear/light background as requested
 
   const [lightbox, setLightbox] = useState<{ urls: string[]; currentIndex: number } | null>(null);
   const mapRef = useRef<L.Map | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
   const markersGroupRef = useRef<L.FeatureGroup | null>(null);
   const markersMapRef = useRef<Map<string, L.CircleMarker>>(new Map());
 
@@ -102,8 +109,12 @@ export default function MapViewer({
         zoomControl: true,
       });
 
-      // CartoDB Dark Matter tile layer - perfect immersive dark theme
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      // CartoDB Voyager or Dark Matter tile layer
+      const initialTile = mapTheme === 'light'
+        ? 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+        : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+
+      tileLayerRef.current = L.tileLayer(initialTile, {
         maxZoom: 19,
         attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
       }).addTo(map);
@@ -116,10 +127,29 @@ export default function MapViewer({
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
+        tileLayerRef.current = null;
         markersGroupRef.current = null;
       }
     };
   }, [viewMode]);
+
+  // Handle map theme swapper dynamically without recreating map
+  useEffect(() => {
+    if (!tileLayerRef.current) return;
+    const tileUrl = mapTheme === 'light'
+      ? 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+      : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+    tileLayerRef.current.setUrl(tileUrl);
+  }, [mapTheme]);
+
+  // Invalidate Leaflet canvas size when full screen mode toggles
+  useEffect(() => {
+    if (mapRef.current) {
+      setTimeout(() => {
+        mapRef.current?.invalidateSize();
+      }, 100);
+    }
+  }, [isFullScreen]);
 
   // Adjust camera position smoothly ONLY when region filter changes
   useEffect(() => {
@@ -250,10 +280,10 @@ export default function MapViewer({
   };
 
   return (
-    <div className="space-y-4" id="incident-map-and-list-container">
+    <div className={isFullScreen ? "fixed inset-0 z-50 bg-[#121212] p-4 flex flex-col space-y-3 overflow-hidden animate-in fade-in duration-200" : "space-y-4"} id="incident-map-and-list-container">
 
       {/* Tab controls & View toggler */}
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-gradient-to-r from-[#121212] to-[#0d0d0d] border border-white/10 rounded-xl p-4 shadow-lg">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-gradient-to-r from-[#121212] to-[#0d0d0d] border border-white/10 rounded-xl p-4 shadow-lg shrink-0">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[10px] font-mono font-bold text-white/40 uppercase tracking-widest mr-2 flex items-center gap-1">
             <Filter className="w-3.5 h-3.5 text-[#D32F2F]" /> REGIÓN SÍSMICA:
@@ -276,7 +306,7 @@ export default function MapViewer({
         <div className="flex bg-black/60 border border-white/10 p-1 rounded-lg self-start xl:self-auto shadow-inner">
           <button
             onClick={() => setViewMode('list')}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-mono font-bold uppercase transition-all duration-150 ${viewMode === 'list'
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-mono font-bold uppercase transition-all duration-150 cursor-pointer ${viewMode === 'list'
                 ? 'bg-[#D32F2F] text-white shadow-[0_0_8px_rgba(211,47,47,0.25)]'
                 : 'text-white/50 hover:text-white/80'
               }`}
@@ -288,7 +318,7 @@ export default function MapViewer({
           </button>
           <button
             onClick={() => setViewMode('map')}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-mono font-bold uppercase transition-all duration-150 ${viewMode === 'map'
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-mono font-bold uppercase transition-all duration-150 cursor-pointer ${viewMode === 'map'
                 ? 'bg-[#D32F2F] text-white shadow-[0_0_8px_rgba(211,47,47,0.25)]'
                 : 'text-white/50 hover:text-white/80'
               }`}
@@ -302,7 +332,7 @@ export default function MapViewer({
       </div>
 
       {/* Secondary filter bar (Category & Verification Status) */}
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-black/30 border border-white/5 rounded-xl p-4">
+      <div className="flex flex-wrap items-center justify-between gap-4 bg-black/30 border border-white/5 rounded-xl p-4 shrink-0">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2 text-xs font-mono font-bold text-white/50">
             <Filter className="w-3.5 h-3.5 text-[#FF9800]" />
@@ -342,10 +372,33 @@ export default function MapViewer({
 
       {/* Interactive Map View */}
       {viewMode === 'map' && (
-        <div className="relative border border-white/10 rounded-xl overflow-hidden shadow-2xl bg-[#121212]" id="map-view-wrapper">
-          <div id="map-element" className="w-full h-[450px] z-10" />
+        <div className={`relative border border-white/10 rounded-xl overflow-hidden shadow-2xl bg-[#121212] ${isFullScreen ? 'flex-1 flex flex-col min-h-0' : ''}`} id="map-view-wrapper">
+          <div id="map-element" className={`w-full z-10 ${isFullScreen ? 'flex-1 min-h-[60vh]' : 'h-[450px]'}`} />
 
-          <div className="absolute bottom-4 left-4 z-20 bg-black/90 border border-white/10 rounded-lg p-3.5 text-[10px] space-y-1.5 text-white/75 backdrop-blur-md shadow-2xl font-mono">
+          {/* Floating Tactical Controls: FullScreen & Background Theme Toggler */}
+          <div className="absolute top-4 right-4 z-20 flex items-center gap-2 font-mono">
+            <button
+              onClick={() => setMapTheme(prev => prev === 'light' ? 'dark' : 'light')}
+              className="px-3 py-2 rounded-lg bg-black/85 hover:bg-black text-white border border-white/20 shadow-2xl backdrop-blur-md flex items-center gap-2 text-xs font-bold uppercase transition-all cursor-pointer hover:scale-105 active:scale-95"
+              title="Cambiar Fondo del Mapa (Claro / Oscuro)"
+            >
+              {mapTheme === 'light' ? <Moon className="w-4 h-4 text-amber-400" /> : <Sun className="w-4 h-4 text-amber-400" />}
+              <span className="hidden sm:inline">{mapTheme === 'light' ? 'Modo Oscuro' : 'Modo Claro'}</span>
+            </button>
+
+            <button
+              onClick={() => setIsFullScreen(prev => !prev)}
+              className={`px-3.5 py-2 rounded-lg text-white border shadow-2xl backdrop-blur-md flex items-center gap-2 text-xs font-black uppercase transition-all cursor-pointer hover:scale-105 active:scale-95 ${
+                isFullScreen ? 'bg-[#D32F2F] border-red-400 shadow-[0_0_15px_rgba(211,47,47,0.5)]' : 'bg-black/85 hover:bg-black border-white/20'
+              }`}
+              title={isFullScreen ? "Restaurar Pantalla" : "Ampliar Pantalla Completa"}
+            >
+              {isFullScreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4 text-blue-400" />}
+              <span>{isFullScreen ? 'Salir Pantalla Completa' : 'Pantalla Completa'}</span>
+            </button>
+          </div>
+
+          <div className="absolute bottom-4 left-4 z-20 bg-black/90 border border-white/10 rounded-lg p-3.5 text-[10px] space-y-1.5 text-white/75 backdrop-blur-md shadow-2xl font-mono pointer-events-none">
             <p className="font-bold text-white uppercase tracking-widest border-b border-white/10 pb-1.5 mb-2 font-display">SIMBOLOGÍA DE RIESGO</p>
             <p className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-[#D32F2F] inline-block shadow-[0_0_6px_#D32F2F]" /> RESCATE / INMEDIATO</p>
             <p className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-[#2196F3] inline-block shadow-[0_0_6px_#2196F3]" /> ASISTENCIA MÉDICA</p>
