@@ -68,6 +68,13 @@ export default function App() {
   const isVolunteerVerified = volunteerRole !== 'none';
   const [selectedStateFilter, setSelectedStateFilter] = useState<Incident['state'] | 'Todos'>('Todos');
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const isDirectFullMap = typeof window !== 'undefined' && (
+    window.location.search.includes('mapa=completo') || 
+    window.location.search.includes('mapa=tactico') ||
+    window.location.search.includes('fullscreen=true') || 
+    window.location.hash === '#mapa-completo'
+  );
+
   const [activeTab, setActiveTab] = useState<'map_reports' | 'report_form' | 'survival_guides' | 'missing_search' | 'shelters' | 'blood_donors' | 'hospital_patients' | 'reports_console' | 'volunteer_gate'>('map_reports');
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState('');
@@ -457,6 +464,18 @@ export default function App() {
                   CONSOLA DE MONITOREO DE CRISIS
                 </h2>
                 <p className="text-xs text-white/50 mt-1">Monitoreo de coordenadas críticas e infraestructura en el Eje Central.</p>
+                <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                  <a
+                    href="/?mapa=completo"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-600/15 hover:bg-red-600 text-red-300 hover:text-white border border-red-500/30 rounded-lg font-mono text-[10px] font-black uppercase transition-all shadow cursor-pointer"
+                    title="Abre una ventana nueva con el mapa táctico expandido a pantalla completa por defecto"
+                  >
+                    <Share2 className="w-3.5 h-3.5 text-red-400" />
+                    Enlace Precargado a Mapa Pantalla Completa
+                  </a>
+                </div>
               </div>
 
               {/* General details of affected cities */}
@@ -481,6 +500,7 @@ export default function App() {
               isVolunteerVerified={isVolunteerVerified}
               selectedStateFilter={selectedStateFilter}
               onStateFilterChange={setSelectedStateFilter}
+              initialFullScreen={isDirectFullMap}
             />
           </div>
         )}

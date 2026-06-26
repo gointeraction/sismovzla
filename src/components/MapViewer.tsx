@@ -29,18 +29,20 @@ interface MapViewerProps {
   isVolunteerVerified: boolean;
   selectedStateFilter: Incident['state'] | 'Todos';
   onStateFilterChange: (state: Incident['state'] | 'Todos') => void;
+  initialFullScreen?: boolean;
 }
 
 export default function MapViewer({
   incidents,
   isVolunteerVerified,
   selectedStateFilter,
-  onStateFilterChange
+  onStateFilterChange,
+  initialFullScreen = false
 }: MapViewerProps) {
-  const [viewMode, setViewMode] = useState<'map' | 'list'>('list'); // Default to list for low network speed resilience
+  const [viewMode, setViewMode] = useState<'map' | 'list'>(initialFullScreen ? 'map' : 'list'); // Default to list or map if fullscreen link
   const [selectedTypeFilter, setSelectedTypeFilter] = useState<Incident['type'] | 'Todos'>('Todos');
   const [verificationFilter, setVerificationFilter] = useState<'Todos' | 'Verificados' | 'No Verificados'>('Todos');
-  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(initialFullScreen);
   const [mapTheme, setMapTheme] = useState<'light' | 'dark'>('light'); // default clear/light background as requested
 
   const [lightbox, setLightbox] = useState<{ urls: string[]; currentIndex: number } | null>(null);
