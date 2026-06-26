@@ -109,9 +109,9 @@ export default function MapViewer({
         zoomControl: true,
       });
 
-      // CartoDB Voyager or Dark Matter tile layer
+      // CartoDB Positron (light_all) or Dark Matter tile layer
       const initialTile = mapTheme === 'light'
-        ? 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+        ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
         : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
 
       tileLayerRef.current = L.tileLayer(initialTile, {
@@ -137,18 +137,24 @@ export default function MapViewer({
   useEffect(() => {
     if (!tileLayerRef.current) return;
     const tileUrl = mapTheme === 'light'
-      ? 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+      ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
       : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
     tileLayerRef.current.setUrl(tileUrl);
   }, [mapTheme]);
 
   // Invalidate Leaflet canvas size when full screen mode toggles
   useEffect(() => {
-    if (mapRef.current) {
-      setTimeout(() => {
-        mapRef.current?.invalidateSize();
-      }, 100);
-    }
+    if (!mapRef.current) return;
+    const t1 = setTimeout(() => mapRef.current?.invalidateSize(false), 50);
+    const t2 = setTimeout(() => mapRef.current?.invalidateSize(false), 200);
+    const t3 = setTimeout(() => {
+      mapRef.current?.invalidateSize(false);
+    }, 500);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
   }, [isFullScreen]);
 
   // Adjust camera position smoothly ONLY when region filter changes
@@ -372,8 +378,8 @@ export default function MapViewer({
 
       {/* Interactive Map View */}
       {viewMode === 'map' && (
-        <div className={`relative border border-white/10 rounded-xl overflow-hidden shadow-2xl bg-[#121212] ${isFullScreen ? 'flex-1 flex flex-col min-h-0' : ''}`} id="map-view-wrapper">
-          <div id="map-element" className={`w-full z-10 ${isFullScreen ? 'flex-1 min-h-[60vh]' : 'h-[450px]'}`} />
+        <div className={`relative border border-white/10 rounded-xl overflow-hidden shadow-2xl bg-[#121212] ${isFullScreen ? 'w-full' : ''}`} id="map-view-wrapper">
+          <div id="map-element" className={`w-full z-10 ${isFullScreen ? 'h-[calc(100vh-175px)]' : 'h-[450px]'}`} />
 
           {/* Floating Tactical Controls: FullScreen & Background Theme Toggler */}
           <div className="absolute top-4 right-4 z-20 flex items-center gap-2 font-mono">
