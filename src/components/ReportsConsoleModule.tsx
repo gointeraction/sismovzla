@@ -336,7 +336,7 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
           <td><strong>INC-${inc.id.toUpperCase()}</strong><br><span style="font-size: 10px; color: #666;">${new Date(inc.createdAt).toLocaleString('es-VE')}</span></td>
           <td>${inc.state}</td>
           <td><span class="badge-${inc.severity >= 4 ? 'red' : inc.severity === 3 ? 'yellow' : 'green'}">Grav. ${inc.severity}</span></td>
-          <td><strong>${inc.type}</strong>: ${inc.description}<br><em style="font-size: 11px; color: #444;">📍 ${inc.address || `${inc.latitude.toFixed(4)}, ${inc.longitude.toFixed(4)}`}</em></td>
+          <td><strong>${inc.type}</strong>: ${inc.description}${inc.buildingInfo ? `<br><strong style="color: #b45309;">🏢 Edificio: ${inc.buildingInfo.apartmentsCount} Apts | 👥 ${inc.buildingInfo.peopleCount} Personas</strong>` : ''}<br><em style="font-size: 11px; color: #444;">📍 ${inc.address || `${inc.latitude.toFixed(4)}, ${inc.longitude.toFixed(4)}`}</em></td>
           <td>${inc.structuralEvaluation ? '🟢 COVENIN Adjunto' : '⏳ Pendiente'}</td>
         </tr>
       `;

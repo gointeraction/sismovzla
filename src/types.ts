@@ -15,6 +15,10 @@ export interface Incident {
   createdAt: number; // timestamp in milliseconds
   reportedBy: string; // user display name or anonymous ID
   reporterContact?: string;
+  buildingInfo?: {
+    apartmentsCount: number;
+    peopleCount: number;
+  };
   structuralEvaluation?: StructuralEvaluation; // Checklist Técnico COVENIN 1756 / ATC-20
 }
 

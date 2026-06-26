@@ -38,7 +38,8 @@ import {
   Pencil,
   X,
   Save,
-  MapPin
+  MapPin,
+  Users
 } from 'lucide-react';
 import { ImageLightbox } from './ImageLightbox';
 
@@ -552,6 +553,8 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
         'Fecha de Registro',
         'Verificado',
         'Resuelto',
+        'Nro Apartamentos',
+        'Cantidad Personas',
         'Descripcion'
       ];
       rows = incidents.map(inc => [
@@ -566,6 +569,8 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
         new Date(inc.createdAt).toLocaleString('es-VE'),
         inc.verified ? 'SI' : 'NO',
         inc.resolved ? 'SI' : 'NO',
+        inc.buildingInfo?.apartmentsCount?.toString() || '0',
+        inc.buildingInfo?.peopleCount?.toString() || '0',
         `"${inc.description.replace(/"/g, '""').replace(/\n/g, ' ')}"`
       ]);
     } else if (reportType === 'coordination') {
@@ -1039,6 +1044,25 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
                       <div>
                         <span className="text-[10px] text-red-400 font-bold uppercase block">Dirección Manual Exacta:</span>
                         {selectedIncident.address}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedIncident.buildingInfo && (
+                    <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 font-mono text-xs text-amber-300">
+                      <div className="flex items-center gap-2.5">
+                        <Building2 className="w-4 h-4 text-amber-400 shrink-0" />
+                        <div>
+                          <span className="text-[10px] text-amber-400/80 font-bold uppercase block">Apartamentos / Pisos:</span>
+                          <strong className="text-white text-sm">{selectedIncident.buildingInfo.apartmentsCount || '0'} Apts</strong>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2.5">
+                        <Users className="w-4 h-4 text-amber-400 shrink-0" />
+                        <div>
+                          <span className="text-[10px] text-amber-400/80 font-bold uppercase block">Habitantes Estimados:</span>
+                          <strong className="text-white text-sm">{selectedIncident.buildingInfo.peopleCount || '0'} Personas</strong>
+                        </div>
                       </div>
                     </div>
                   )}

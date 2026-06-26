@@ -18,6 +18,9 @@ export default function ReportForm({ onReportSuccess, userId }: ReportFormProps)
   const [severity, setSeverity] = useState<number>(3);
   const [description, setDescription] = useState('');
   const [address, setAddress] = useState('');
+  const [isBuilding, setIsBuilding] = useState(false);
+  const [apartmentsCount, setApartmentsCount] = useState<number | ''>('');
+  const [peopleCount, setPeopleCount] = useState<number | ''>('');
   const [includeEvaluation, setIncludeEvaluation] = useState(false);
   const [evaluationData, setEvaluationData] = useState<StructuralEvaluation>(createDefaultEvaluation());
   const [manualLat, setManualLat] = useState('');
@@ -206,6 +209,10 @@ export default function ReportForm({ onReportSuccess, userId }: ReportFormProps)
       createdAt: Date.now(),
       reportedBy: 'Ciudadano Anónimo',
       reporterContact: reporterContact.trim() || undefined,
+      buildingInfo: isBuilding && (apartmentsCount !== '' || peopleCount !== '') ? {
+        apartmentsCount: Number(apartmentsCount) || 0,
+        peopleCount: Number(peopleCount) || 0
+      } : undefined,
       structuralEvaluation: includeEvaluation ? evaluationData : undefined
     };
 
@@ -250,6 +257,9 @@ export default function ReportForm({ onReportSuccess, userId }: ReportFormProps)
     setManualLat('');
     setManualLng('');
     setReporterContact('');
+    setIsBuilding(false);
+    setApartmentsCount('');
+    setPeopleCount('');
     setImagePreviews([]);
     setAudioPreview(null);
     setIncludeEvaluation(false);
@@ -296,7 +306,11 @@ export default function ReportForm({ onReportSuccess, userId }: ReportFormProps)
           </label>
           <select
             value={type}
-            onChange={(e) => setType(e.target.value as Incident['type'])}
+            onChange={(e) => {
+              const val = e.target.value as Incident['type'];
+              setType(val);
+              if (val === 'Derrumbe') setIsBuilding(true);
+            }}
             className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white text-sm focus:border-[#D32F2F] focus:outline-none focus:ring-1 focus:ring-[#D32F2F] cursor-pointer"
             required
           >
@@ -326,6 +340,54 @@ export default function ReportForm({ onReportSuccess, userId }: ReportFormProps)
             <option value="Otros">OTRA ENTIDAD FEDERAL</option>
           </select>
         </div>
+
+        {/* Building Selector Toggle */}
+        <div className="md:col-span-2 pt-1">
+          <label className="flex items-center gap-2.5 bg-black/50 p-3.5 rounded-xl border border-white/10 hover:border-amber-500/40 cursor-pointer select-none transition-all">
+            <input
+              type="checkbox"
+              checked={isBuilding || type === 'Derrumbe'}
+              onChange={(e) => setIsBuilding(e.target.checked)}
+              className="accent-amber-500 w-4 h-4 rounded"
+            />
+            <Building2 className="w-4 h-4 text-amber-400 shrink-0" />
+            <span className="text-xs font-mono font-black text-amber-300 uppercase tracking-wider">
+              🏢 ¿ES EL REPORTE DE UN EDIFICIO RESIDENCIAL / COMERCIAL?
+            </span>
+          </label>
+        </div>
+
+        {/* Building Details Inputs */}
+        {(isBuilding || type === 'Derrumbe') && (
+          <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-amber-500/10 border border-amber-500/30 p-4 rounded-xl animate-fadeIn">
+            <div>
+              <label className="block text-[10px] font-mono font-black text-amber-400 uppercase tracking-widest mb-1.5">
+                NRO. DE APARTAMENTOS / PISOS
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={apartmentsCount}
+                onChange={(e) => setApartmentsCount(e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value) || 0))}
+                placeholder="Ej: 24"
+                className="w-full bg-black/80 border border-amber-500/40 rounded-lg p-3 text-white text-sm focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400 font-mono font-bold"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-mono font-black text-amber-400 uppercase tracking-widest mb-1.5">
+                CANTIDAD ESTIMADA DE PERSONAS
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={peopleCount}
+                onChange={(e) => setPeopleCount(e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value) || 0))}
+                placeholder="Ej: 85"
+                className="w-full bg-black/80 border border-amber-500/40 rounded-lg p-3 text-white text-sm focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400 font-mono font-bold"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Severity Indicator */}

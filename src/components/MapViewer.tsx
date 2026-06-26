@@ -179,6 +179,7 @@ export default function MapViewer({
             ${inc.description}
           </p>
           ${inc.address ? `<p style="font-size: 11px; margin: 0 0 10px 0; color: #f87171; background: rgba(220,38,38,0.15); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(220,38,38,0.3); font-family: monospace;">📍 Dir: ${inc.address}</p>` : ''}
+          ${inc.buildingInfo ? `<div style="font-size: 10px; margin: 0 0 10px 0; color: #fbbf24; background: rgba(245,158,11,0.15); padding: 6px 8px; border-radius: 4px; border: 1px solid rgba(245,158,11,0.3); font-family: monospace; font-weight: bold; display: flex; justify-content: space-between;"><span>🏢 Apts: ${inc.buildingInfo.apartmentsCount || '-'}</span><span>👥 Habitantes: ${inc.buildingInfo.peopleCount || '-'}</span></div>` : ''}
           ${inc.structuralEvaluation ? `<p style="font-size: 10px; margin: 0 0 10px 0; color: #fbbf24; background: rgba(245,158,11,0.15); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(245,158,11,0.3); font-family: monospace; font-weight: bold;">🏛️ Estructura: ${inc.structuralEvaluation.formulario_evaluacion_post_sismo.resumen_final.clasificacion}</p>` : ''}
           ${imagesHtml}
           <div style="font-size: 10px; color: rgba(255,255,255,0.5); display: flex; flex-direction: column; gap: 4px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 8px; font-family: monospace;">
