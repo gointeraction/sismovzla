@@ -174,7 +174,8 @@ export const StructuralEvaluationModule: React.FC<Props> = ({ value, onChange })
     });
   };
 
-  const updateEngineer = (field: string, val: string) => {
+  const updateEngineerInfo = (field: 'nombre' | 'cod_inces_civ', val: string) => {
+    const sigField = field === 'nombre' ? 'nombre' : 'civ_no';
     onChange({
       formulario_evaluacion_post_sismo: {
         ...form,
@@ -183,6 +184,13 @@ export const StructuralEvaluationModule: React.FC<Props> = ({ value, onChange })
           ingeniero_evaluador: {
             ...form.datos_edificacion.ingeniero_evaluador,
             [field]: val
+          }
+        },
+        resumen_final: {
+          ...form.resumen_final,
+          firma_evaluador: {
+            ...form.resumen_final.firma_evaluador,
+            [sigField]: val
           }
         }
       }
@@ -435,7 +443,7 @@ export const StructuralEvaluationModule: React.FC<Props> = ({ value, onChange })
               <input
                 type="text"
                 value={form.datos_edificacion.ingeniero_evaluador.nombre}
-                onChange={e => updateEngineer('nombre', e.target.value)}
+                onChange={e => updateEngineerInfo('nombre', e.target.value)}
                 placeholder="Ej: Ing. Carlos Mendoza"
                 className="w-full bg-black/70 border border-white/15 rounded-xl p-3 text-white focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400"
               />
@@ -445,10 +453,7 @@ export const StructuralEvaluationModule: React.FC<Props> = ({ value, onChange })
               <input
                 type="text"
                 value={form.datos_edificacion.ingeniero_evaluador.cod_inces_civ}
-                onChange={e => {
-                  updateEngineer('cod_inces_civ', e.target.value);
-                  updateSignature('civ_no', e.target.value);
-                }}
+                onChange={e => updateEngineerInfo('cod_inces_civ', e.target.value)}
                 placeholder="Ej: CIV 124.567"
                 className="w-full bg-black/70 border border-amber-500/40 rounded-xl p-3 text-white focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400 font-black text-amber-300"
               />
