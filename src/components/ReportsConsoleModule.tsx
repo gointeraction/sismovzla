@@ -13,7 +13,7 @@ interface Props {
   role: string;
 }
 
-type ReportTypeTab = 'incidents_damage' | 'covenin_structural' | 'hospital_patients' | 'blood_donors' | 'shelters_log';
+type ReportTypeTab = 'incidents_damage' | 'covenin_structural' | 'hospital_patients' | 'blood_donors' | 'shelters_log' | 'global_suite';
 
 export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, role }) => {
   const [activeTab, setActiveTab] = useState<ReportTypeTab>('incidents_damage');
@@ -526,6 +526,409 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
     printDocument(`Balance_Logistico_Refugios`, content);
   };
 
+  // --- GLOBAL REPORT 1: DENSIDAD REGIONAL DE DAÑOS POR ESTADO ---
+  const exportRegionalDensityPdf = () => {
+    const statesMap: { [st: string]: { total: number; crit: number; covenin: number } } = {};
+    incidents.forEach(inc => {
+      const st = inc.state || 'Otros';
+      if (!statesMap[st]) statesMap[st] = { total: 0, crit: 0, covenin: 0 };
+      statesMap[st].total += 1;
+      if (inc.severity >= 4) statesMap[st].crit += 1;
+      if (inc.structuralEvaluation) statesMap[st].covenin += 1;
+    });
+
+    let rows = '';
+    Object.keys(statesMap).forEach(st => {
+      const d = statesMap[st];
+      const pctCrit = d.total > 0 ? Math.round((d.crit / d.total) * 100) : 0;
+      const pctCov = d.total > 0 ? Math.round((d.covenin / d.total) * 100) : 0;
+      rows += `
+        <tr>
+          <td><strong>📍 ${st}</strong></td>
+          <td style="text-align: center; font-weight: bold;">${d.total}</td>
+          <td style="text-align: center; color: #dc2626; font-weight: bold;">${d.crit} (${pctCrit}%)</td>
+          <td style="text-align: center; color: #16a34a; font-weight: bold;">${d.covenin} (${pctCov}%)</td>
+          <td>
+            <div style="background: #e5e7eb; width: 100%; height: 10px; border-radius: 5px; overflow: hidden;">
+              <div style="background: #dc2626; width: ${pctCrit}%; height: 100%;"></div>
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+
+    if (rows === '') rows = '<tr><td colspan="5" style="text-align: center;">Sin registros de incidencias por región.</td></tr>';
+
+    const totalNat = incidents.length;
+    const totalCritNat = incidents.filter(i => i.severity >= 4).length;
+    const totalCovNat = incidents.filter(i => i.structuralEvaluation).length;
+
+    const content = `
+      <div class="header">
+        <div>
+          <div class="title">SISMOVZLA — REPORTE EJECUTIVO REGIONAL POR ESTADOS</div>
+          <div class="subtitle">Densidad Comparativa de Daños e Índice de Respuesta Técnica COVENIN 1756</div>
+        </div>
+        <div class="stamp">DENSIDAD REGIONAL</div>
+      </div>
+
+      <div class="meta-grid">
+        <div class="meta-item"><span class="meta-label">Consolidado Nacional</span><span class="meta-val">${totalNat} incidentes registrados</span></div>
+        <div class="meta-item"><span class="meta-label">Índice Crítico Nacional</span><span class="meta-val" style="color: #dc2626;">${totalCritNat} estructuras severas (${totalNat > 0 ? Math.round((totalCritNat/totalNat)*100) : 0}%)</span></div>
+        <div class="meta-item"><span class="meta-label">Cobertura de Inspección</span><span class="meta-val" style="color: #16a34a;">${totalCovNat} dictámenes emitidos</span></div>
+        <div class="meta-item"><span class="meta-label">Fecha de Auditoría</span><span class="meta-val">${new Date().toLocaleString('es-VE')}</span></div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 25%;">Entidad Federal</th>
+            <th style="width: 15%; text-align: center;">Total Censados</th>
+            <th style="width: 20%; text-align: center;">Críticos (Grav 4-5)</th>
+            <th style="width: 20%; text-align: center;">Inspección CIV</th>
+            <th style="width: 20%;">Curva de Severidad</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+          <tr style="background: #f3f4f6; font-weight: bold; border-top: 2px solid #374151;">
+            <td>TOTAL VENEZUELA</td>
+            <td style="text-align: center;">${totalNat}</td>
+            <td style="text-align: center; color: #dc2626;">${totalCritNat}</td>
+            <td style="text-align: center; color: #16a34a;">${totalCovNat}</td>
+            <td>Consolidado País</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+
+    printDocument(`Reporte_Regional_Densidad_Daños`, content);
+  };
+
+  // --- GLOBAL REPORT 2: MANIFIESTO GPS OBJETIVOS SAR / USAR ---
+  const exportSarTargetsPdf = () => {
+    const sarList = incidents.filter(i => i.severity >= 4).sort((a,b) => b.severity - a.severity);
+    let rows = '';
+    sarList.forEach(inc => {
+      rows += `
+        <tr>
+          <td><strong style="color: #dc2626;">INC-${inc.id.toUpperCase()}</strong><br><span style="font-size: 10px;">${new Date(inc.createdAt).toLocaleTimeString('es-VE')}</span></td>
+          <td><strong style="font-size: 13px; font-family: monospace; background: #fee2e2; padding: 4px 8px; border-radius: 4px; display: inline-block; color: #991b1b;">${inc.latitude.toFixed(5)}° N<br>${inc.longitude.toFixed(5)}° O</strong></td>
+          <td><span class="badge-red">Grav. ${inc.severity}</span><br><strong>${inc.type}</strong></td>
+          <td>${inc.address || inc.description}</td>
+          <td>${inc.structuralEvaluation ? 'Inspeccionado CIV' : '⏳ Búsqueda USAR Activa'}</td>
+        </tr>
+      `;
+    });
+
+    if (rows === '') rows = '<tr><td colspan="5" style="text-align: center;">No hay objetivos de rescate críticos (Gravedad 4 y 5) activos.</td></tr>';
+
+    const content = `
+      <div class="header">
+        <div>
+          <div class="title">SISMOVZLA — MANIFIESTO GPS DE OBJETIVOS CRÍTICOS SAR</div>
+          <div class="subtitle">Directorio Táctico de Coordenadas Satelitales para Helitransportes y Brigadas de Rescate Urbano USAR / K9</div>
+        </div>
+        <div class="stamp">RESCATE SAR</div>
+      </div>
+
+      <div class="meta-grid">
+        <div class="meta-item"><span class="meta-label">Objetivos SAR Prioritarios</span><span class="meta-val" style="color: #dc2626;">${sarList.length} puntos de rescate</span></div>
+        <div class="meta-item"><span class="meta-label">Protocolo Táctico</span><span class="meta-val">Despacho Aéreo / Terrestre Inmediato</span></div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 14%;">Código / Hora</th>
+            <th style="width: 22%;">Coordenadas GPS Exactas</th>
+            <th style="width: 18%;">Siniestro</th>
+            <th style="width: 32%;">Referencia Física Terrestre</th>
+            <th style="width: 14%;">Estatus Operativo</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+    `;
+
+    printDocument(`Manifiesto_GPS_Objetivos_SAR`, content);
+  };
+
+  // --- GLOBAL REPORT 3: CATÁLOGO NACIONAL DE INMUEBLES ETIQUETADOS ---
+  const exportTaggedBuildingsPdf = () => {
+    const covList = incidents.filter(i => i.structuralEvaluation !== undefined);
+    
+    const reds = covList.filter(i => i.structuralEvaluation?.formulario_evaluacion_post_sismo.resumen_final.clasificacion.includes('Rojo'));
+    const yellows = covList.filter(i => i.structuralEvaluation?.formulario_evaluacion_post_sismo.resumen_final.clasificacion.includes('Amarillo'));
+    const greens = covList.filter(i => i.structuralEvaluation?.formulario_evaluacion_post_sismo.resumen_final.clasificacion.includes('Verde'));
+
+    const renderGroupRows = (list: Incident[]) => {
+      if (list.length === 0) return '<tr><td colspan="4" style="text-align: center; color: #9ca3af;">Sin edificaciones registradas en esta categoría.</td></tr>';
+      return list.map(inc => {
+        const ev = inc.structuralEvaluation!.formulario_evaluacion_post_sismo;
+        return `
+          <tr>
+            <td><strong>INC-${inc.id.toUpperCase()}</strong><br><span style="font-size: 10px;">CIV: ${ev.datos_edificacion.ingeniero_evaluador.cod_inces_civ || 'Oficial'}</span></td>
+            <td><strong>${ev.datos_edificacion.direccion || inc.address || inc.description}</strong><br><span style="font-size: 10px; color: #666;">${inc.state}</span></td>
+            <td>${ev.datos_edificacion.uso || 'Residencial'} (${ev.datos_edificacion.no_pisos || 1} pisos)</td>
+            <td>${ev.resumen_final.justificacion || 'Evaluación ocular estándar.'}</td>
+          </tr>
+        `;
+      }).join('');
+    };
+
+    const content = `
+      <div class="header">
+        <div>
+          <div class="title">SISMOVZLA — CATÁLOGO MUNICIPAL DE INMUEBLES ETIQUETADOS</div>
+          <div class="subtitle">Registro Oficial COVENIN 1756 de Demoliciones, Accesos Restringidos e Inmuebles Seguros</div>
+        </div>
+        <div class="stamp">CATASTRO SÍSMICO</div>
+      </div>
+
+      <div class="meta-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="meta-item"><span class="meta-label">🔴 Etiqueta Roja (Inseguro)</span><span class="meta-val" style="color: #dc2626;">${reds.length} inmuebles</span></div>
+        <div class="meta-item"><span class="meta-label">🟡 Etiqueta Amarilla (Restringido)</span><span class="meta-val" style="color: #d97706;">${yellows.length} inmuebles</span></div>
+        <div class="meta-item"><span class="meta-label">🟢 Etiqueta Verde (Habitable)</span><span class="meta-val" style="color: #16a34a;">${greens.length} inmuebles</span></div>
+      </div>
+
+      <div class="section-title" style="background: #fee2e2; color: #991b1b; border-left-color: #dc2626;">🔴 1. PERÍMETROS PROHIBIDOS & ÓRDENES DE DEMOLICIÓN (NO HABITABLE)</div>
+      <table>
+        <thead><tr><th style="width:15%;">Expediente</th><th style="width:35%;">Dirección del Inmueble</th><th style="width:20%;">Caracterización</th><th style="width:30%;">Dictamen / Justificación</th></tr></thead>
+        <tbody>${renderGroupRows(reds)}</tbody>
+      </table>
+
+      <div class="section-title" style="background: #fef9c3; color: #854d0e; border-left-color: #d97706;">🟡 2. INMUEBLES CON ACCESO RESTRINGIDO & APUNTALAMIENTO URGENTE</div>
+      <table>
+        <thead><tr><th style="width:15%;">Expediente</th><th style="width:35%;">Dirección del Inmueble</th><th style="width:20%;">Caracterización</th><th style="width:30%;">Dictamen / Justificación</th></tr></thead>
+        <tbody>${renderGroupRows(yellows)}</tbody>
+      </table>
+
+      <div class="section-title" style="background: #dcfce7; color: #166534; border-left-color: #16a34a;">🟢 3. EDIFICACIONES ÍNTEGRAS / HABITABLES (REFUGIOS POTENCIALES)</div>
+      <table>
+        <thead><tr><th style="width:15%;">Expediente</th><th style="width:35%;">Dirección del Inmueble</th><th style="width:20%;">Caracterización</th><th style="width:30%;">Dictamen / Justificación</th></tr></thead>
+        <tbody>${renderGroupRows(greens)}</tbody>
+      </table>
+    `;
+
+    printDocument(`Catalogo_Inmuebles_Etiquetados`, content);
+  };
+
+  // --- GLOBAL REPORT 4: MATRIZ FRECUENCIAL DE PATOLOGÍAS ESTRUCTURALES ---
+  const exportPathologyMatrixPdf = () => {
+    const counts: { [item: string]: { leve: number; mod: number; sev: number; col: number } } = {};
+    let totalEval = 0;
+
+    incidents.forEach(inc => {
+      if (inc.structuralEvaluation) {
+        totalEval += 1;
+        const form = inc.structuralEvaluation.formulario_evaluacion_post_sismo;
+        const seccs = [
+          form.secciones_evaluacion.A_elementos_verticales,
+          form.secciones_evaluacion.B_elementos_horizontales,
+          form.secciones_evaluacion.C_sistema_global,
+          form.secciones_evaluacion.D_elementos_no_estructurales,
+          form.secciones_evaluacion.E_terreno_y_cimentacion,
+          form.secciones_evaluacion.F_instalaciones_y_riesgo_secundario
+        ];
+        seccs.forEach(s => {
+          s.items.forEach(it => {
+            const cal = s.calificaciones[it] || 'Ninguno';
+            if (!counts[it]) counts[it] = { leve: 0, mod: 0, sev: 0, col: 0 };
+            if (cal === 'Leve') counts[it].leve += 1;
+            if (cal === 'Moderado') counts[it].mod += 1;
+            if (cal === 'Severo') counts[it].sev += 1;
+            if (cal === 'Colapso') counts[it].col += 1;
+          });
+        });
+      }
+    });
+
+    let rows = '';
+    Object.keys(counts).forEach(it => {
+      const c = counts[it];
+      const totalAfec = c.leve + c.mod + c.sev + c.col;
+      if (totalAfec > 0) {
+        rows += `
+          <tr>
+            <td><strong>${it}</strong></td>
+            <td style="text-align: center;">${c.leve}</td>
+            <td style="text-align: center; background: #fef9c3;">${c.mod}</td>
+            <td style="text-align: center; background: #fee2e2; color: #991b1b; font-weight: bold;">${c.sev}</td>
+            <td style="text-align: center; background: #991b1b; color: white; font-weight: bold;">${c.col}</td>
+            <td style="text-align: center; font-weight: bold;">${totalAfec} (${totalEval > 0 ? Math.round((totalAfec/totalEval)*100) : 0}%)</td>
+          </tr>
+        `;
+      }
+    });
+
+    if (rows === '') rows = '<tr><td colspan="6" style="text-align: center;">Sin patologías estructurales censadas en las inspecciones.</td></tr>';
+
+    const content = `
+      <div class="header">
+        <div>
+          <div class="title">SISMOVZLA — MATRIZ ANALÍTICA DE PATOLOGÍAS SÍSMICAS</div>
+          <div class="subtitle">Estudio Sismológico de Frecuencia de Fallas Estructurales A - F (Estándar FUNVISIS / CIV)</div>
+        </div>
+        <div class="stamp">ANALÍTICA CIV</div>
+      </div>
+
+      <div class="meta-grid">
+        <div class="meta-item"><span class="meta-label">Base Muestral Evaluada</span><span class="meta-val">${totalEval} edificaciones inspeccionadas formalmente</span></div>
+        <div class="meta-item"><span class="meta-label">Propósito Normativo</span><span class="meta-val">Ajuste de Código Sismorresistente COVENIN 1756</span></div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 40%;">Ítem Estructural / Arquitectónico Evaluado</th>
+            <th style="width: 10%; text-align: center;">Leve</th>
+            <th style="width: 10%; text-align: center;">Moderado</th>
+            <th style="width: 10%; text-align: center;">Severo</th>
+            <th style="width: 10%; text-align: center;">Colapso</th>
+            <th style="width: 20%; text-align: center;">Frecuencia Acumulada</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+    `;
+
+    printDocument(`Matriz_Patologias_Estructurales`, content);
+  };
+
+  // --- GLOBAL REPORT 5: ALERTA TÁCTICA REDES VITALES & RIESGOS SECUNDARIOS ---
+  const exportLifelineHazardsPdf = () => {
+    const hazardsList = incidents.filter(inc => {
+      const txt = `${inc.description} ${inc.type}`.toLowerCase();
+      const matchKey = /gas|incendio|electr|cable|tuber|puente|autopist|agua|colaps|servici|derrumb|fuga|luz/i.test(txt);
+      const matchCov = inc.structuralEvaluation?.formulario_evaluacion_post_sismo.resumen_final.acciones_inmediatas.cortar_servicios === true;
+      return matchKey || matchCov;
+    });
+
+    let rows = '';
+    hazardsList.forEach(inc => {
+      const txt = `${inc.description} ${inc.type}`.toLowerCase();
+      let emp = 'PC / Bomberos';
+      if (/gas|pdvsa/i.test(txt)) emp = '🔥 PDVSA Gas';
+      else if (/electr|luz|cable|corpoelec/i.test(txt)) emp = '⚡ CORPOELEC';
+      else if (/agua|tuber|hidro/i.test(txt)) emp = '💧 Hidrocapital';
+      else if (/puente|vial|autopist/i.test(txt)) emp = '🛣️ Min. Transporte';
+
+      rows += `
+        <tr>
+          <td><strong>INC-${inc.id.toUpperCase()}</strong><br><span style="font-size: 10px;">${inc.state}</span></td>
+          <td><strong style="font-size: 13px; color: #dc2626;">${emp}</strong></td>
+          <td><strong>${inc.type}:</strong> ${inc.description}</td>
+          <td style="font-family: monospace;">${inc.latitude.toFixed(4)}, ${inc.longitude.toFixed(4)}<br><span style="font-size: 10px; color: #555;">${inc.address || ''}</span></td>
+        </tr>
+      `;
+    });
+
+    if (rows === '') rows = '<tr><td colspan="4" style="text-align: center;">Sin alertas inmediatas en servicios públicos o redes vitales.</td></tr>';
+
+    const content = `
+      <div class="header">
+        <div>
+          <div class="title">SISMOVZLA — BOLETÍN TÁCTICO DE REDES VITALES</div>
+          <div class="subtitle">Despacho de Emergencia para Empresas Públicas (CORPOELEC, PDVSA Gas, Hidrocapital y Vialidad)</div>
+        </div>
+        <div class="stamp">REDES VITALES</div>
+      </div>
+
+      <div class="meta-grid">
+        <div class="meta-item"><span class="meta-label">Alertas de Servicios Públicos</span><span class="meta-val" style="color: #dc2626;">${hazardsList.length} puntos con riesgo secundario</span></div>
+        <div class="meta-item"><span class="meta-label">Orden de Despacho</span><span class="meta-val">Corte de Suministro y Reparación Urgente</span></div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 15%;">Código / Estado</th>
+            <th style="width: 20%;">Agencia Competente</th>
+            <th style="width: 40%;">Descripción del Riesgo Secundario</th>
+            <th style="width: 25%;">Coordenadas & Ubicación</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+    `;
+
+    printDocument(`Boletin_Redes_Vitales_Servicios`, content);
+  };
+
+  // --- GLOBAL REPORT 6: BOLETÍN INTERNACIONAL SITREP ONU / OCHA ---
+  const exportSitrepPdf = () => {
+    const totalInc = incidents.length;
+    const critInc = incidents.filter(i => i.severity >= 4).length;
+    const covInc = incidents.filter(i => i.structuralEvaluation).length;
+    const patInc = patients.length;
+    const donInc = donors.filter(d => d.isQualified).length;
+    const shlInc = shelters.length;
+
+    const content = `
+      <div class="header">
+        <div>
+          <div class="title">SITREP — REPORTE DE SITUACIÓN HUMANITARIA</div>
+          <div class="subtitle">Estándar ONU / OCHA / FEMA • Desastre Sísmico República Bolivariana de Venezuela</div>
+        </div>
+        <div class="stamp">SITREP OFICIAL</div>
+      </div>
+
+      <div class="meta-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="meta-item"><span class="meta-label">N° de SITREP</span><span class="meta-val">SITREP-VE-${new Date().toISOString().slice(0,10).replace(/-/g,'')}</span></div>
+        <div class="meta-item"><span class="meta-label">Fecha de Emisión</span><span class="meta-val">${new Date().toLocaleString('es-VE')}</span></div>
+        <div class="meta-item"><span class="meta-label">Centro Coordinador</span><span class="meta-val">SISMOVZLA Contingencia Civil</span></div>
+      </div>
+
+      <div class="section-title">1. Balance General de Impacto Civil</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Indicador Humanitario Censado</th>
+            <th style="text-align: right;">Cifra Consolidada</th>
+            <th>Estatus Operativo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Total de Alertas de Daños Registradas</td><td style="text-align: right; font-weight: bold;">${totalInc}</td><td>Mapeo Ciudadano Activo</td></tr>
+          <tr><td>Estructuras Críticas / Colapsadas (Gravedad 4 y 5)</td><td style="text-align: right; font-weight: bold; color: #dc2626;">${critInc}</td><td>Objetivos de Búsqueda USAR</td></tr>
+          <tr><td>Inspecciones Técnicas Estructurales CIV (COVENIN 1756)</td><td style="text-align: right; font-weight: bold; color: #16a34a;">${covInc}</td><td>Dictámenes Vinculantes Emitidos</td></tr>
+          <tr><td>Censo Clínico en Red de Centros Asistenciales</td><td style="text-align: right; font-weight: bold;">${patInc || 'N/R'}</td><td>Monitoreo Hospitalario OCR</td></tr>
+          <tr><td>Banco de Sangre — Donantes Aptos OMS</td><td style="text-align: right; font-weight: bold; color: #dc2626;">${donInc || 'N/R'}</td><td>Reserva Quirúrgica de Contingencia</td></tr>
+          <tr><td>Refugios Civiles & Centros de Acopio Activos</td><td style="text-align: right; font-weight: bold;">${shlInc || 'N/R'}</td><td>Red Logística Abierta</td></tr>
+        </tbody>
+      </table>
+
+      <div class="section-title">2. Resumen Táctico de Necesidades & Acciones de Coordinación</div>
+      <div style="font-size: 13px; color: #374151; background: #f9fafb; padding: 15px; border: 1px solid #d1d5db; border-radius: 6px; line-height: 1.6;">
+        <p><strong>A. Evaluación de Escena:</strong> Las redes de telecomunicaciones comerciales operan bajo degradación severa. El nodo de contingencia SISMOVZLA mantiene la sincronización PWA asincrónica activa en terminales locales mediante IndexedDB.</p>
+        <p style="margin-top: 8px;"><strong>B. Prioridades Inmediatas de Auxilio:</strong></p>
+        <ol style="padding-left: 20px; margin-top: 4px;">
+          <li>Despliegue de maquinaria pesada y brigadas K9 hacia los ${critInc} objetivos críticos censados.</li>
+          <li>Canalización de unidades sanguíneas desde donantes verificados hacia hospitales traumáticos.</li>
+          <li>Abastecimiento continuo de plantas eléctricas y agua potable en los refugios comunitarios.</li>
+        </ol>
+      </div>
+
+      <div class="signatures">
+        <div class="sig-box">
+          <div class="sig-title">Oficial Táctico de Enlace</div>
+          <div>Comité de Respuesta Ante Desastres</div>
+          <div style="font-weight: bold; margin-top: 2px;">ID: ${role || 'TACTICO_2026'}</div>
+          <div style="margin-top: 25px; border-top: 1px dotted #ccc; font-size: 10px;">Firma y Sello de Certificación</div>
+        </div>
+      </div>
+    `;
+
+    printDocument(`Boletin_SITREP_Internacional_ONU`, content);
+  };
+
 
   return (
     <div className="space-y-6 animate-fade-in" id="reports-console-module">
@@ -646,6 +1049,18 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
         >
           <Building className="w-4 h-4 text-teal-300" />
           5. 🏢 REFUGIOS & ACOPIO {isLoadingExternal ? '⏳' : `(${shelters.length})`}
+        </button>
+
+        <button
+          onClick={() => setActiveTab('global_suite')}
+          className={`py-2.5 px-4 rounded-xl font-mono font-bold text-xs whitespace-nowrap transition-all flex items-center gap-2 cursor-pointer ${
+            activeTab === 'global_suite'
+              ? 'bg-violet-600 text-white shadow-lg border border-violet-400 font-black'
+              : 'bg-zinc-900 text-white/60 hover:text-white border border-white/5'
+          }`}
+        >
+          <SlidersHorizontal className="w-4 h-4 text-violet-300" />
+          6. 🌐 REPORTES GLOBALES (6)
         </button>
       </div>
 
@@ -942,6 +1357,111 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* --- CONTENT AREA N° 6: SUITE GLOBAL GUBERNAMENTAL DE DAÑOS --- */}
+      {activeTab === 'global_suite' && (
+        <div className="space-y-6">
+          <div className="bg-violet-950/40 border border-violet-500/30 rounded-2xl p-5 flex items-center gap-3">
+            <SlidersHorizontal className="w-8 h-8 text-violet-400 shrink-0 animate-pulse" />
+            <div>
+              <h3 className="text-sm font-bold text-white uppercase font-mono">SUITE OFICIAL DE 6 REPORTES GLOBALES DE DAÑOS (PDF A4)</h3>
+              <p className="text-xs text-white/60">Generación instantánea en memoria del navegador según normas COVENIN 1756, SITREP ONU (OCHA) y protocolos SAR de Protección Civil.</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {/* Report 1 */}
+            <div className="bg-zinc-900 border border-white/10 hover:border-violet-500/50 rounded-2xl p-5 flex flex-col justify-between shadow-xl transition-all">
+              <div className="space-y-2">
+                <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 font-mono text-[10px] font-bold">GERENCIA REGIONAL</span>
+                <h4 className="text-base font-bold text-white leading-snug">🌐 1. Densidad Regional por Entidades</h4>
+                <p className="text-xs text-white/60 leading-relaxed">Cuadro estadístico comparativo por Estado con % de estructuras colapsadas e índice de cobertura técnica COVENIN.</p>
+              </div>
+              <button
+                onClick={exportRegionalDensityPdf}
+                className="mt-6 w-full py-3 bg-violet-600 hover:bg-violet-500 text-white rounded-xl font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg cursor-pointer transition-all"
+              >
+                <Printer className="w-4 h-4" /> EXPORTAR PDF REGIONAL
+              </button>
+            </div>
+
+            {/* Report 2 */}
+            <div className="bg-zinc-900 border border-red-500/30 hover:border-red-500 rounded-2xl p-5 flex flex-col justify-between shadow-xl transition-all">
+              <div className="space-y-2">
+                <span className="px-2 py-0.5 rounded bg-red-500/20 text-red-300 font-mono text-[10px] font-bold">HELITRANSPORTES SAR</span>
+                <h4 className="text-base font-bold text-white leading-snug">🚁 2. Coordenadas GPS Rescate (SAR)</h4>
+                <p className="text-xs text-white/60 leading-relaxed">Manifiesto militar satelital de objetivos críticos (Gravedad 4 y 5) en gran formato para pilotos de helicóptero y brigadas K9.</p>
+              </div>
+              <button
+                onClick={exportSarTargetsPdf}
+                className="mt-6 w-full py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg cursor-pointer transition-all"
+              >
+                <Printer className="w-4 h-4" /> EXPORTAR MANIFIESTO SAR
+              </button>
+            </div>
+
+            {/* Report 3 */}
+            <div className="bg-zinc-900 border border-amber-500/30 hover:border-amber-500 rounded-2xl p-5 flex flex-col justify-between shadow-xl transition-all">
+              <div className="space-y-2">
+                <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold">CATASTRO URBANO</span>
+                <h4 className="text-base font-bold text-white leading-snug">🏛️ 3. Catálogo Nacional Etiquetado</h4>
+                <p className="text-xs text-white/60 leading-relaxed">Registro oficial COVENIN dividido en perímetros prohibidos (Rojo), restringidos (Amarillo) y estructuras aptas (Verde).</p>
+              </div>
+              <button
+                onClick={exportTaggedBuildingsPdf}
+                className="mt-6 w-full py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg cursor-pointer transition-all"
+              >
+                <Printer className="w-4 h-4" /> EXPORTAR CATÁLOGO CIV
+              </button>
+            </div>
+
+            {/* Report 4 */}
+            <div className="bg-zinc-900 border border-emerald-500/30 hover:border-emerald-500 rounded-2xl p-5 flex flex-col justify-between shadow-xl transition-all">
+              <div className="space-y-2">
+                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-bold">ANALÍTICA FUNVISIS</span>
+                <h4 className="text-base font-bold text-white leading-snug">📋 4. Matriz de Patologías Sísmicas</h4>
+                <p className="text-xs text-white/60 leading-relaxed">Estudio sismológico de frecuencia de fallas constructivas A-F detectadas en las edificaciones inspeccionadas en Venezuela.</p>
+              </div>
+              <button
+                onClick={exportPathologyMatrixPdf}
+                className="mt-6 w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg cursor-pointer transition-all"
+              >
+                <Printer className="w-4 h-4" /> EXPORTAR MATRIZ FALLAS
+              </button>
+            </div>
+
+            {/* Report 5 */}
+            <div className="bg-zinc-900 border border-cyan-500/30 hover:border-cyan-500 rounded-2xl p-5 flex flex-col justify-between shadow-xl transition-all">
+              <div className="space-y-2">
+                <span className="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono text-[10px] font-bold">SERVICIOS PÚBLICOS</span>
+                <h4 className="text-base font-bold text-white leading-snug">⚡ 5. Alerta Redes Vitales & Riesgos</h4>
+                <p className="text-xs text-white/60 leading-relaxed">Hoja de despacho urgente para empresas públicas (CORPOELEC, PDVSA Gas, Hidrocapital y Vialidad) por daños secundarios.</p>
+              </div>
+              <button
+                onClick={exportLifelineHazardsPdf}
+                className="mt-6 w-full py-3 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg cursor-pointer transition-all"
+              >
+                <Printer className="w-4 h-4" /> EXPORTAR REDES VITALES
+              </button>
+            </div>
+
+            {/* Report 6 */}
+            <div className="bg-zinc-900 border border-purple-500/30 hover:border-purple-500 rounded-2xl p-5 flex flex-col justify-between shadow-xl transition-all">
+              <div className="space-y-2">
+                <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono text-[10px] font-bold">ESTÁNDAR ONU / OCHA</span>
+                <h4 className="text-base font-bold text-white leading-snug">🕒 6. Boletín Internacional SITREP</h4>
+                <p className="text-xs text-white/60 leading-relaxed">Informe de Situación Humanitaria consolidado para organismos multilaterales, cancillerías y agencias de cooperación.</p>
+              </div>
+              <button
+                onClick={exportSitrepPdf}
+                className="mt-6 w-full py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg cursor-pointer transition-all"
+              >
+                <Printer className="w-4 h-4" /> EXPORTAR SITREP ONU
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
