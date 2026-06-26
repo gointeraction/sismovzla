@@ -103,13 +103,19 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
     severity: number;
     description: string;
     reporterContact: string;
+    isBuilding: boolean;
+    apartmentsCount: number | '';
+    peopleCount: number | '';
   }>({
     type: 'Rescate',
     state: '',
     address: '',
     severity: 3,
     description: '',
-    reporterContact: ''
+    reporterContact: '',
+    isBuilding: false,
+    apartmentsCount: '',
+    peopleCount: ''
   });
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [includeStructuralEdit, setIncludeStructuralEdit] = useState(false);
@@ -309,13 +315,17 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
   // Edit incident logic
   const handleOpenEdit = (inc: Incident) => {
     setEditingIncident(inc);
+    const hasBuilding = Boolean(inc.buildingInfo);
     setEditForm({
       type: inc.type,
       state: inc.state,
       address: inc.address || '',
       severity: inc.severity,
       description: inc.description,
-      reporterContact: inc.reporterContact || ''
+      reporterContact: inc.reporterContact || '',
+      isBuilding: hasBuilding || inc.type === 'Derrumbe',
+      apartmentsCount: inc.buildingInfo?.apartmentsCount ?? '',
+      peopleCount: inc.buildingInfo?.peopleCount ?? ''
     });
     if (inc.structuralEvaluation) {
       setIncludeStructuralEdit(true);
@@ -340,6 +350,14 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
         description: editForm.description,
         reporterContact: editForm.reporterContact
       };
+      if (editForm.isBuilding && (editForm.apartmentsCount !== '' || editForm.peopleCount !== '')) {
+        updateData.buildingInfo = {
+          apartmentsCount: Number(editForm.apartmentsCount) || 0,
+          peopleCount: Number(editForm.peopleCount) || 0
+        };
+      } else {
+        updateData.buildingInfo = deleteField();
+      }
       if (includeStructuralEdit) {
         updateData.structuralEvaluation = editEvaluation;
       } else {
@@ -347,6 +365,10 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
       }
       await updateDoc(incRef, updateData);
       if (selectedIncident?.id === editingIncident.id) {
+        const newBuildingInfo = editForm.isBuilding && (editForm.apartmentsCount !== '' || editForm.peopleCount !== '') ? {
+          apartmentsCount: Number(editForm.apartmentsCount) || 0,
+          peopleCount: Number(editForm.peopleCount) || 0
+        } : undefined;
         setSelectedIncident({
           ...selectedIncident,
           type: editForm.type,
@@ -355,6 +377,7 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
           severity: Number(editForm.severity),
           description: editForm.description,
           reporterContact: editForm.reporterContact,
+          buildingInfo: newBuildingInfo,
           structuralEvaluation: includeStructuralEdit ? editEvaluation : undefined
         });
       }
@@ -1635,6 +1658,54 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
                   className="w-full bg-black/60 border border-white/15 rounded-lg p-3 text-white focus:outline-none focus:border-blue-400 font-sans text-sm leading-relaxed"
                   required
                 />
+              </div>
+
+              {/* Censo de Edificio en Modal de Edición */}
+              <div className="pt-2 border-t border-white/10">
+                <label className="flex items-center gap-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 cursor-pointer select-none transition-all hover:bg-amber-500/20">
+                  <input
+                    type="checkbox"
+                    checked={editForm.isBuilding}
+                    onChange={(e) => setEditForm({ ...editForm, isBuilding: e.target.checked })}
+                    className="accent-amber-500 w-4 h-4 rounded cursor-pointer"
+                  />
+                  <span className="font-mono font-bold text-xs uppercase tracking-wide flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-amber-400" />
+                    ¿Es el reporte de un edificio o estructura multifamiliar?
+                  </span>
+                </label>
+
+                {editForm.isBuilding && (
+                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-xl bg-black/60 border border-amber-500/30 animate-in fade-in duration-200">
+                    <div className="space-y-1">
+                      <label className="text-amber-400/90 block font-bold text-[10px] uppercase tracking-wider">
+                        🏢 Nro. de Apartamentos / Pisos:
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={editForm.apartmentsCount}
+                        onChange={(e) => setEditForm({ ...editForm, apartmentsCount: e.target.value === '' ? '' : Number(e.target.value) })}
+                        placeholder="Ej: 48"
+                        className="w-full bg-[#121212] border border-amber-500/30 rounded-lg px-3 py-2 text-white font-mono text-xs focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-amber-400/90 block font-bold text-[10px] uppercase tracking-wider">
+                        👥 Cantidad Estimada de Personas:
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={editForm.peopleCount}
+                        onChange={(e) => setEditForm({ ...editForm, peopleCount: e.target.value === '' ? '' : Number(e.target.value) })}
+                        placeholder="Ej: 180"
+                        className="w-full bg-[#121212] border border-amber-500/30 rounded-lg px-3 py-2 text-white font-mono text-xs focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Optional Structural Evaluation Section inside Edit Modal */}
