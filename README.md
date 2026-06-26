@@ -78,12 +78,19 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
 - **Desplazamiento Horizontal Suave**: Integración nativa `scroll-smooth` sin barra de desplazamiento visible, garantizando acceso instantáneo a todas las opciones del sistema en cualquier resolución.
 
 ### 11. 📄 Consola Maestro de Bitácoras & Exportación Gubernamental PDF (A4)
-- **Centro Auditor Unificado (`[08] REPORTES`)**: Componente ejecutivo con métricas instantáneas y selectores para 5 tipos de reportes oficiales de respuesta civil ante catástrofes:
-  1. `🚨 Boletín Táctico de Daños e Incidentes` (Filtrable por región y gravedad).
-  2. `🏛️ Dictámenes Estructurales COVENIN 1756` (Certificados individuales completos A4).
-  3. `🏥 Censo Clínico Asistencial de Heridos` (Resaltando alertas rojas de traslados cruzados).
-  4. `🩸 Manifiesto Quirúrgico de Banco de Sangre` (Donantes calificados OMS).
-  5. `🏢 Balance Logístico de Refugios & Acopio` (Capacidades e insumos críticos).
+- **Centro Auditor Unificado (`[08] REPORTES`)**: Componente ejecutivo con métricas instantáneas y selectores ergonómicos (*envoltura `flex-wrap` sin emojis repetidos*) para 6 tipos de reportes oficiales de respuesta ante catástrofes:
+  1. `Boletín Táctico de Daños e Incidentes` (Filtrable por región y gravedad).
+  2. `Dictámenes Estructurales COVENIN 1756` (Certificados individuales completos A4).
+  3. `Censo Clínico Asistencial de Heridos` (Resaltando alertas rojas de traslados cruzados).
+  4. `Manifiesto Quirúrgico de Banco de Sangre` (Donantes calificados OMS).
+  5. `Balance Logístico de Refugios & Acopio` (Capacidades e insumos críticos).
+  6. **`Suite Ejecutiva de 6 Reportes Globales de Daños`**: Consolidado gubernamental bajo estándares de la ONU (OCHA) y Protección Civil Internacional:
+     - **Densidad Regional por Estado**: % de colapsos e Índice de Respuesta Técnica CIV.
+     - **Manifiesto GPS de Objetivos SAR / USAR**: Coordenadas satelitales en gran formato tipográfico para pilotos de helicóptero y brigadas K9.
+     - **Catálogo Municipal de Inmuebles Etiquetados**: Registro oficial COVENIN (Rojo, Amarillo, Verde).
+     - **Matriz Frecuencial de Patologías Estructurales CIV**: Estudio sismológico de fallas constructivas A-F.
+     - **Alerta Táctica de Redes Vitales & Riesgos Secundarios**: Despacho para CORPOELEC, PDVSA Gas e Hidros.
+     - **Boletín Internacional SITREP**: Informe de situación humanitaria oficial multilateral.
 - **Generación PDF Certificada (Estrategia *Zero-Bloat*)**: Emplea el motor de renderizado nativo del sistema operativo (`window.print()`) con hojas de estilo `@media print` de alta definición geométrica, evitando añadir megabytes al paquete de la PWA y asegurando descargas instantáneas en conexiones degradadas 2G.
 - **Dictamen Estructural Autógrafo A4**: Imprime el certificado individual de habitabilidad con membrete oficial del Colegio de Ingenieros de Venezuela (CIV), desglose de patologías A-F, acciones inmediatas ordenadas y recuadros de firma autógrafa y sello profesional.
 
