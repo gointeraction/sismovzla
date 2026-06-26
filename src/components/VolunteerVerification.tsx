@@ -25,7 +25,7 @@ export default function VolunteerVerification({ role, onRoleChange }: VolunteerV
       onRoleChange('volunteer');
       localStorage.setItem('sismovzla_volunteer_role', 'volunteer');
       setToken('');
-    } else if (cleanToken === 'RESISTENCIA_2026') {
+    } else if (cleanToken === 'TACTICO_2026') {
       setSuccess(true);
       onRoleChange('operator');
       localStorage.setItem('sismovzla_volunteer_role', 'operator');

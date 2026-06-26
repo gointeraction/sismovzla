@@ -55,7 +55,7 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
 ### 7. 🛡️ Matriz de Control de Seguridad por Roles
 - Acreditación local mediante tokens de terminal en la pestaña `[ADM] COORDINADOR`:
   - **Voluntario Ciudadano** (`VOLUNTARIO_VZLA`): Lectura general y envío de reportes.
-  - **Operador Táctico** (`RESISTENCIA_2026`): Verificación oficial de emergencias, resolución de incidentes, órdenes de despacho a agencias (*911, Bomberos, PC*) y **✏ edición directa de correcciones en Firestore**.
+  - **Operador Táctico** (`TACTICO_2026`): Verificación oficial de emergencias, resolución de incidentes, órdenes de despacho a agencias (*911, Bomberos, PC*) y **✏ edición directa de correcciones en Firestore**.
   - **Coordinador / Admin** (`SISMO_CRISIS_ADMIN`): Administración absoluta y purga de documentos.
 
 ---
