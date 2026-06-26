@@ -60,14 +60,59 @@ const EMERGENCY_GUIDES: Guide[] = [
   }
 ];
 
-const EMERGENCY_PHONES = [
-  { name: "Emergencias Nacionales (VEN 911)", phone: "911", desc: "Atención médica, policial y rescate" },
-  { name: "Bomberos de Caracas", phone: "0212-5454545", desc: "Incendios y rescate en el Distrito Capital" },
-  { name: "Protección Civil Nacional", phone: "0800-7248454", desc: "Coordinación de desastres" },
-  { name: "Cruz Roja Venezolana", phone: "0212-5781283", desc: "Atención médica humanitaria" },
-  { name: "Bomberos de Aragua (Maracay)", phone: "0243-2422222", desc: "Emergencias en el estado Aragua" },
-  { name: "Protección Civil Carabobo", phone: "0241-8586414", desc: "Emergencias en el estado Carabobo" },
-  { name: "Bomberos de La Guaira", phone: "0212-3311911", desc: "Emergencias en el estado La Guaira" }
+interface ContactAgency {
+  name: string;
+  phones: string[];
+}
+
+interface DirectoryCategory {
+  title: string;
+  agencies: ContactAgency[];
+}
+
+const EMERGENCY_CATEGORIES: DirectoryCategory[] = [
+  {
+    title: "🚨 Emergencias (Línea Directa Celular & Fijo)",
+    agencies: [
+      { name: "Cantv (desde fijo)", phones: ["171"] },
+      { name: "Movilnet", phones: ["*1"] },
+      { name: "Digitel", phones: ["112"] },
+      { name: "Movistar", phones: ["911"] },
+      { name: "VEN 911 (Nacional)", phones: ["911"] },
+      { name: "Protección Civil Nacional", phones: ["0800-7248454"] },
+      { name: "Cruz Roja Venezolana", phones: ["0212-5781283"] }
+    ]
+  },
+  {
+    title: "🚑 Red de Ambulancias & Traslados Médicos",
+    agencies: [
+      { name: "Servicio de Ambulancia Metropolitano", phones: ["(0212) 545.45.45", "(0212) 545.46.55", "(0212) 577.92.09"] },
+      { name: "Aeroambulancias", phones: ["(0212) 993.25.41", "(0212) 992.89.80", "(0212) 992.89.90", "(0212) 991.79.40"] },
+      { name: "Rescarven", phones: ["(0212) 993.69.11", "(0212) 993.69.91", "(0212) 993.13.10", "(0212) 993.33.67"] }
+    ]
+  },
+  {
+    title: "🚒 Cuerpos de Bomberos por Estación & Región",
+    agencies: [
+      { name: "Metropolitanos (Caracas Central)", phones: ["(0212) 545.45.45"] },
+      { name: "Antímano", phones: ["(0212) 472.20.54"] },
+      { name: "Catia la Mar", phones: ["(0212) 351.99.66"] },
+      { name: "Chacao", phones: ["(0212) 265.32.61"] },
+      { name: "del Este (Cafetal)", phones: ["(0212) 987.43.34", "(0212) 985.50.60"] },
+      { name: "Sucre", phones: ["(0212) 985.36.40"] },
+      { name: "El Cafetal", phones: ["(0212) 985.36.40", "(0212) 985.29.77"] },
+      { name: "El Paraíso", phones: ["(0212) 481.09.61"] },
+      { name: "El Valle", phones: ["(0212) 672.01.75", "(0212) 672.06.36"] },
+      { name: "La Guaira (Central)", phones: ["(0212) 332.76.20", "(0212) 331.04.45"] },
+      { name: "La Trinidad", phones: ["(0212) 943.43.61"] },
+      { name: "La Urbina", phones: ["(0212) 241.66.41"] },
+      { name: "Miranda", phones: ["(0212) 235.69.67"] },
+      { name: "Plaza Venezuela", phones: ["(0212) 793.00.39", "(0212) 793.64.57"] },
+      { name: "San Bernardino", phones: ["(0212) 577.92.09"] },
+      { name: "Aragua (Maracay Central)", phones: ["0243-2422222"] },
+      { name: "Carabobo (Valencia Central)", phones: ["0241-8586414"] }
+    ]
+  }
 ];
 
 export default function SurvivalSection() {
@@ -321,30 +366,44 @@ export default function SurvivalSection() {
         </div>
       </div>
 
-      {/* Directory of Emergency Contacts */}
-      <div className="bg-gradient-to-br from-[#121212] to-[#080808] border border-white/10 rounded-xl p-5.5 shadow-lg" id="emergency-directory">
-        <h3 className="text-lg font-display font-black text-white mb-4 flex items-center gap-2.5 uppercase tracking-wide">
+      {/* Directory of Emergency Contacts Categorized */}
+      <div className="space-y-6" id="emergency-directory">
+        <h3 className="text-lg font-display font-black text-white flex items-center gap-2.5 uppercase tracking-wide px-1">
           <Phone className="w-5 h-5 text-[#D32F2F]" />
-          NÚMEROS DE EMERGENCIA Y DESPACHO
+          DIRECTORIO OFICIAL DE AUXILIO METROPOLITANO & NACIONAL
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-          {EMERGENCY_PHONES.map((item, index) => (
-            <a
-              key={index}
-              href={`tel:${item.phone.replace(/[^0-9]/g, '')}`}
-              className="flex items-center justify-between p-3.5 rounded-xl bg-black/40 border border-white/5 hover:border-[#D32F2F]/30 transition-all duration-300 group"
-            >
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {EMERGENCY_CATEGORIES.map((cat, cIdx) => (
+            <div key={cIdx} className="bg-gradient-to-br from-[#141414] to-[#0a0a0a] border border-white/10 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
               <div>
-                <p className="font-mono font-bold text-white text-sm group-hover:text-[#D32F2F] transition-colors uppercase">
-                  {item.name}
-                </p>
-                <p className="text-xs text-white/50 mt-0.5 leading-relaxed">{item.desc}</p>
+                <h4 className="text-sm font-display font-black text-amber-400 mb-4 pb-2.5 border-b border-white/10 uppercase tracking-wider flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 text-red-500 shrink-0" />
+                  {cat.title}
+                </h4>
+                <div className="space-y-3">
+                  {cat.agencies.map((agency, aIdx) => (
+                    <div key={aIdx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl bg-black/50 border border-white/5 hover:border-red-500/30 transition-all duration-200 group">
+                      <span className="font-mono font-bold text-white/90 text-xs sm:text-sm group-hover:text-red-400 transition-colors uppercase pr-2">
+                        {agency.name}
+                      </span>
+                      <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+                        {agency.phones.map((ph, pIdx) => (
+                          <a
+                            key={pIdx}
+                            href={`tel:${ph.replace(/[^0-9*]/g, '')}`}
+                            className="inline-flex items-center gap-1 bg-red-600/15 hover:bg-red-600 text-red-300 hover:text-white text-xs px-2.5 py-1 rounded-lg font-mono font-extrabold border border-red-500/30 transition-all shadow-sm active:scale-95"
+                          >
+                            <Phone className="w-3 h-3" />
+                            {ph}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="flex items-center gap-1.5 bg-[#D32F2F]/10 text-[#D32F2F] text-xs px-3 py-1.5 rounded-lg font-mono font-bold border border-[#D32F2F]/20 shrink-0">
-                <Phone className="w-3.5 h-3.5" />
-                {item.phone}
-              </div>
-            </a>
+            </div>
           ))}
         </div>
       </div>
