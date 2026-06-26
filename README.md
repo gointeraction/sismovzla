@@ -3,7 +3,8 @@
 # 🚨 SISMOVZLA — Plataforma Táctica Comunitaria de Emergencia
 **Nodo Civil Descentralizado para Mapeo de Daños, Triaje de Riesgos y Respuesta Ante Catástrofes Sísmicas**
 
-[![Despliegue Oficial](https://img.shields.io/badge/Despliegue-Firebase_Hosting-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://sismovzla.web.app)
+[![Nodo Principal](https://img.shields.io/badge/Despliegue-SismoVZLA.web.app-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://sismovzla.web.app)
+[![Nodo Espejo](https://img.shields.io/badge/Espejo-AyudaSismoVZLA.web.app-FF9800?style=for-the-badge&logo=firebase&logoColor=black)](https://ayudasismovzla.web.app)
 [![PWA Offline-First](https://img.shields.io/badge/Arquitectura-PWA_Resiliente-4CAF50?style=for-the-badge&logo=pwa&logoColor=white)](#-arquitectura-resiliente-offline-first)
 [![Stack](https://img.shields.io/badge/Frontend-React_19_%2B_TypeScript-3178C6?style=for-the-badge&logo=react&logoColor=white)](https://react.dev)
 [![Estilos](https://img.shields.io/badge/UI-Tailwind_CSS_v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
