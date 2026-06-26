@@ -989,78 +989,78 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
         </div>
       </div>
 
-      {/* 5 Report Type Switcher Pills */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+      {/* 6 Report Type Switcher Pills (Ergonomic Flex Wrap) */}
+      <div className="flex flex-wrap items-center gap-2 pb-1 w-full">
         <button
           onClick={() => setActiveTab('incidents_damage')}
-          className={`py-2.5 px-4 rounded-xl font-mono font-bold text-xs whitespace-nowrap transition-all flex items-center gap-2 cursor-pointer ${
+          className={`py-2.5 px-4 rounded-xl font-mono font-bold text-xs transition-all flex items-center gap-2 cursor-pointer grow sm:grow-0 justify-center ${
             activeTab === 'incidents_damage'
               ? 'bg-red-600 text-white shadow-lg border border-red-400 font-black'
-              : 'bg-zinc-900 text-white/60 hover:text-white border border-white/5'
+              : 'bg-zinc-900 text-white/70 hover:text-white border border-white/10 hover:bg-zinc-800'
           }`}
         >
-          <AlertTriangle className="w-4 h-4 text-red-300" />
-          1. 🚨 REPORTE DE DAÑOS ({incidents.length})
+          <AlertTriangle className="w-4 h-4 text-red-300 shrink-0" />
+          1. REPORTE DE DAÑOS ({incidents.length})
         </button>
 
         <button
           onClick={() => setActiveTab('covenin_structural')}
-          className={`py-2.5 px-4 rounded-xl font-mono font-bold text-xs whitespace-nowrap transition-all flex items-center gap-2 cursor-pointer ${
+          className={`py-2.5 px-4 rounded-xl font-mono font-bold text-xs transition-all flex items-center gap-2 cursor-pointer grow sm:grow-0 justify-center ${
             activeTab === 'covenin_structural'
               ? 'bg-emerald-600 text-white shadow-lg border border-emerald-400 font-black'
-              : 'bg-zinc-900 text-white/60 hover:text-white border border-white/5'
+              : 'bg-zinc-900 text-white/70 hover:text-white border border-white/10 hover:bg-zinc-800'
           }`}
         >
-          <Building2 className="w-4 h-4 text-emerald-300" />
-          2. 🏛️ DICTÁMENES COVENIN 1756 ({incidents.filter(i => i.structuralEvaluation).length})
+          <Building2 className="w-4 h-4 text-emerald-300 shrink-0" />
+          2. DICTÁMENES COVENIN ({incidents.filter(i => i.structuralEvaluation).length})
         </button>
 
         <button
           onClick={() => setActiveTab('hospital_patients')}
-          className={`py-2.5 px-4 rounded-xl font-mono font-bold text-xs whitespace-nowrap transition-all flex items-center gap-2 cursor-pointer ${
+          className={`py-2.5 px-4 rounded-xl font-mono font-bold text-xs transition-all flex items-center gap-2 cursor-pointer grow sm:grow-0 justify-center ${
             activeTab === 'hospital_patients'
               ? 'bg-amber-600 text-white shadow-lg border border-amber-400 font-black'
-              : 'bg-zinc-900 text-white/60 hover:text-white border border-white/5'
+              : 'bg-zinc-900 text-white/70 hover:text-white border border-white/10 hover:bg-zinc-800'
           }`}
         >
-          <Activity className="w-4 h-4 text-amber-300" />
-          3. 🏥 PACIENTES ASISTENCIALES {isLoadingExternal ? '⏳' : `(${patients.length})`}
+          <Activity className="w-4 h-4 text-amber-300 shrink-0" />
+          3. PACIENTES ASISTENCIALES {isLoadingExternal ? '⏳' : `(${patients.length})`}
         </button>
 
         <button
           onClick={() => setActiveTab('blood_donors')}
-          className={`py-2.5 px-4 rounded-xl font-mono font-bold text-xs whitespace-nowrap transition-all flex items-center gap-2 cursor-pointer ${
+          className={`py-2.5 px-4 rounded-xl font-mono font-bold text-xs transition-all flex items-center gap-2 cursor-pointer grow sm:grow-0 justify-center ${
             activeTab === 'blood_donors'
               ? 'bg-red-600 text-white shadow-lg border border-red-400 font-black'
-              : 'bg-zinc-900 text-white/60 hover:text-white border border-white/5'
+              : 'bg-zinc-900 text-white/70 hover:text-white border border-white/10 hover:bg-zinc-800'
           }`}
         >
-          <Droplet className="w-4 h-4 text-red-200" />
-          4. 🩸 BANCO DE SANGRE {isLoadingExternal ? '⏳' : `(${donors.length})`}
+          <Droplet className="w-4 h-4 text-red-200 shrink-0" />
+          4. BANCO DE SANGRE {isLoadingExternal ? '⏳' : `(${donors.length})`}
         </button>
 
         <button
           onClick={() => setActiveTab('shelters_log')}
-          className={`py-2.5 px-4 rounded-xl font-mono font-bold text-xs whitespace-nowrap transition-all flex items-center gap-2 cursor-pointer ${
+          className={`py-2.5 px-4 rounded-xl font-mono font-bold text-xs transition-all flex items-center gap-2 cursor-pointer grow sm:grow-0 justify-center ${
             activeTab === 'shelters_log'
               ? 'bg-teal-600 text-white shadow-lg border border-teal-400 font-black'
-              : 'bg-zinc-900 text-white/60 hover:text-white border border-white/5'
+              : 'bg-zinc-900 text-white/70 hover:text-white border border-white/10 hover:bg-zinc-800'
           }`}
         >
-          <Building className="w-4 h-4 text-teal-300" />
-          5. 🏢 REFUGIOS & ACOPIO {isLoadingExternal ? '⏳' : `(${shelters.length})`}
+          <Building className="w-4 h-4 text-teal-300 shrink-0" />
+          5. REFUGIOS & ACOPIO {isLoadingExternal ? '⏳' : `(${shelters.length})`}
         </button>
 
         <button
           onClick={() => setActiveTab('global_suite')}
-          className={`py-2.5 px-4 rounded-xl font-mono font-bold text-xs whitespace-nowrap transition-all flex items-center gap-2 cursor-pointer ${
+          className={`py-2.5 px-4 rounded-xl font-mono font-bold text-xs transition-all flex items-center gap-2 cursor-pointer grow sm:grow-0 justify-center ${
             activeTab === 'global_suite'
               ? 'bg-violet-600 text-white shadow-lg border border-violet-400 font-black'
-              : 'bg-zinc-900 text-white/60 hover:text-white border border-white/5'
+              : 'bg-zinc-900 text-white/70 hover:text-white border border-white/10 hover:bg-zinc-800'
           }`}
         >
-          <SlidersHorizontal className="w-4 h-4 text-violet-300" />
-          6. 🌐 REPORTES GLOBALES (6)
+          <SlidersHorizontal className="w-4 h-4 text-violet-300 shrink-0" />
+          6. REPORTES GLOBALES (6)
         </button>
       </div>
 
