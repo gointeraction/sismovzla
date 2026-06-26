@@ -95,12 +95,14 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
   const [editForm, setEditForm] = useState<{
     type: Incident['type'];
     state: string;
+    address: string;
     severity: number;
     description: string;
     reporterContact: string;
   }>({
     type: 'Rescate',
     state: '',
+    address: '',
     severity: 3,
     description: '',
     reporterContact: ''
@@ -304,6 +306,7 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
     setEditForm({
       type: inc.type,
       state: inc.state,
+      address: inc.address || '',
       severity: inc.severity,
       description: inc.description,
       reporterContact: inc.reporterContact || ''
@@ -319,6 +322,7 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
       await updateDoc(incRef, {
         type: editForm.type,
         state: editForm.state,
+        address: editForm.address.trim() || null,
         severity: Number(editForm.severity),
         description: editForm.description,
         reporterContact: editForm.reporterContact
@@ -328,6 +332,7 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
           ...selectedIncident,
           type: editForm.type,
           state: editForm.state,
+          address: editForm.address.trim() || undefined,
           severity: Number(editForm.severity),
           description: editForm.description,
           reporterContact: editForm.reporterContact
@@ -454,6 +459,7 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
           text += `  ${idx + 1}. [ESTATUS: ${estStr}] | SEVERIDAD: Nivel ${inc.severity}\n`;
           text += `     ZONA: ${inc.state.toUpperCase()} | TIPOLOGÍA: ${inc.type.toUpperCase()}\n`;
           text += `     COORDENADAS: Lat ${inc.latitude.toFixed(5)}, Lon ${inc.longitude.toFixed(5)}\n`;
+          if (inc.address) text += `     DIRECCIÓN MANUAL: ${inc.address}\n`;
           text += `     REPORTE: ${inc.description}\n`;
           text += `     FECHA/HORA: ${new Date(inc.createdAt).toLocaleString('es-VE')} | EMISOR: ${inc.reportedBy}\n`;
           text += `     ------------------------------------------------------------\n`;
@@ -918,6 +924,11 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
                       </div>
 
                       <p className="text-xs text-white/70 line-clamp-2 leading-relaxed font-sans">{inc.description}</p>
+                      {inc.address && (
+                        <p className="text-[10px] text-red-300 font-mono flex items-center gap-1 mt-1 bg-red-500/10 px-2 py-1 rounded border border-red-500/20">
+                          <MapPin className="w-3 h-3 text-red-400 shrink-0" /> {inc.address}
+                        </p>
+                      )}
 
                       <div className="flex items-center justify-between border-t border-white/5 pt-2 mt-1 text-[10px] font-mono">
                         <span className="text-white/40">{new Date(inc.createdAt).toLocaleTimeString('es-VE', {hour:'2-digit', minute:'2-digit'})} VET</span>
@@ -992,6 +1003,16 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
                   <p className="text-xs text-white/40 font-mono uppercase tracking-wider font-bold">Descripción Táctica:</p>
                   <p className="text-sm text-white/90 leading-relaxed font-sans">{selectedIncident.description}</p>
                   
+                  {selectedIncident.address && (
+                    <div className="mt-3 p-2.5 rounded-lg bg-red-500/10 border border-red-500/20 font-mono text-xs text-red-300 flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-red-400 shrink-0" />
+                      <div>
+                        <span className="text-[10px] text-red-400 font-bold uppercase block">Dirección Manual Exacta:</span>
+                        {selectedIncident.address}
+                      </div>
+                    </div>
+                  )}
+
                   {((selectedIncident.mediaUrls && selectedIncident.mediaUrls.length > 0) || selectedIncident.mediaUrl) && (
                     <div className="mt-4 border border-white/10 rounded-lg overflow-hidden bg-black/50">
                       <p className="text-[10px] font-mono text-white/40 p-2 bg-black/60 border-b border-white/10 flex items-center gap-1.5 uppercase font-bold">
@@ -1506,6 +1527,19 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
                   value={editForm.reporterContact}
                   onChange={(e) => setEditForm({ ...editForm, reporterContact: e.target.value })}
                   placeholder="Ej: 0414-1234567"
+                  className="w-full bg-black/60 border border-white/15 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-400 font-sans"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-white/60 block font-bold uppercase flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-red-400" /> Dirección Manual Exacta:
+                </label>
+                <input
+                  type="text"
+                  value={editForm.address}
+                  onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                  placeholder="Ej: Av. Principal, Edificio Santa Ana, Piso 3"
                   className="w-full bg-black/60 border border-white/15 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-400 font-sans"
                 />
               </div>

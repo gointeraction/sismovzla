@@ -4,6 +4,7 @@ export interface Incident {
   severity: number; // 1 to 5
   description: string;
   state: 'Caracas' | 'La Guaira' | 'Aragua' | 'Carabobo' | 'Otros';
+  address?: string; // Dirección o referencia manual del incidente
   latitude: number;
   longitude: number;
   mediaUrl?: string;

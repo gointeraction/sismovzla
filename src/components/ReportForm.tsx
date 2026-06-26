@@ -15,6 +15,7 @@ export default function ReportForm({ onReportSuccess, userId }: ReportFormProps)
   const [type, setType] = useState<Incident['type']>('Rescate');
   const [severity, setSeverity] = useState<number>(3);
   const [description, setDescription] = useState('');
+  const [address, setAddress] = useState('');
   const [state, setState] = useState<Incident['state']>('Caracas');
   const [reporterContact, setReporterContact] = useState('');
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -58,29 +59,19 @@ export default function ReportForm({ onReportSuccess, userId }: ReportFormProps)
           setState('La Guaira');
         } else if (lat > 10.4 && lat <= 10.55 && lng > -67.1 && lng < -66.7) {
           setState('Caracas');
-        } else if (lat > 10.0 && lat < 10.4 && lng > -67.8 && lng <= -67.1) {
+        } else if (lat > 10.0 && lat < 10.3 && lng > -67.8 && lng <= -67.2) {
           setState('Aragua');
-        } else if (lat > 9.9 && lat < 10.3 && lng > -68.4 && lng <= -67.8) {
+        } else if (lat > 9.9 && lat <= 10.4 && lng > -68.3 && lng <= -67.8) {
           setState('Carabobo');
+        } else {
+          setState('Otros');
         }
       },
       (error) => {
         setIsGettingLocation(false);
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            setLocationError("Permiso de GPS denegado. Seleccione el estado manualmente.");
-            break;
-          case error.POSITION_UNAVAILABLE:
-            setLocationError("Señal de GPS no disponible. Seleccione el estado manualmente.");
-            break;
-          case error.TIMEOUT:
-            setLocationError("Tiempo de espera agotado al obtener GPS.");
-            break;
-          default:
-            setLocationError("Error al obtener GPS.");
-        }
+        setLocationError("No se pudo obtener el GPS (Saturación de torre/Batería baja). Seleccione el estado manualmente.");
       },
-      { enableHighAccuracy: true, timeout: 8000, maximumAge: 10000 }
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
     );
   };
 
@@ -194,6 +185,7 @@ export default function ReportForm({ onReportSuccess, userId }: ReportFormProps)
       severity,
       description,
       state,
+      address: address.trim() || undefined,
       latitude: finalLat,
       longitude: finalLng,
       mediaUrl: imagePreviews[0] || undefined,
@@ -243,6 +235,7 @@ export default function ReportForm({ onReportSuccess, userId }: ReportFormProps)
 
   const resetForm = () => {
     setDescription('');
+    setAddress('');
     setReporterContact('');
     setImagePreviews([]);
     setAudioPreview(null);
@@ -359,6 +352,21 @@ export default function ReportForm({ onReportSuccess, userId }: ReportFormProps)
           placeholder="Ej: Colapso parcial de estructura residencial. Entrada principal obstruida por escombros. Se escuchan gritos solicitando auxilio médico en el piso 2..."
           className="w-full h-24 bg-black/40 border border-white/10 rounded-lg p-3 text-white text-sm placeholder:text-white/20 focus:border-[#D32F2F] focus:outline-none focus:ring-1 focus:ring-[#D32F2F] resize-none"
           required
+        />
+      </div>
+
+      {/* Manual Address Field */}
+      <div>
+        <label className="block text-[10px] font-mono font-bold text-white/40 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+          <MapPin className="w-3 h-3 text-[#D32F2F]" />
+          DIRECCIÓN O REFERENCIA MANUAL EXACTA (OPCIONAL)
+        </label>
+        <input
+          type="text"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          placeholder="Ej: Av. Principal de Los Dos Caminos, Edificio Santa Ana, Piso 3, Caracas."
+          className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white text-sm placeholder:text-white/20 focus:border-[#D32F2F] focus:outline-none focus:ring-1 focus:ring-[#D32F2F]"
         />
       </div>
 

@@ -178,6 +178,7 @@ export default function MapViewer({
           <p style="font-size: 12px; margin: 0 0 10px 0; color: rgba(255,255,255,0.9); font-weight: 500; line-height: 1.4;">
             ${inc.description}
           </p>
+          ${inc.address ? `<p style="font-size: 11px; margin: 0 0 10px 0; color: #f87171; background: rgba(220,38,38,0.15); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(220,38,38,0.3); font-family: monospace;">📍 Dir: ${inc.address}</p>` : ''}
           ${imagesHtml}
           <div style="font-size: 10px; color: rgba(255,255,255,0.5); display: flex; flex-direction: column; gap: 4px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 8px; font-family: monospace;">
             <span>📍 Ubicac: ${inc.state}</span>
