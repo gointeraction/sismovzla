@@ -145,7 +145,23 @@ export interface BloodDonor {
   referredFacilityName?: string;
   referredNotes?: string;
   referredAt?: number;
-  referredBy?: string;
   createdAt: number;
 }
+
+export interface HospitalPatient {
+  id: string;
+  fullName: string;
+  age?: number;
+  ci: string; // Cédula de identidad normalizada ej: V-12345678 o 12345678
+  hospitalName: string; // Centro asistencial donde ingresó
+  status: 'Ingresado' | 'En Observación' | 'Dado de Alta' | 'Trasladado' | 'Fallecido';
+  condition?: string; // Estable, Crítico, Leve, Desconocido
+  notes?: string; // Habitación, cama u observaciones
+  reportedBy: string; // Voluntario o médico
+  sourcePhotoUrl?: string; // Evidencia visual de lista impresa
+  isDuplicateCheck?: boolean; // True si coincide cédula en otro hospital (Doble chequeo)
+  duplicateOfHospital?: string; // Nombre del otro hospital con el que entra en conflicto
+  createdAt: number;
+}
+
 

@@ -66,6 +66,12 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
 - **Usabilidad y Navegación en Cuadrícula (*Grid 4 Pasos*)**: Flujo guiado paso a paso (*Edificio ➔ Daños A-C ➔ Riesgos D-F ➔ Dictamen*) con selectores proporcionales diseñados para pantallas táctiles en tierra.
 - **Adjuntar o Editar a Posteriori**: Comisión técnica u operadores (`TACTICO_2026`) pueden incorporar por primera vez o corregir el informe estructural sobre reportes ya existentes mediante el modal **`✏ EDITAR`**, sincronizando el semáforo de habitabilidad en vivo hacia el mapa georeferenciado.
 
+### 9. 🏥 Base de Datos de Personas en Centros Asistenciales (OCR Masivo + Doble Chequeo)
+- **Carga Masiva por Foto / OCR (*IA Vision*)**: Digitalización instantánea de listados de papel en puertas de hospitales, interpretando automáticamente Nombre Completo, Cédula y Edad.
+- **Deduplicación & Regla de Doble Chequeo**: Verificación en tiempo real contra la base nacional en Firestore. Si la cédula coincide con un paciente censado en otro hospital, **crea automáticamente un segundo registro intermitente en color rojo** (`⚠️ DOBLE CHEQUEO REQUERIDO`) para que comisiones de rescate verifiquen físicamente la ubicación real.
+- **Censo Nacional Asistencial**: Buscador público interactivo por cédula o apellido con filtros por centro clínico.
+
+
 ---
 
 ## 🏗️ Stack Tecnológico

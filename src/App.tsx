@@ -10,6 +10,7 @@ import VolunteerVerification, { VolunteerRole } from './components/VolunteerVeri
 import AdminPanel from './components/AdminPanel';
 import SheltersModule from './components/SheltersModule';
 import BloodDonorsModule from './components/BloodDonorsModule';
+import HospitalPatientsModule from './components/HospitalPatientsModule';
 import { 
   ShieldAlert, 
   Wifi, 
@@ -65,7 +66,7 @@ export default function App() {
   const isVolunteerVerified = volunteerRole !== 'none';
   const [selectedStateFilter, setSelectedStateFilter] = useState<Incident['state'] | 'Todos'>('Todos');
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [activeTab, setActiveTab] = useState<'map_reports' | 'report_form' | 'survival_guides' | 'missing_search' | 'shelters' | 'blood_donors' | 'volunteer_gate'>('map_reports');
+  const [activeTab, setActiveTab] = useState<'map_reports' | 'report_form' | 'survival_guides' | 'missing_search' | 'shelters' | 'blood_donors' | 'hospital_patients' | 'volunteer_gate'>('map_reports');
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState('');
   const [isLightMode, setIsLightMode] = useState(() => localStorage.getItem('sismovzla_light_mode') === 'true');
@@ -391,6 +392,18 @@ export default function App() {
           </button>
 
           <button
+            onClick={() => setActiveTab('hospital_patients')}
+            className={`py-3.5 px-2.5 md:px-3.5 border-b-2 font-mono font-bold text-[11px] md:text-xs uppercase tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
+              activeTab === 'hospital_patients'
+                ? 'border-[#D32F2F] text-white bg-white/5 shadow-[inset_0_-4px_10px_rgba(211,47,47,0.15)]'
+                : 'border-transparent text-white/60 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <Activity className="w-4 h-4 text-amber-400 shrink-0" />
+            [07] CENTROS ASISTENCIALES
+          </button>
+
+          <button
             onClick={() => setActiveTab('volunteer_gate')}
             className={`py-3.5 px-2.5 md:px-3.5 border-b-2 font-mono font-bold text-[11px] md:text-xs uppercase tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
               activeTab === 'volunteer_gate'
@@ -506,6 +519,15 @@ export default function App() {
           <div className="space-y-6 animate-fade-in" id="tab-blood-donors">
             <BloodDonorsModule 
               isVolunteerVerified={isVolunteerVerified}
+              role={volunteerRole}
+            />
+          </div>
+        )}
+
+        {activeTab === 'hospital_patients' && (
+          <div className="space-y-6 animate-fade-in" id="tab-hospital-patients">
+            <HospitalPatientsModule 
+              isVerified={isVolunteerVerified}
               role={volunteerRole}
             />
           </div>
