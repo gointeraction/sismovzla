@@ -36,7 +36,7 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
 - **Optimización de Ancho de Banda**: Transmisión ultraliviana compatible con redes 2G degradadas.
 
 ### 3. 🆘 Reporte Ciudadano Multimodal
-- **Geolocalización Automática**: Captura de coordenadas GPS de alta precisión con un solo toque.
+- **Geolocalización Flexible**: Captura de coordenadas GPS satelitales mediante botón automático opcional o ingreso manual directo de Latitud/Longitud.
 - **Direcciones o Referencias Manuales Exactas**: Campo dedicado para describir ubicaciones textuales precisas (*Ej: Av. Principal, Edificio Santa Ana, Piso 3*), modificable posteriormente por operadores tácticos.
 - **Notas de Voz Comprimidas**: Codificación de mensajes de auxilio en formato **OPUS base64** (~4KB por nota), evitando enviar archivos de audio pesados.
 - **Evidencia Visual y Lightbox**: Registro fotográfico comprimido con un visor ampliado (*ImageLightbox*) accesible desde reportes y bitácoras operativas.

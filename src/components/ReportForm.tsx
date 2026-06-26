@@ -16,6 +16,8 @@ export default function ReportForm({ onReportSuccess, userId }: ReportFormProps)
   const [severity, setSeverity] = useState<number>(3);
   const [description, setDescription] = useState('');
   const [address, setAddress] = useState('');
+  const [manualLat, setManualLat] = useState('');
+  const [manualLng, setManualLng] = useState('');
   const [state, setState] = useState<Incident['state']>('Caracas');
   const [reporterContact, setReporterContact] = useState('');
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -36,7 +38,7 @@ export default function ReportForm({ onReportSuccess, userId }: ReportFormProps)
   const [offlineQueued, setOfflineQueued] = useState(false);
 
   useEffect(() => {
-    getGeolocation();
+    // getGeolocation(); // Solicitud automática ahora opcional mediante botón
   }, []);
 
   const getGeolocation = () => {
@@ -53,6 +55,8 @@ export default function ReportForm({ onReportSuccess, userId }: ReportFormProps)
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
         setLocation({ lat, lng });
+        setManualLat(lat.toFixed(5));
+        setManualLng(lng.toFixed(5));
         setIsGettingLocation(false);
 
         if (lat > 10.55 && lat < 10.65 && lng > -67.2 && lng < -66.5) {
@@ -171,10 +175,12 @@ export default function ReportForm({ onReportSuccess, userId }: ReportFormProps)
     setOfflineQueued(false);
     setSubmitSuccess(false);
 
-    let finalLat = location?.lat || 10.4806;
-    let finalLng = location?.lng || -66.9036;
+    let parsedLat = parseFloat(manualLat);
+    let parsedLng = parseFloat(manualLng);
+    let finalLat = !isNaN(parsedLat) ? parsedLat : (location?.lat || 10.4806);
+    let finalLng = !isNaN(parsedLng) ? parsedLng : (location?.lng || -66.9036);
 
-    if (!location) {
+    if (isNaN(parsedLat) && !location) {
       if (state === 'La Guaira') { finalLat = 10.5986; finalLng = -66.9317; }
       else if (state === 'Aragua') { finalLat = 10.2442; finalLng = -67.5919; }
       else if (state === 'Carabobo') { finalLat = 10.1622; finalLng = -68.0077; }
@@ -236,6 +242,8 @@ export default function ReportForm({ onReportSuccess, userId }: ReportFormProps)
   const resetForm = () => {
     setDescription('');
     setAddress('');
+    setManualLat('');
+    setManualLng('');
     setReporterContact('');
     setImagePreviews([]);
     setAudioPreview(null);
@@ -384,35 +392,64 @@ export default function ReportForm({ onReportSuccess, userId }: ReportFormProps)
         />
       </div>
 
-      {/* GPS Status with Manual Refresh Button */}
-      <div className="flex flex-wrap items-center justify-between p-3.5 rounded-xl bg-black/50 border border-white/10 gap-2.5 font-mono">
-        <div className="flex items-center gap-2">
-          <MapPin className={`w-4 h-4 ${location ? 'text-[#4CAF50]' : 'text-[#FF9800]'}`} />
-          <span className="text-xs text-white/70 font-bold">
+      {/* Coordinates: Manual or Automatic GPS */}
+      <div className="p-4 rounded-xl bg-black/50 border border-white/10 space-y-3 font-mono">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
+          <label className="text-[10px] font-bold text-white/60 uppercase tracking-widest flex items-center gap-1.5">
+            <MapPin className="w-3.5 h-3.5 text-[#D32F2F]" />
+            COORDENADAS GEOGRÁFICAS (LAT / LON)
+          </label>
+          <button
+            type="button"
+            onClick={getGeolocation}
+            disabled={isGettingLocation}
+            className="px-3 py-1.5 bg-[#D32F2F]/20 hover:bg-[#D32F2F]/30 border border-[#D32F2F]/40 hover:border-[#D32F2F] rounded-lg text-[10px] font-extrabold text-white uppercase transition-all cursor-pointer flex items-center gap-1.5 shadow"
+          >
             {isGettingLocation ? (
-              <span className="flex items-center gap-2">
-                <Loader className="w-3.5 h-3.5 animate-spin text-[#D32F2F]" />
-                SOLICITANDO ADQUISICIÓN DE SATÉLITES GPS...
-              </span>
-            ) : location ? (
-              <span className="text-[#4CAF50]">
-                UBICACIÓN FIJADA: {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
-              </span>
-            ) : locationError ? (
-              <span className="text-red-400">{locationError}</span>
+              <>
+                <Loader className="w-3 h-3 animate-spin text-[#D32F2F]" /> ADQUIRIENDO GPS...
+              </>
             ) : (
-              <span className="text-white/40">GPS PENDIENTE</span>
+              '📡 SOLICITAR GPS AUTOMÁTICO'
             )}
-          </span>
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={getGeolocation}
-          disabled={isGettingLocation}
-          className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded text-xs font-bold text-white uppercase transition-all cursor-pointer"
-        >
-          {isGettingLocation ? 'ADQUIRIENDO...' : 'RE-ADQUIRIR GPS'}
-        </button>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          <div>
+            <span className="block text-[9px] text-white/40 mb-1 font-bold tracking-wider">LATITUD (Ej: 10.4806)</span>
+            <input
+              type="text"
+              value={manualLat}
+              onChange={(e) => {
+                setManualLat(e.target.value);
+                if (location) setLocation(null);
+              }}
+              placeholder="10.xxxxxx"
+              className="w-full bg-black/60 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-[#D32F2F] focus:outline-none font-mono"
+            />
+          </div>
+          <div>
+            <span className="block text-[9px] text-white/40 mb-1 font-bold tracking-wider">LONGITUD (Ej: -66.9036)</span>
+            <input
+              type="text"
+              value={manualLng}
+              onChange={(e) => {
+                setManualLng(e.target.value);
+                if (location) setLocation(null);
+              }}
+              placeholder="-66.xxxxxx"
+              className="w-full bg-black/60 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:border-[#D32F2F] focus:outline-none font-mono"
+            />
+          </div>
+        </div>
+
+        {locationError && (
+          <p className="text-[10px] text-red-400 italic font-sans pt-1">{locationError}</p>
+        )}
+        {location && (
+          <p className="text-[10px] text-[#4CAF50] font-bold pt-1">🟢 Coordenadas satelitales fijadas con éxito.</p>
+        )}
       </div>
 
       {/* Image Capture & Downscaling */}
