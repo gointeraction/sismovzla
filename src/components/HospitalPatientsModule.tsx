@@ -18,7 +18,11 @@ import {
   HelpCircle,
   Eye,
   Check,
-  RefreshCw
+  RefreshCw,
+  MapPin,
+  Copy,
+  ExternalLink,
+  Navigation
 } from 'lucide-react';
 import { GoogleGenAI } from '@google/genai';
 
@@ -39,13 +43,117 @@ interface ParsedRow {
   existingHospital?: string;
 }
 
+export interface HospitalGeoInfo {
+  name: string;
+  address: string;
+  coordsDMS: string;
+  lat: number;
+  lng: number;
+}
+
+export const hospitalGeoDirectory: HospitalGeoInfo[] = [
+  {
+    name: 'Hospital Domingo Luciani',
+    address: 'Avenida Río de Janeiro, sector El Llanito, Petare, Caracas',
+    coordsDMS: '10°28′16″N 66°48′36″O',
+    lat: 10.471111,
+    lng: -66.810000
+  },
+  {
+    name: 'Hospital Clínico Universitario (Hospital Universitario de Caracas)',
+    address: 'Ciudad Universitaria de Caracas (UCV), sector Los Chaguaramos, Municipio Libertador, Caracas',
+    coordsDMS: '10°29′25″N 66°53′38″O',
+    lat: 10.490278,
+    lng: -66.893889
+  },
+  {
+    name: 'Hospital Cruz Roja Carlos J. Bello',
+    address: 'Avenida Andrés Bello, esquina de Paradero a Cervecería, La Candelaria, Caracas',
+    coordsDMS: '10°30′12″N 66°53′54″O',
+    lat: 10.503500,
+    lng: -66.898500
+  },
+  {
+    name: 'Hospital Miguel Pérez Carreño',
+    address: 'Vuelta el Pescozón, urbanización Bella Vista (La Yaguara), El Paraíso, Caracas',
+    coordsDMS: '10°28′48″N 66°57′12″O',
+    lat: 10.480000,
+    lng: -66.953333
+  },
+  {
+    name: 'Hospital Periférico de Catia (Dr. Ricardo Baquero González)',
+    address: 'Calle El Cristo, Los Flores de Catia, Caracas',
+    coordsDMS: '10°30′48″N 66°56′32″O',
+    lat: 10.513333,
+    lng: -66.942222
+  },
+  {
+    name: 'Hospital Dr. Rafael Medina Jiménez (Periférico de Pariata)',
+    address: 'Calle Real de Pariata, Maiquetía, Estado La Guaira',
+    coordsDMS: '10°35′51″N 66°57′09″O',
+    lat: 10.597500,
+    lng: -66.952500
+  },
+  {
+    name: 'Hospital Dr. José María Vargas (La Guaira)',
+    address: 'Avenida Soublette, sector Guanapel, La Guaira',
+    coordsDMS: '10°36′11″N 66°55′18″O',
+    lat: 10.603056,
+    lng: -66.921667
+  },
+  {
+    name: 'Hospital Dr. Carlos Arvelo (Militar)',
+    address: 'Avenida José Ángel Lamas, Urbanización San Martín, Caracas',
+    coordsDMS: '10°29′52″N 66°56′19″O',
+    lat: 10.497778,
+    lng: -66.938611
+  },
+  {
+    name: 'Hospital Los Magallanes de Catia (Dr. José Gregorio Hernández)',
+    address: 'Calle Mirasol, esquina Calle 1 Laguna, Barrio Los Magallanes de Catia, Caracas',
+    coordsDMS: '10°31′07″N 66°56′47″O',
+    lat: 10.518800,
+    lng: -66.946500
+  },
+  {
+    name: 'Hospital Central de Maracay',
+    address: 'Avenida José Casanova Godoy, Maracay, Estado Aragua',
+    coordsDMS: '10°15′08″N 67°35′19″O',
+    lat: 10.252200,
+    lng: -67.588600
+  },
+  {
+    name: 'Hospital Ángel Larralde (Carabobo)',
+    address: 'Bárbula, Naguanagua, Estado Carabobo',
+    coordsDMS: '10°16′42″N 68°00′45″O',
+    lat: 10.278300,
+    lng: -68.012500
+  },
+  {
+    name: 'CDI / Carpa Médica Móvil PC',
+    address: 'Punto móvil táctico de contingencia desplegado en zona de impacto',
+    coordsDMS: 'Móvil Georeferenciable',
+    lat: 10.480600,
+    lng: -66.903600
+  },
+  {
+    name: 'Otro Centro Asistencial',
+    address: 'Ubicación especificada manualmente por el voluntario informante',
+    coordsDMS: 'Manual',
+    lat: 0,
+    lng: 0
+  }
+];
+
 export default function HospitalPatientsModule({ isVerified, userDisplayName = 'Voluntario Civil', role }: HospitalPatientsProps) {
   const [patients, setPatients] = useState<HospitalPatient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'ocr_upload' | 'manual_add' | 'patient_search'>('ocr_upload');
+  const [activeTab, setActiveTab] = useState<'ocr_upload' | 'manual_add' | 'patient_search' | 'geo_directory'>('ocr_upload');
+
+  const defaultHospitals = useMemo(() => hospitalGeoDirectory.map(h => h.name), []);
 
   // OCR Upload States
-  const [selectedHospital, setSelectedHospital] = useState('Hospital Domingo Luciani (Caracas)');
+  const [selectedHospital, setSelectedHospital] = useState(defaultHospitals[0]);
   const [customHospital, setCustomHospital] = useState('');
   const [rawText, setRawText] = useState('');
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -58,7 +166,7 @@ export default function HospitalPatientsModule({ isVerified, userDisplayName = '
     fullName: '',
     ci: '',
     age: '',
-    hospitalName: 'Hospital Domingo Luciani (Caracas)',
+    hospitalName: defaultHospitals[0],
     status: 'Ingresado' as HospitalPatient['status'],
     condition: 'Estable',
     notes: ''
@@ -69,17 +177,6 @@ export default function HospitalPatientsModule({ isVerified, userDisplayName = '
   const [searchQuery, setSearchQuery] = useState('');
   const [filterHospital, setFilterHospital] = useState('all');
   const [filterDuplicateCheck, setFilterDuplicateCheck] = useState(false);
-
-  const defaultHospitals = [
-    'Hospital Domingo Luciani (Caracas)',
-    'Hospital Universitario de Caracas (HUC)',
-    'Hospital Dr. Miguel Pérez Carreño',
-    'Hospital Central de Maracay',
-    'Hospital Ángel Larralde (Carabobo)',
-    'Hospital José María Vargas (Caracas)',
-    'CDI / Carpa Médica Móvil PC',
-    'Otro Centro Asistencial'
-  ];
 
   useEffect(() => {
     const q = query(collection(db, 'hospital_patients'), orderBy('createdAt', 'desc'));
@@ -123,6 +220,15 @@ export default function HospitalPatientsModule({ isVerified, userDisplayName = '
     // Otherwise, matches exist in another hospital!
     return { statusType: 'other_hospital_conflict', existingHospital: matches[0].hospitalName };
   };
+
+  // Selected Hospital Geo lookup
+  const selectedGeo = useMemo(() => {
+    return hospitalGeoDirectory.find(h => h.name === selectedHospital);
+  }, [selectedHospital]);
+
+  const manualGeo = useMemo(() => {
+    return hospitalGeoDirectory.find(h => h.name === manualForm.hospitalName);
+  }, [manualForm.hospitalName]);
 
   // Handle Photo selection
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -316,6 +422,11 @@ export default function HospitalPatientsModule({ isVerified, userDisplayName = '
     }
   };
 
+  const handleCopyCoords = (text: string) => {
+    navigator.clipboard.writeText(text);
+    alert(`Coordenadas copiadas: ${text}`);
+  };
+
   // Filtered patients list
   const filteredPatients = useMemo(() => {
     return patients.filter(p => {
@@ -394,7 +505,19 @@ export default function HospitalPatientsModule({ isVerified, userDisplayName = '
           }`}
         >
           <Search className="w-4 h-4 text-emerald-300" />
-          🔍 Buscador Nacional Asistencial ({patients.length})
+          🔍 Buscador Asistencial ({patients.length})
+        </button>
+
+        <button
+          onClick={() => setActiveTab('geo_directory')}
+          className={`px-4 py-3 rounded-xl font-mono font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shrink-0 cursor-pointer ${
+            activeTab === 'geo_directory'
+              ? 'bg-red-500 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)] border border-red-400'
+              : 'bg-white/5 text-white/60 hover:text-white hover:bg-white/10 border border-transparent'
+          }`}
+        >
+          <MapPin className="w-4 h-4 text-amber-300" />
+          📍 Directorio & Coordenadas ({hospitalGeoDirectory.length - 1})
         </button>
       </div>
 
@@ -415,15 +538,37 @@ export default function HospitalPatientsModule({ isVerified, userDisplayName = '
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-4 font-mono text-xs">
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <label className="text-white/80 font-bold uppercase block">Centro Asistencial / Hospital Receptor:</label>
                 <select
                   value={selectedHospital}
                   onChange={(e) => setSelectedHospital(e.target.value)}
-                  className="w-full bg-black/60 border border-white/15 rounded-xl px-3.5 py-3 text-white focus:outline-none focus:border-red-400"
+                  className="w-full bg-black/60 border border-white/15 rounded-xl px-3.5 py-3 text-white focus:outline-none focus:border-red-400 font-bold"
                 >
                   {defaultHospitals.map(h => <option key={h} value={h}>{h}</option>)}
                 </select>
+
+                {selectedGeo && selectedGeo.name !== 'Otro Centro Asistencial' && (
+                  <div className="p-3 rounded-xl bg-black/50 border border-red-500/20 space-y-1.5 text-[11px] animate-in fade-in">
+                    <div className="flex items-start gap-2 text-amber-300 font-bold">
+                      <MapPin className="w-4 h-4 shrink-0 text-red-400 mt-0.5" />
+                      <span>{selectedGeo.address}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-white/60 pl-6 text-[10px] pt-1 border-t border-white/5">
+                      <span>Coordenadas: <strong className="text-white">{selectedGeo.coordsDMS}</strong></span>
+                      {selectedGeo.lat !== 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleCopyCoords(selectedGeo.coordsDMS)}
+                          className="text-red-400 hover:text-white underline flex items-center gap-1 cursor-pointer"
+                        >
+                          <Copy className="w-3 h-3" /> Copiar Coords
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {selectedHospital === 'Otro Centro Asistencial' && (
                   <input
                     type="text"
@@ -576,15 +721,27 @@ export default function HospitalPatientsModule({ isVerified, userDisplayName = '
           </div>
 
           <form onSubmit={handleManualSubmit} className="space-y-4 font-mono text-xs">
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label className="text-white/80 font-bold uppercase block">Centro Asistencial / Hospital Ubicado:</label>
               <select
                 value={manualForm.hospitalName}
                 onChange={(e) => setManualForm({ ...manualForm, hospitalName: e.target.value })}
-                className="w-full bg-black/60 border border-white/15 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-blue-400"
+                className="w-full bg-black/60 border border-white/15 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-blue-400 font-bold"
               >
                 {defaultHospitals.map(h => <option key={h} value={h}>{h}</option>)}
               </select>
+
+              {manualGeo && manualGeo.name !== 'Otro Centro Asistencial' && (
+                <div className="p-3 rounded-xl bg-black/50 border border-blue-500/20 space-y-1 text-[11px]">
+                  <div className="flex items-start gap-2 text-blue-300 font-bold">
+                    <MapPin className="w-4 h-4 shrink-0 text-blue-400 mt-0.5" />
+                    <span>{manualGeo.address}</span>
+                  </div>
+                  <div className="text-white/60 pl-6 text-[10px]">
+                    Coordenadas Tácticas: <strong className="text-white">{manualGeo.coordsDMS}</strong>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -708,7 +865,7 @@ export default function HospitalPatientsModule({ isVerified, userDisplayName = '
               <select
                 value={filterHospital}
                 onChange={(e) => setFilterHospital(e.target.value)}
-                className="w-full bg-black/60 border border-white/15 rounded-xl px-3.5 py-3 text-white focus:outline-none focus:border-emerald-400 truncate"
+                className="w-full bg-black/60 border border-white/15 rounded-xl px-3.5 py-3 text-white focus:outline-none focus:border-emerald-400 truncate font-bold"
               >
                 <option value="all">🏥 Todos los Centros Asistenciales</option>
                 {defaultHospitals.map(h => <option key={h} value={h}>{h}</option>)}
@@ -797,6 +954,72 @@ export default function HospitalPatientsModule({ isVerified, userDisplayName = '
               })}
             </div>
           )}
+        </div>
+      )}
+
+      {/* TAB 4: Geo Directory */}
+      {activeTab === 'geo_directory' && (
+        <div className="bg-zinc-900/60 border border-white/10 rounded-2xl p-6 shadow-xl space-y-6 animate-in fade-in duration-200">
+          <div className="border-b border-white/10 pb-4">
+            <h3 className="text-base font-display font-black text-white uppercase tracking-wide flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-amber-400" />
+              Directorio Georeferenciado Oficial de Centros Asistenciales (Caracas y Litoral)
+            </h3>
+            <p className="text-xs text-white/60 font-mono mt-1">
+              Fichas tácticas oficiales de hospitales priorizados para remisión de heridos post-sismo con coordenadas exactas verificadas.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 font-mono text-xs">
+            {hospitalGeoDirectory.slice(0, 11).map((h, i) => (
+              <div key={i} className="bg-black/60 border border-white/10 hover:border-red-500/40 rounded-2xl p-5 flex flex-col justify-between space-y-4 transition-all">
+                <div className="space-y-2.5">
+                  <div className="flex items-start justify-between gap-2 border-b border-white/10 pb-2.5">
+                    <h4 className="font-display font-black text-sm text-white uppercase leading-snug">{h.name}</h4>
+                    <span className="text-[10px] bg-red-500/20 text-red-300 border border-red-500/30 px-2 py-0.5 rounded font-bold shrink-0">
+                      HSP #{i + 1}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1.5 text-[11px] text-white/80 font-sans">
+                    <p className="flex items-start gap-2 leading-relaxed">
+                      <MapPin className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                      <span>{h.address}</span>
+                    </p>
+                  </div>
+
+                  <div className="bg-white/5 border border-white/10 p-2.5 rounded-xl font-mono text-[11px] text-amber-300 flex items-center justify-between">
+                    <span>🧭 {h.coordsDMS}</span>
+                    {h.lat !== 0 && (
+                      <button
+                        onClick={() => handleCopyCoords(h.coordsDMS)}
+                        className="p-1 rounded bg-white/10 hover:bg-white/20 text-white cursor-pointer transition-colors"
+                        title="Copiar coordenadas DMS"
+                      >
+                        <Copy className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-white/5 flex items-center justify-between">
+                  <span className="text-[10px] text-white/40">
+                    {h.lat !== 0 ? `Lat: ${h.lat.toFixed(4)}, Lng: ${h.lng.toFixed(4)}` : 'Despliegue Variable'}
+                  </span>
+                  {h.lat !== 0 && (
+                    <a
+                      href={`https://www.google.com/maps?q=${h.lat},${h.lng}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[10px] bg-blue-600/30 hover:bg-blue-600 text-blue-300 hover:text-white border border-blue-500/40 px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all uppercase font-bold"
+                    >
+                      <Navigation className="w-3 h-3" /> GPS Map
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

@@ -317,102 +317,102 @@ export default function App() {
       )}
 
       {/* Primary HUD Navigation Tabs */}
-      <nav className="border-b border-white/10 bg-black/40 sticky top-[49px] sm:top-[51px] z-40 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-2 flex items-center justify-start xl:justify-center overflow-x-auto scrollbar-none gap-1">
+      <nav className="border-b border-white/10 bg-zinc-950/80 sticky top-[49px] sm:top-[51px] z-40 backdrop-blur-xl shadow-md py-2 px-2 md:px-4">
+        <div className="max-w-7xl mx-auto flex items-center gap-1.5 overflow-x-auto scrollbar-none scroll-smooth">
           <button
             onClick={() => setActiveTab('map_reports')}
-            className={`py-3.5 px-2.5 md:px-3.5 border-b-2 font-mono font-bold text-[11px] md:text-xs uppercase tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
+            className={`py-2 px-3 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
               activeTab === 'map_reports'
-                ? 'border-[#D32F2F] text-white bg-white/5 shadow-[inset_0_-4px_10px_rgba(211,47,47,0.15)]'
-                : 'border-transparent text-white/60 hover:text-white hover:bg-white/5'
+                ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.5)] border border-red-400 font-black'
+                : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5'
             }`}
           >
-            <Clock className="w-4 h-4 text-[#D32F2F] shrink-0" />
-            [01] MONITOREO
+            <Clock className="w-3.5 h-3.5 text-red-300 shrink-0" />
+            <span className="text-[10px] opacity-70">[01]</span> MAPA TÁCTICO
           </button>
 
           <button
             onClick={() => setActiveTab('report_form')}
-            className={`py-3.5 px-2.5 md:px-3.5 border-b-2 font-mono font-bold text-[11px] md:text-xs uppercase tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
+            className={`py-2 px-3 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
               activeTab === 'report_form'
-                ? 'border-[#D32F2F] text-white bg-white/5 shadow-[inset_0_-4px_10px_rgba(211,47,47,0.15)]'
-                : 'border-transparent text-white/60 hover:text-white hover:bg-white/5'
+                ? 'bg-amber-600 text-white shadow-[0_0_15px_rgba(217,119,6,0.5)] border border-amber-400 font-black'
+                : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5'
             }`}
           >
-            <AlertTriangle className="w-4 h-4 text-[#FF9800] shrink-0" />
-            [02] NUEVO REPORTE
+            <AlertTriangle className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+            <span className="text-[10px] opacity-70">[02]</span> REPORTAR DAÑO
           </button>
 
           <button
             onClick={() => setActiveTab('missing_search')}
-            className={`py-3.5 px-2.5 md:px-3.5 border-b-2 font-mono font-bold text-[11px] md:text-xs uppercase tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
+            className={`py-2 px-3 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
               activeTab === 'missing_search'
-                ? 'border-[#D32F2F] text-white bg-white/5 shadow-[inset_0_-4px_10px_rgba(211,47,47,0.15)]'
-                : 'border-transparent text-white/60 hover:text-white hover:bg-white/5'
+                ? 'bg-rose-600 text-white shadow-[0_0_15px_rgba(225,29,72,0.5)] border border-rose-400 font-black'
+                : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5'
             }`}
           >
-            <Heart className="w-4 h-4 text-red-400 shrink-0" />
-            [03] BUSCAR PERSONAS
+            <Heart className="w-3.5 h-3.5 text-rose-300 shrink-0" />
+            <span className="text-[10px] opacity-70">[03]</span> PERSONAS
           </button>
 
           <button
             onClick={() => setActiveTab('survival_guides')}
-            className={`py-3.5 px-2.5 md:px-3.5 border-b-2 font-mono font-bold text-[11px] md:text-xs uppercase tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
+            className={`py-2 px-3 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
               activeTab === 'survival_guides'
-                ? 'border-[#D32F2F] text-white bg-white/5 shadow-[inset_0_-4px_10px_rgba(211,47,47,0.15)]'
-                : 'border-transparent text-white/60 hover:text-white hover:bg-white/5'
+                ? 'bg-emerald-600 text-white shadow-[0_0_15px_rgba(5,150,105,0.5)] border border-emerald-400 font-black'
+                : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5'
             }`}
           >
-            <Compass className="w-4 h-4 text-[#4CAF50] shrink-0" />
-            [04] AUXILIOS OFF-LINE
+            <Compass className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
+            <span className="text-[10px] opacity-70">[04]</span> AUXILIOS
           </button>
 
           <button
             onClick={() => setActiveTab('shelters')}
-            className={`py-3.5 px-2.5 md:px-3.5 border-b-2 font-mono font-bold text-[11px] md:text-xs uppercase tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
+            className={`py-2 px-3 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
               activeTab === 'shelters'
-                ? 'border-[#D32F2F] text-white bg-white/5 shadow-[inset_0_-4px_10px_rgba(211,47,47,0.15)]'
-                : 'border-transparent text-white/60 hover:text-white hover:bg-white/5'
+                ? 'bg-teal-600 text-white shadow-[0_0_15px_rgba(13,148,136,0.5)] border border-teal-400 font-black'
+                : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5'
             }`}
           >
-            <Building className="w-4 h-4 text-emerald-400 shrink-0" />
-            [05] REFUGIOS & ACOPIO
+            <Building className="w-3.5 h-3.5 text-teal-300 shrink-0" />
+            <span className="text-[10px] opacity-70">[05]</span> REFUGIOS
           </button>
 
           <button
             onClick={() => setActiveTab('blood_donors')}
-            className={`py-3.5 px-2.5 md:px-3.5 border-b-2 font-mono font-bold text-[11px] md:text-xs uppercase tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
+            className={`py-2 px-3 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
               activeTab === 'blood_donors'
-                ? 'border-[#D32F2F] text-white bg-white/5 shadow-[inset_0_-4px_10px_rgba(211,47,47,0.15)]'
-                : 'border-transparent text-white/60 hover:text-white hover:bg-white/5'
+                ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.5)] border border-red-400 font-black'
+                : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5'
             }`}
           >
-            <Droplet className="w-4 h-4 text-red-500 shrink-0" />
-            [06] BANCO DE SANGRE
+            <Droplet className="w-3.5 h-3.5 text-red-200 shrink-0" />
+            <span className="text-[10px] opacity-70">[06]</span> SANGRE
           </button>
 
           <button
             onClick={() => setActiveTab('hospital_patients')}
-            className={`py-3.5 px-2.5 md:px-3.5 border-b-2 font-mono font-bold text-[11px] md:text-xs uppercase tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
+            className={`py-2 px-3 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
               activeTab === 'hospital_patients'
-                ? 'border-[#D32F2F] text-white bg-white/5 shadow-[inset_0_-4px_10px_rgba(211,47,47,0.15)]'
-                : 'border-transparent text-white/60 hover:text-white hover:bg-white/5'
+                ? 'bg-amber-600 text-white shadow-[0_0_15px_rgba(217,119,6,0.5)] border border-amber-400 font-black'
+                : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5'
             }`}
           >
-            <Activity className="w-4 h-4 text-amber-400 shrink-0" />
-            [07] CENTROS ASISTENCIALES
+            <Activity className="w-3.5 h-3.5 text-amber-200 shrink-0" />
+            <span className="text-[10px] opacity-70">[07]</span> HOSPITALES
           </button>
 
           <button
             onClick={() => setActiveTab('volunteer_gate')}
-            className={`py-3.5 px-2.5 md:px-3.5 border-b-2 font-mono font-bold text-[11px] md:text-xs uppercase tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
+            className={`py-2 px-3 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ml-auto ${
               activeTab === 'volunteer_gate'
-                ? 'border-blue-500 text-white bg-white/5 shadow-[inset_0_-4px_10px_rgba(59,130,246,0.15)]'
-                : 'border-transparent text-white/40 hover:text-white/70 hover:bg-white/5'
+                ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.5)] border border-blue-400 font-black'
+                : 'bg-blue-500/10 text-blue-300 hover:text-white hover:bg-blue-500/20 border border-blue-500/30'
             }`}
           >
-            <ShieldCheck className="w-4 h-4 text-blue-400 shrink-0" />
-            [ADM] COORDINADOR
+            <ShieldCheck className="w-3.5 h-3.5 text-blue-300 shrink-0" />
+            <span className="text-[10px] opacity-70">[ADM]</span> COORDINADOR
           </button>
         </div>
       </nav>
