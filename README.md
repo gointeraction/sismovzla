@@ -17,6 +17,8 @@
 
 ## 📖 Descripción General
 
+**🌐 URL Oficial de la Plataforma:** [https://ayudasismovzla.web.app/](https://ayudasismovzla.web.app/)
+
 **SismoVZLA** es una Aplicación Web Progresiva (**PWA**) de código abierto diseñada para operar como una red de contingencia humanitaria en Venezuela tras eventos sísmicos de gran escala. 
 
 Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones colapsan o se degradan dramáticamente (operando en velocidades mínimas 2G/EDGE). SismoVZLA resuelve este problema mediante una arquitectura **Offline-First** que permite a los ciudadanos guardar reportes, consultar manuales de auxilio y buscar familiares **completamente sin internet**, almacenando los datos en el disco local y sincronizándose con la nube tan pronto se recupera cualquier rastro de señal móvil.
