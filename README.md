@@ -95,6 +95,17 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
 - **Generación PDF Certificada (Estrategia *Zero-Bloat*)**: Emplea el motor de renderizado nativo del sistema operativo (`window.print()`) con hojas de estilo `@media print` de alta definición geométrica, evitando añadir megabytes al paquete de la PWA y asegurando descargas instantáneas en conexiones degradadas 2G.
 - **Dictamen Estructural Autógrafo A4**: Imprime el certificado individual de habitabilidad con membrete oficial del Colegio de Ingenieros de Venezuela (CIV), desglose de patologías A-F, acciones inmediatas ordenadas y recuadros de firma autógrafa y sello profesional.
 
+### 12. 🔌 API REST de Integración (Backend Node.js)
+- **Endpoints Completos (Lectura/Escritura)**: Disponibilidad de métodos `GET` (Listado y consulta por `:id`), `POST` (Creación) y `PUT` (Actualización) para integrar e ingestar datos masivos desde otros sistemas de emergencia o reportes externos.
+- **Entidades Expuestas Oficialmente**:
+  - `/api/v1/incidents`: Reportes y estado de incidentes.
+  - `/api/v1/shelters`: Nivel de ocupación y registro de refugios.
+  - `/api/v1/people`: Personas buscadas y localizadas.
+  - `/api/v1/patients`: Ingreso y triaje de pacientes en hospitales.
+  - `/api/v1/donors`: Censo nacional de donantes de sangre.
+  - `/api/v1/evaluations`: Evaluaciones técnicas estructurales (COVENIN 1756).
+- **Seguridad Táctica**: Las peticiones pueden ser protegidas mediante Middleware con un `API_KEY` (Header: `x-api-key`) para asegurar que solo agencias autorizadas inyecten o modifiquen la base de datos de crisis.
+- **Puesta en marcha**: Se incluye un servidor Express nativo que se enlaza al entorno de Firebase. Puede iniciarse con `npm run api`.
 
 ---
 
