@@ -138,11 +138,11 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
    Crea un archivo `.env` basado en `.env.example` con tus credenciales de proyecto Firebase:
    ```env
    VITE_FIREBASE_API_KEY="tu-api-key"
-   VITE_FIREBASE_AUTH_DOMAIN="sismovzla.firebaseapp.com"
-   VITE_FIREBASE_PROJECT_ID="sismovzla"
-   VITE_FIREBASE_STORAGE_BUCKET="sismovzla.firebasestorage.app"
-   VITE_FIREBASE_MESSAGING_SENDER_ID="tu-sender-id"
-   VITE_FIREBASE_APP_ID="tu-app-id"
+   VITE_FIREBASE_AUTH_DOMAIN=
+   VITE_FIREBASE_PROJECT_ID=
+   VITE_FIREBASE_STORAGE_BUCKET=
+   VITE_FIREBASE_MESSAGING_SENDER_ID=
+   VITE_FIREBASE_APP_ID=
    ```
 
 4. **Ejecutar el servidor de desarrollo**:
