@@ -328,129 +328,163 @@ export default function App() {
       )}
 
       {/* Primary HUD Navigation Tabs */}
-      <nav className="border-b border-white/10 bg-zinc-950/80 sticky top-[49px] sm:top-[51px] z-40 backdrop-blur-xl shadow-md py-2 px-2 md:px-4">
-        <div className="max-w-7xl mx-auto flex items-center gap-1.5 overflow-x-auto scrollbar-none scroll-smooth">
-          <button
-            onClick={() => setActiveTab('map_reports')}
-            className={`py-2 px-3 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
-              activeTab === 'map_reports'
-                ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.5)] border border-red-400 font-black'
-                : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5'
-            }`}
-          >
-            <Clock className="w-3.5 h-3.5 text-red-300 shrink-0" />
-            <span className="text-[10px] opacity-70">[01]</span> MAPA TÁCTICO
-          </button>
+      <nav className="border-b border-white/10 bg-zinc-950/90 sticky top-[49px] sm:top-[51px] z-40 backdrop-blur-xl shadow-lg">
+        <div className="max-w-7xl mx-auto px-2 md:px-4 py-2">
 
-          <button
-            onClick={() => setActiveTab('report_form')}
-            className={`py-2 px-3 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
-              activeTab === 'report_form'
-                ? 'bg-amber-600 text-white shadow-[0_0_15px_rgba(217,119,6,0.5)] border border-amber-400 font-black'
-                : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5'
-            }`}
-          >
-            <AlertTriangle className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-            <span className="text-[10px] opacity-70">[02]</span> REPORTAR DAÑO
-          </button>
+          {/* Primary tabs — main actions */}
+          <div className="flex flex-wrap gap-1.5">
 
-          <button
-            onClick={() => setActiveTab('missing_search')}
-            className={`py-2 px-3 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
-              activeTab === 'missing_search'
-                ? 'bg-rose-600 text-white shadow-[0_0_15px_rgba(225,29,72,0.5)] border border-rose-400 font-black'
-                : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5'
-            }`}
-          >
-            <Heart className="w-3.5 h-3.5 text-rose-300 shrink-0" />
-            <span className="text-[10px] opacity-70">[03]</span> PERSONAS
-          </button>
+            {/* === GRUPO 1: MAPA & REPORTE === */}
+            <button
+              onClick={() => setActiveTab('map_reports')}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all duration-200 cursor-pointer border ${
+                activeTab === 'map_reports'
+                  ? 'bg-red-600 text-white shadow-[0_0_14px_rgba(220,38,38,0.45)] border-red-400 scale-[1.02]'
+                  : 'bg-white/5 text-white/65 hover:text-white hover:bg-white/10 border-white/5 hover:border-white/15'
+              }`}
+            >
+              <Clock className="w-4 h-4 shrink-0" />
+              <span>MAPA TÁCTICO</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('survival_guides')}
-            className={`py-2 px-3 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
-              activeTab === 'survival_guides'
-                ? 'bg-emerald-600 text-white shadow-[0_0_15px_rgba(5,150,105,0.5)] border border-emerald-400 font-black'
-                : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5'
-            }`}
-          >
-            <Compass className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
-            <span className="text-[10px] opacity-70">[04]</span> AUXILIOS
-          </button>
+            <button
+              onClick={() => setActiveTab('report_form')}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all duration-200 cursor-pointer border ${
+                activeTab === 'report_form'
+                  ? 'bg-amber-500 text-white shadow-[0_0_14px_rgba(245,158,11,0.4)] border-amber-400 scale-[1.02]'
+                  : 'bg-white/5 text-white/65 hover:text-white hover:bg-white/10 border-white/5 hover:border-white/15'
+              }`}
+            >
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              <span>REPORTAR DAÑO</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('shelters')}
-            className={`py-2 px-3 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
-              activeTab === 'shelters'
-                ? 'bg-teal-600 text-white shadow-[0_0_15px_rgba(13,148,136,0.5)] border border-teal-400 font-black'
-                : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5'
-            }`}
-          >
-            <Building className="w-3.5 h-3.5 text-teal-300 shrink-0" />
-            <span className="text-[10px] opacity-70">[05]</span> REFUGIOS
-          </button>
+            {/* === GRUPO 2: PERSONAS & REFUGIOS === */}
+            <button
+              onClick={() => setActiveTab('missing_search')}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all duration-200 cursor-pointer border ${
+                activeTab === 'missing_search'
+                  ? 'bg-rose-600 text-white shadow-[0_0_14px_rgba(225,29,72,0.4)] border-rose-400 scale-[1.02]'
+                  : 'bg-white/5 text-white/65 hover:text-white hover:bg-white/10 border-white/5 hover:border-white/15'
+              }`}
+            >
+              <Heart className="w-4 h-4 shrink-0" />
+              <span>PERSONAS</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('shelter_tactical')}
-            className={`py-2 px-3 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
-              activeTab === 'shelter_tactical'
-                ? 'bg-emerald-700 text-white shadow-[0_0_15px_rgba(5,150,105,0.5)] border border-emerald-500 font-black'
-                : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5'
-            }`}
-          >
-            <Crosshair className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
-            <span className="text-[10px] opacity-70">[05b]</span> MAPA TÁCTICO
-          </button>
+            <button
+              onClick={() => setActiveTab('shelters')}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all duration-200 cursor-pointer border ${
+                activeTab === 'shelters'
+                  ? 'bg-teal-600 text-white shadow-[0_0_14px_rgba(13,148,136,0.4)] border-teal-400 scale-[1.02]'
+                  : 'bg-white/5 text-white/65 hover:text-white hover:bg-white/10 border-white/5 hover:border-white/15'
+              }`}
+            >
+              <Building className="w-4 h-4 shrink-0" />
+              <span>REFUGIOS</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('blood_donors')}
-            className={`py-2 px-3 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
-              activeTab === 'blood_donors'
-                ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.5)] border border-red-400 font-black'
-                : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5'
-            }`}
-          >
-            <Droplet className="w-3.5 h-3.5 text-red-200 shrink-0" />
-            <span className="text-[10px] opacity-70">[06]</span> SANGRE
-          </button>
+            <button
+              onClick={() => setActiveTab('shelter_tactical')}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all duration-200 cursor-pointer border ${
+                activeTab === 'shelter_tactical'
+                  ? 'bg-emerald-700 text-white shadow-[0_0_14px_rgba(5,150,105,0.4)] border-emerald-500 scale-[1.02]'
+                  : 'bg-white/5 text-white/65 hover:text-white hover:bg-white/10 border-white/5 hover:border-white/15'
+              }`}
+            >
+              <Crosshair className="w-4 h-4 shrink-0" />
+              <span>MAPA REFUGIOS</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('hospital_patients')}
-            className={`py-2 px-3 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
-              activeTab === 'hospital_patients'
-                ? 'bg-amber-600 text-white shadow-[0_0_15px_rgba(217,119,6,0.5)] border border-amber-400 font-black'
-                : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5'
-            }`}
-          >
-            <Activity className="w-3.5 h-3.5 text-amber-200 shrink-0" />
-            <span className="text-[10px] opacity-70">[07]</span> HOSPITALES
-          </button>
+            {/* === GRUPO 3: SALUD === */}
+            <button
+              onClick={() => setActiveTab('survival_guides')}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all duration-200 cursor-pointer border ${
+                activeTab === 'survival_guides'
+                  ? 'bg-emerald-600 text-white shadow-[0_0_14px_rgba(5,150,105,0.4)] border-emerald-400 scale-[1.02]'
+                  : 'bg-white/5 text-white/65 hover:text-white hover:bg-white/10 border-white/5 hover:border-white/15'
+              }`}
+            >
+              <Compass className="w-4 h-4 shrink-0" />
+              <span>AUXILIOS</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('reports_console')}
-            className={`py-2 px-3 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
-              activeTab === 'reports_console'
-                ? 'bg-violet-600 text-white shadow-[0_0_15px_rgba(139,92,246,0.5)] border border-violet-400 font-black'
-                : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5'
-            }`}
-          >
-            <Printer className="w-3.5 h-3.5 text-violet-300 shrink-0" />
-            <span className="text-[10px] opacity-70">[08]</span> REPORTES
-          </button>
+            <button
+              onClick={() => setActiveTab('blood_donors')}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all duration-200 cursor-pointer border ${
+                activeTab === 'blood_donors'
+                  ? 'bg-red-700 text-white shadow-[0_0_14px_rgba(185,28,28,0.4)] border-red-500 scale-[1.02]'
+                  : 'bg-white/5 text-white/65 hover:text-white hover:bg-white/10 border-white/5 hover:border-white/15'
+              }`}
+            >
+              <Droplet className="w-4 h-4 shrink-0" />
+              <span>SANGRE</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('volunteer_gate')}
-            className={`py-2 px-3 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ml-auto ${
-              activeTab === 'volunteer_gate'
-                ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.5)] border border-blue-400 font-black'
-                : 'bg-blue-500/10 text-blue-300 hover:text-white hover:bg-blue-500/20 border border-blue-500/30'
-            }`}
-          >
-            <ShieldCheck className="w-3.5 h-3.5 text-blue-300 shrink-0" />
-            <span className="text-[10px] opacity-70">[ADM]</span> COORDINADOR
-          </button>
+            <button
+              onClick={() => setActiveTab('hospital_patients')}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all duration-200 cursor-pointer border ${
+                activeTab === 'hospital_patients'
+                  ? 'bg-amber-600 text-white shadow-[0_0_14px_rgba(217,119,6,0.4)] border-amber-400 scale-[1.02]'
+                  : 'bg-white/5 text-white/65 hover:text-white hover:bg-white/10 border-white/5 hover:border-white/15'
+              }`}
+            >
+              <Activity className="w-4 h-4 shrink-0" />
+              <span>HOSPITALES</span>
+            </button>
+
+            {/* === GRUPO 4: OPERACIONES === */}
+            <button
+              onClick={() => setActiveTab('reports_console')}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all duration-200 cursor-pointer border ${
+                activeTab === 'reports_console'
+                  ? 'bg-violet-600 text-white shadow-[0_0_14px_rgba(139,92,246,0.4)] border-violet-400 scale-[1.02]'
+                  : 'bg-white/5 text-white/65 hover:text-white hover:bg-white/10 border-white/5 hover:border-white/15'
+              }`}
+            >
+              <Printer className="w-4 h-4 shrink-0" />
+              <span>REPORTES</span>
+            </button>
+
+            {/* Separator spacer */}
+            <div className="flex-1 hidden sm:block" />
+
+            {/* Coordinator — visually distinct */}
+            <button
+              onClick={() => setActiveTab('volunteer_gate')}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all duration-200 cursor-pointer border ${
+                activeTab === 'volunteer_gate'
+                  ? 'bg-blue-600 text-white shadow-[0_0_14px_rgba(37,99,235,0.4)] border-blue-400 scale-[1.02]'
+                  : 'bg-blue-500/10 text-blue-300 hover:text-white hover:bg-blue-500/20 border border-blue-500/30 hover:border-blue-400/50'
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4 shrink-0" />
+              <span>COORDINADOR</span>
+            </button>
+
+          </div>
+
+          {/* Active tab indicator label */}
+          <div className="mt-1.5 flex items-center gap-2 px-0.5">
+            <div className="h-px flex-1 bg-white/5" />
+            <span className="text-[9px] font-mono text-white/25 uppercase tracking-widest">
+              {activeTab === 'map_reports' && '01 · Mapa de Incidentes'}
+              {activeTab === 'report_form' && '02 · Formulario de Reporte'}
+              {activeTab === 'missing_search' && '03 · Búsqueda de Personas'}
+              {activeTab === 'shelters' && '04 · Directorio de Refugios'}
+              {activeTab === 'shelter_tactical' && '05 · Mapa Táctico de Refugios'}
+              {activeTab === 'survival_guides' && '06 · Auxilios & Directorio de Emergencia'}
+              {activeTab === 'blood_donors' && '07 · Banco de Sangre'}
+              {activeTab === 'hospital_patients' && '08 · Registro Hospitalario'}
+              {activeTab === 'reports_console' && '09 · Consola de Reportes'}
+              {activeTab === 'volunteer_gate' && 'ADM · Panel de Coordinación'}
+            </span>
+            <div className="h-px flex-1 bg-white/5" />
+          </div>
+
         </div>
       </nav>
+
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6" id="main-content-area">

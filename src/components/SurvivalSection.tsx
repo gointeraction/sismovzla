@@ -375,33 +375,36 @@ export default function SurvivalSection() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {EMERGENCY_CATEGORIES.map((cat, cIdx) => (
-            <div key={cIdx} className="bg-gradient-to-br from-[#141414] to-[#0a0a0a] border border-white/10 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
-              <div>
-                <h4 className="text-sm font-display font-black text-amber-400 mb-4 pb-2.5 border-b border-white/10 uppercase tracking-wider flex items-center gap-2">
-                  <ShieldAlert className="w-4 h-4 text-red-500 shrink-0" />
-                  {cat.title}
-                </h4>
-                <div className="space-y-3">
-                  {cat.agencies.map((agency, aIdx) => (
-                    <div key={aIdx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl bg-black/50 border border-white/5 hover:border-red-500/30 transition-all duration-200 group">
-                      <span className="font-mono font-bold text-white/90 text-xs sm:text-sm group-hover:text-red-400 transition-colors uppercase pr-2">
-                        {agency.name}
-                      </span>
-                      <div className="flex flex-wrap items-center gap-1.5 shrink-0">
-                        {agency.phones.map((ph, pIdx) => (
-                          <a
-                            key={pIdx}
-                            href={`tel:${ph.replace(/[^0-9*]/g, '')}`}
-                            className="inline-flex items-center gap-1 bg-red-600/15 hover:bg-red-600 text-red-300 hover:text-white text-xs px-2.5 py-1 rounded-lg font-mono font-extrabold border border-red-500/30 transition-all shadow-sm active:scale-95"
-                          >
-                            <Phone className="w-3 h-3" />
-                            {ph}
-                          </a>
-                        ))}
-                      </div>
+            <div key={cIdx} className="bg-gradient-to-br from-[#141414] to-[#0a0a0a] border border-white/10 rounded-2xl p-5 shadow-xl">
+              <h4 className="text-sm font-display font-black text-amber-400 mb-4 pb-2.5 border-b border-white/10 uppercase tracking-wider flex items-center gap-2">
+                <ShieldAlert className="w-4 h-4 text-red-500 shrink-0" />
+                {cat.title}
+              </h4>
+              <div className="space-y-2.5">
+                {cat.agencies.map((agency, aIdx) => (
+                  <div
+                    key={aIdx}
+                    className="flex flex-col gap-2 p-3 rounded-xl bg-black/50 border border-white/5 hover:border-red-500/30 transition-all duration-200 group"
+                  >
+                    {/* Agency name */}
+                    <p className="font-mono font-bold text-white/80 text-[11px] group-hover:text-red-400 transition-colors uppercase tracking-wide leading-snug">
+                      {agency.name}
+                    </p>
+                    {/* Phone badges — always wrap, never overflow */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {agency.phones.map((ph, pIdx) => (
+                        <a
+                          key={pIdx}
+                          href={`tel:${ph.replace(/[^0-9*]/g, '')}`}
+                          className="inline-flex items-center gap-1 bg-red-600/15 hover:bg-red-600 text-red-300 hover:text-white text-[11px] px-2 py-1 rounded-md font-mono font-bold border border-red-500/30 transition-all shadow-sm active:scale-95 tabular-nums whitespace-nowrap"
+                        >
+                          <Phone className="w-2.5 h-2.5 shrink-0" />
+                          {ph}
+                        </a>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
             </div>
           ))}
