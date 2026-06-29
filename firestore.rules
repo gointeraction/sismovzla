@@ -38,8 +38,28 @@ service cloud.firestore {
                     && request.resource.data.name is string
                     && request.resource.data.state in ['Caracas', 'La Guaira', 'Aragua', 'Carabobo', 'Otros']
                     && request.resource.data.type in ['Refugio', 'Hospital', 'Centro de Acopio', 'Punto de Agua']
-                    && request.resource.data.capacityStatus in ['Verde', 'Amarillo', 'Rojo'];
+                    && request.resource.data.capacityStatus in ['Verde', 'Amarillo', 'Rojo']
+                    && (!('maxCapacity' in request.resource.data) || request.resource.data.maxCapacity is number)
+                    && (!('occupantCount' in request.resource.data) || request.resource.data.occupantCount is number);
       allow update: if true;
+      allow delete: if true;
+    }
+    match /shelter_occupants/{occupantId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['shelterId', 'fullName', 'ci', 'physicalCondition', 'medicalNeeds', 'registeredBy', 'createdAt'])
+                    && request.resource.data.fullName is string
+                    && request.resource.data.ci is string
+                    && (!('age' in request.resource.data) || request.resource.data.age is number)
+                    && (!('contactPhone' in request.resource.data) || request.resource.data.contactPhone is string);
+      allow update: if request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if true;
+    }
+    match /shelter_requests/{requestId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['shelterId', 'type', 'description', 'status', 'reportedBy', 'createdAt'])
+                    && request.resource.data.type in ['Atención Médica', 'Insumos Médicos', 'Alimentos', 'Logística', 'Otros']
+                    && request.resource.data.status == 'Abierto';
+      allow update: if request.resource.data.createdAt == resource.data.createdAt;
       allow delete: if true;
     }
   }

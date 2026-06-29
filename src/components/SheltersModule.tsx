@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, addDoc, orderBy, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { collection, query, onSnapshot, addDoc, orderBy, updateDoc, doc, deleteDoc, increment } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Shelter } from '../types';
+import { Shelter, ShelterOccupant, ShelterRequest } from '../types';
 import { 
   Building, 
   MapPin, 
@@ -17,7 +17,11 @@ import {
   Activity,
   HeartPulse,
   Droplets,
-  Package
+  Package,
+  Users,
+  ChevronLeft,
+  ClipboardList,
+  CheckCircle2
 } from 'lucide-react';
 
 import { VolunteerRole } from './VolunteerVerification';
@@ -41,11 +45,30 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
   const [address, setAddress] = useState('');
   const [type, setType] = useState<Shelter['type']>('Refugio');
   const [capacityStatus, setCapacityStatus] = useState<Shelter['capacityStatus']>('Verde');
+  const [maxCapacity, setMaxCapacity] = useState('');
   const [needs, setNeeds] = useState('');
   const [contact, setContact] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [offlineQueued, setOfflineQueued] = useState(false);
+
+  // Occupants State
+  const [selectedShelterForOccupants, setSelectedShelterForOccupants] = useState<Shelter | null>(null);
+  const [occupants, setOccupants] = useState<ShelterOccupant[]>([]);
+  const [occFullName, setOccFullName] = useState('');
+  const [occCI, setOccCI] = useState('');
+  const [occAge, setOccAge] = useState('');
+  const [occContact, setOccContact] = useState('');
+  const [occPhysical, setOccPhysical] = useState('');
+  const [occMedical, setOccMedical] = useState('');
+  const [isOccSubmitting, setIsOccSubmitting] = useState(false);
+
+  // Requests State
+  const [selectedShelterForRequests, setSelectedShelterForRequests] = useState<Shelter | null>(null);
+  const [requests, setRequests] = useState<ShelterRequest[]>([]);
+  const [reqType, setReqType] = useState<ShelterRequest['type']>('Alimentos');
+  const [reqDesc, setReqDesc] = useState('');
+  const [isReqSubmitting, setIsReqSubmitting] = useState(false);
 
   useEffect(() => {
     const q = query(collection(db, 'shelters'), orderBy('updatedAt', 'desc'));
@@ -63,6 +86,52 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
 
     return () => unsubscribe();
   }, []);
+
+  // Sync occupants
+  useEffect(() => {
+    if (!selectedShelterForOccupants) {
+      setOccupants([]);
+      return;
+    }
+    const q = query(
+      collection(db, 'shelter_occupants'),
+      orderBy('createdAt', 'desc')
+    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const list: ShelterOccupant[] = [];
+      snapshot.forEach((d) => {
+        const data = d.data() as ShelterOccupant;
+        if (data.shelterId === selectedShelterForOccupants.id) {
+          list.push({ id: d.id, ...data });
+        }
+      });
+      setOccupants(list);
+    });
+    return () => unsubscribe();
+  }, [selectedShelterForOccupants]);
+
+  // Sync requests
+  useEffect(() => {
+    if (!selectedShelterForRequests) {
+      setRequests([]);
+      return;
+    }
+    const q = query(
+      collection(db, 'shelter_requests'),
+      orderBy('createdAt', 'desc')
+    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const list: ShelterRequest[] = [];
+      snapshot.forEach((d) => {
+        const data = d.data() as ShelterRequest;
+        if (data.shelterId === selectedShelterForRequests.id) {
+          list.push({ id: d.id, ...data });
+        }
+      });
+      setRequests(list);
+    });
+    return () => unsubscribe();
+  }, [selectedShelterForRequests]);
 
   // Sync offline queue
   useEffect(() => {
@@ -110,6 +179,7 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
       longitude: lng,
       type,
       capacityStatus,
+      ...(maxCapacity.trim() ? { maxCapacity: parseInt(maxCapacity, 10), occupantCount: 0 } : {}),
       needs: needs.trim() || 'Suministros estables',
       contact: contact.trim() || 'Coordinación local',
       verified: isVolunteerVerified,
@@ -123,7 +193,7 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
       localStorage.setItem('sismovzla_offline_shelters', JSON.stringify(qList));
       setOfflineQueued(true);
       setIsSubmitting(false);
-      setName(''); setAddress(''); setNeeds(''); setContact('');
+      setName(''); setAddress(''); setNeeds(''); setContact(''); setMaxCapacity('');
       setIsAdding(false);
       return;
     }
@@ -131,7 +201,7 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
     try {
       await addDoc(collection(db, 'shelters'), newShelter);
       setSubmitSuccess(true);
-      setName(''); setAddress(''); setNeeds(''); setContact('');
+      setName(''); setAddress(''); setNeeds(''); setContact(''); setMaxCapacity('');
       setIsAdding(false);
     } catch (err) {
       console.warn("Failed to save shelter to Firestore. Queuing local:", err);
@@ -171,6 +241,96 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
     const tyMatch = selectedTypeFilter === 'Todos' || s.type === selectedTypeFilter;
     return stMatch && tyMatch;
   });
+
+  const handleAddOccupant = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedShelterForOccupants || !occFullName.trim() || !occCI.trim()) return;
+
+    setIsOccSubmitting(true);
+    const newOccupant = {
+      shelterId: selectedShelterForOccupants.id,
+      fullName: occFullName.trim(),
+      ci: occCI.trim().toUpperCase(),
+      ...(occAge.trim() ? { age: parseInt(occAge, 10) } : {}),
+      ...(occContact.trim() ? { contactPhone: occContact.trim() } : {}),
+      physicalCondition: occPhysical.trim() || 'Estable',
+      medicalNeeds: occMedical.trim() || 'Ninguna',
+      registeredBy: userId || 'Ciudadano',
+      createdAt: Date.now()
+    };
+
+    try {
+      await addDoc(collection(db, 'shelter_occupants'), newOccupant);
+      
+      // Update shelter occupantCount and recalculate status if maxCapacity exists
+      const currentCount = selectedShelterForOccupants.occupantCount || 0;
+      const newCount = currentCount + 1;
+      let newStatus = selectedShelterForOccupants.capacityStatus;
+      
+      if (selectedShelterForOccupants.maxCapacity) {
+        const ratio = newCount / selectedShelterForOccupants.maxCapacity;
+        if (ratio >= 0.95) newStatus = 'Rojo';
+        else if (ratio >= 0.75) newStatus = 'Amarillo';
+        else newStatus = 'Verde';
+      }
+
+      await updateDoc(doc(db, 'shelters', selectedShelterForOccupants.id), {
+        occupantCount: increment(1),
+        capacityStatus: newStatus
+      });
+
+      setOccFullName('');
+      setOccCI('');
+      setOccAge('');
+      setOccContact('');
+      setOccPhysical('');
+      setOccMedical('');
+    } catch (err) {
+      console.warn("Failed to save occupant:", err);
+      alert("Error al guardar la persona. Revise su conexión.");
+    } finally {
+      setIsOccSubmitting(false);
+    }
+  };
+
+  const handleAddRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedShelterForRequests || !reqDesc.trim()) return;
+
+    setIsReqSubmitting(true);
+    const newRequest: Omit<ShelterRequest, 'id'> = {
+      shelterId: selectedShelterForRequests.id,
+      type: reqType,
+      description: reqDesc.trim(),
+      status: 'Abierto',
+      reportedBy: userId || 'Ciudadano',
+      createdAt: Date.now()
+    };
+
+    try {
+      await addDoc(collection(db, 'shelter_requests'), newRequest);
+      setReqDesc('');
+      setReqType('Alimentos');
+    } catch (err) {
+      console.warn("Failed to save request:", err);
+      alert("Error al guardar la solicitud.");
+    } finally {
+      setIsReqSubmitting(false);
+    }
+  };
+
+  const handleCloseRequest = async (requestId: string) => {
+    if (!confirm('¿Deseas marcar esta solicitud como resuelta / cerrada?')) return;
+    try {
+      await updateDoc(doc(db, 'shelter_requests', requestId), {
+        status: 'Cerrado',
+        resolvedAt: Date.now(),
+        resolvedBy: userId || 'Voluntario'
+      });
+    } catch (e) {
+      console.error("Error closing request:", e);
+    }
+  };
 
   const getTypeIcon = (t: Shelter['type']) => {
     switch(t) {
@@ -228,7 +388,234 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
         </div>
       )}
 
-      {isAdding && role === 'admin' ? (
+      {selectedShelterForOccupants ? (
+        <div className="bg-gradient-to-br from-[#121212] to-[#080808] border border-white/10 rounded-xl p-6 shadow-2xl font-mono">
+          <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
+            <div>
+              <h4 className="font-display font-black text-emerald-400 text-lg uppercase flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                PERSONAS ALBERGADAS
+              </h4>
+              <p className="text-xs text-white/50 mt-1 uppercase">Centro: {selectedShelterForOccupants.name}</p>
+            </div>
+            <button
+              onClick={() => setSelectedShelterForOccupants(null)}
+              className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white rounded text-xs font-bold uppercase transition-all flex items-center gap-2 border border-white/10"
+            >
+              <ChevronLeft className="w-4 h-4" /> VOLVER A CENTROS
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Form */}
+            <div className="lg:col-span-1">
+              <form onSubmit={handleAddOccupant} className="space-y-4 bg-black/40 p-4 rounded-lg border border-white/5">
+                <h5 className="text-xs font-bold text-white/60 uppercase tracking-widest border-b border-white/10 pb-2">
+                  REGISTRAR INGRESO
+                </h5>
+                <div>
+                  <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">NOMBRE COMPLETO</label>
+                  <input
+                    type="text"
+                    value={occFullName}
+                    onChange={e => setOccFullName(e.target.value)}
+                    className="w-full bg-[#121212] border border-white/10 rounded p-2 text-white text-xs focus:border-emerald-500 focus:outline-none"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">CÉDULA O IDENTIFICACIÓN</label>
+                  <input
+                    type="text"
+                    value={occCI}
+                    onChange={e => setOccCI(e.target.value)}
+                    className="w-full bg-[#121212] border border-white/10 rounded p-2 text-white text-xs focus:border-emerald-500 focus:outline-none"
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">EDAD (OPC)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={occAge}
+                      onChange={e => setOccAge(e.target.value)}
+                      className="w-full bg-[#121212] border border-white/10 rounded p-2 text-white text-xs focus:border-emerald-500 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">TELÉFONO (OPC)</label>
+                    <input
+                      type="text"
+                      value={occContact}
+                      onChange={e => setOccContact(e.target.value)}
+                      className="w-full bg-[#121212] border border-white/10 rounded p-2 text-white text-xs focus:border-emerald-500 focus:outline-none"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">CONDICIONES FÍSICAS (OPCIONAL)</label>
+                  <input
+                    type="text"
+                    value={occPhysical}
+                    onChange={e => setOccPhysical(e.target.value)}
+                    placeholder="Ej: Estable, Herido Leve..."
+                    className="w-full bg-[#121212] border border-white/10 rounded p-2 text-white text-xs focus:border-emerald-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">NECESIDADES MÉDICAS (OPCIONAL)</label>
+                  <input
+                    type="text"
+                    value={occMedical}
+                    onChange={e => setOccMedical(e.target.value)}
+                    placeholder="Ej: Requiere Insulina, Asma..."
+                    className="w-full bg-[#121212] border border-white/10 rounded p-2 text-white text-xs focus:border-emerald-500 focus:outline-none"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={isOccSubmitting}
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-black font-black uppercase text-[11px] py-2.5 rounded shadow-lg transition-all flex justify-center items-center gap-2"
+                >
+                  {isOccSubmitting ? <Loader className="w-3.5 h-3.5 animate-spin" /> : 'REGISTRAR PERSONA'}
+                </button>
+              </form>
+            </div>
+
+            {/* List */}
+            <div className="lg:col-span-2 space-y-3 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+              {occupants.length === 0 ? (
+                <div className="text-center py-10 bg-white/5 border border-white/5 rounded-lg text-white/40">
+                  <Users className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-xs font-bold">NO HAY REGISTROS EN ESTE CENTRO</p>
+                </div>
+              ) : (
+                occupants.map(o => (
+                  <div key={o.id} className="bg-black/40 border border-white/5 p-3 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-bold text-white uppercase">{o.fullName}</p>
+                      <p className="text-[10px] text-white/50 font-mono flex gap-3">
+                        <span>CI/ID: {o.ci}</span>
+                        {o.age && <span>Edad: {o.age}</span>}
+                        {o.contactPhone && <span>Tlf: {o.contactPhone}</span>}
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-1 text-[10px]">
+                      <span className="bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20 w-fit">
+                        Físico: {o.physicalCondition}
+                      </span>
+                      <span className="bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/20 w-fit">
+                        Médico: {o.medicalNeeds}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      ) : selectedShelterForRequests ? (
+        <div className="bg-gradient-to-br from-[#121212] to-[#080808] border border-white/10 rounded-xl p-6 shadow-2xl font-mono">
+          <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
+            <div>
+              <h4 className="font-display font-black text-emerald-400 text-lg uppercase flex items-center gap-2">
+                <ClipboardList className="w-5 h-5" />
+                SOLICITUDES LOGÍSTICAS Y MÉDICAS
+              </h4>
+              <p className="text-xs text-white/50 mt-1 uppercase">Centro: {selectedShelterForRequests.name}</p>
+            </div>
+            <button
+              onClick={() => setSelectedShelterForRequests(null)}
+              className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white rounded text-xs font-bold uppercase transition-all flex items-center gap-2 border border-white/10"
+            >
+              <ChevronLeft className="w-4 h-4" /> VOLVER A CENTROS
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Form */}
+            <div className="lg:col-span-1">
+              <form onSubmit={handleAddRequest} className="space-y-4 bg-black/40 p-4 rounded-lg border border-white/5">
+                <h5 className="text-xs font-bold text-white/60 uppercase tracking-widest border-b border-white/10 pb-2">
+                  NUEVA SOLICITUD
+                </h5>
+                <div>
+                  <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">TIPO DE SOLICITUD</label>
+                  <select
+                    value={reqType}
+                    onChange={e => setReqType(e.target.value as any)}
+                    className="w-full bg-[#121212] border border-white/10 rounded p-2 text-white text-xs focus:border-emerald-500 focus:outline-none"
+                  >
+                    <option value="Alimentos">Alimentos</option>
+                    <option value="Insumos Médicos">Insumos Médicos</option>
+                    <option value="Atención Médica">Atención Médica</option>
+                    <option value="Logística">Logística</option>
+                    <option value="Otros">Otros</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">DESCRIPCIÓN</label>
+                  <textarea
+                    value={reqDesc}
+                    onChange={e => setReqDesc(e.target.value)}
+                    placeholder="Ej: Necesitamos gasoil, agua potable..."
+                    className="w-full bg-[#121212] border border-white/10 rounded p-2 text-white text-xs focus:border-emerald-500 focus:outline-none min-h-[100px]"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={isReqSubmitting}
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-black font-black uppercase text-[11px] py-2.5 rounded shadow-lg transition-all flex justify-center items-center gap-2"
+                >
+                  {isReqSubmitting ? <Loader className="w-3.5 h-3.5 animate-spin" /> : 'ABRIR SOLICITUD'}
+                </button>
+              </form>
+            </div>
+
+            {/* List */}
+            <div className="lg:col-span-2 space-y-3 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+              {requests.length === 0 ? (
+                <div className="text-center py-10 bg-white/5 border border-white/5 rounded-lg text-white/40">
+                  <ClipboardList className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-xs font-bold">NO HAY SOLICITUDES ACTIVAS</p>
+                </div>
+              ) : (
+                requests.map(r => (
+                  <div key={r.id} className={`p-4 rounded-lg border ${r.status === 'Abierto' ? 'bg-amber-500/5 border-amber-500/20' : 'bg-black/40 border-white/5 opacity-70'} flex flex-col justify-between gap-3`}>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <span className={`text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider ${r.status === 'Abierto' ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
+                          {r.status}
+                        </span>
+                        <h6 className="text-sm font-bold text-white mt-1.5">{r.type}</h6>
+                      </div>
+                      <span className="text-[10px] text-white/40 font-mono">
+                        {new Date(r.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+                    <p className="text-xs text-white/70 italic bg-black/30 p-2 rounded border border-white/5">
+                      "{r.description}"
+                    </p>
+                    {r.status === 'Abierto' && (
+                      <div className="flex justify-end mt-1">
+                        <button
+                          onClick={() => handleCloseRequest(r.id)}
+                          className="px-3 py-1.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all rounded text-[10px] font-bold uppercase flex items-center gap-1.5"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" /> MARCAR RESUELTO
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      ) : isAdding && role === 'admin' ? (
         /* Registration Form */
         <form onSubmit={handleCreate} className="bg-gradient-to-br from-[#121212] to-[#080808] border border-white/10 rounded-xl p-6 space-y-5 max-w-3xl mx-auto shadow-2xl font-mono">
           <h4 className="font-display font-black text-white text-sm border-b border-white/10 pb-3 flex items-center gap-2 uppercase tracking-wider">
@@ -294,12 +681,30 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
                 value={capacityStatus}
                 onChange={e => setCapacityStatus(e.target.value as any)}
                 className="w-full bg-[#121212] border border-white/10 rounded-lg p-3 text-white text-sm focus:border-emerald-500 focus:outline-none cursor-pointer"
+                disabled={!!maxCapacity.trim()}
               >
                 <option value="Verde">🟢 DISPONIBLE (ESPACIO E INSUMOS SUFICIEN.)</option>
                 <option value="Amarillo">🟡 CASI LLENO (RECURSOS LIMITADOS)</option>
                 <option value="Rojo">🔴 COLAPSADO (SIN CAPACIDAD / REQU. AYUDA)</option>
               </select>
+              {maxCapacity.trim() && (
+                <p className="text-[10px] text-emerald-500/70 mt-1 italic">El semáforo se automatizará por tener capacidad máxima asignada.</p>
+              )}
             </div>
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">
+              CAPACIDAD MÁXIMA DE PERSONAS (OPCIONAL)
+            </label>
+            <input
+              type="number"
+              min="1"
+              value={maxCapacity}
+              onChange={e => setMaxCapacity(e.target.value)}
+              placeholder="Ej: 100"
+              className="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white text-sm focus:border-emerald-500 focus:outline-none"
+            />
           </div>
 
           <div>
@@ -428,6 +833,7 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
                           : 'bg-red-500/10 text-red-400 border-red-500/30 animate-pulse'
                       }`}>
                         {s.capacityStatus === 'Verde' ? '🟢 DISPONIBLE' : s.capacityStatus === 'Amarillo' ? '🟡 CASI LLENO' : '🔴 COLAPSADO'}
+                        {s.maxCapacity && ` (${s.occupantCount || 0}/${s.maxCapacity})`}
                       </span>
                     </div>
 
@@ -453,6 +859,20 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
 
                     {(role === 'operator' || role === 'admin' || (isVolunteerVerified && role === 'none')) && (
                       <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => { setSelectedShelterForOccupants(s); setSelectedShelterForRequests(null); }}
+                          className="px-2 py-1 bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase rounded border border-blue-500/30 hover:bg-blue-500/20 transition-all flex items-center gap-1"
+                        >
+                          <Users className="w-3.5 h-3.5" /> Personas
+                        </button>
+                        
+                        <button
+                          onClick={() => { setSelectedShelterForRequests(s); setSelectedShelterForOccupants(null); }}
+                          className="px-2 py-1 bg-amber-500/10 text-amber-400 text-[10px] font-bold uppercase rounded border border-amber-500/30 hover:bg-amber-500/20 transition-all flex items-center gap-1 mr-1"
+                        >
+                          <ClipboardList className="w-3.5 h-3.5" /> Solicitudes
+                        </button>
+
                         <select
                           value={s.capacityStatus}
                           onChange={e => handleUpdateStatus(s.id, e.target.value as any)}

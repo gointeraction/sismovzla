@@ -127,6 +127,8 @@ export interface Shelter {
   longitude: number;
   type: 'Refugio' | 'Hospital' | 'Centro de Acopio' | 'Punto de Agua' | 'Banco de Sangre';
   capacityStatus: 'Verde' | 'Amarillo' | 'Rojo'; // Verde: Disponible, Amarillo: Casi lleno, Rojo: Colapsado
+  maxCapacity?: number;
+  occupantCount?: number;
   needs?: string; // Suministros solicitados o servicios ofrecidos
   contact?: string;
   verified: boolean;
@@ -168,4 +170,28 @@ export interface HospitalPatient {
   createdAt: number;
 }
 
+export interface ShelterOccupant {
+  id: string;
+  shelterId: string;
+  fullName: string;
+  ci: string;
+  age?: number;
+  contactPhone?: string;
+  physicalCondition: string; // e.g., Estable, Herido Leve, Discapacitado
+  medicalNeeds: string; // e.g., Insulina, Silla de ruedas, Ninguna
+  notes?: string;
+  registeredBy: string;
+  createdAt: number;
+}
 
+export interface ShelterRequest {
+  id: string;
+  shelterId: string;
+  type: 'Atención Médica' | 'Insumos Médicos' | 'Alimentos' | 'Logística' | 'Otros';
+  description: string;
+  status: 'Abierto' | 'Cerrado';
+  createdAt: number;
+  reportedBy: string;
+  resolvedAt?: number;
+  resolvedBy?: string;
+}
