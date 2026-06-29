@@ -705,6 +705,85 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
     printDocument(`Censo_Consolidado_Refugios`, content);
   };
 
+  // --- REPORT N° 8: REPORTE DE OCUPANTES AGRUPADOS POR FECHA DE INGRESO ---
+  const exportOccupantsByEntryDatePdf = () => {
+    if (occupants.length === 0) {
+      alert('No hay ocupantes registrados en la base de datos.');
+      return;
+    }
+
+    const fmtDateShort = (ts: number) => new Date(ts).toLocaleDateString('es-VE', {
+      year: 'numeric', month: '2-digit', day: '2-digit'
+    });
+
+    const sorted = [...occupants].sort((a, b) => a.createdAt - b.createdAt); // Ascending
+    const groupedByDate: { [date: string]: typeof occupants } = {};
+    
+    sorted.forEach(o => {
+      const dateStr = o.createdAt ? fmtDateShort(o.createdAt) : 'N/R';
+      if (!groupedByDate[dateStr]) groupedByDate[dateStr] = [];
+      groupedByDate[dateStr].push(o);
+    });
+
+    let sections = '';
+    Object.keys(groupedByDate).forEach(dateStr => {
+      const list = groupedByDate[dateStr];
+      let rows = '';
+      list.forEach((o, i) => {
+        const shelter = shelters.find(s => s.id === o.shelterId);
+        const salida = o.status === 'Salida' && o.exitDate ? fmtDateShort(o.exitDate) : (o.status === 'Salida' ? 'N/R' : '—');
+        rows += `
+          <tr>
+            <td style="text-align: center;">${i + 1}</td>
+            <td><strong>${o.fullName}</strong></td>
+            <td style="font-family: monospace;">${o.ci}</td>
+            <td>${o.age || '—'}</td>
+            <td><strong>${shelter?.name || 'Refugio eliminado'}</strong></td>
+            <td>${salida}</td>
+            <td><span class="badge-${o.status === 'Salida' ? 'red' : 'green'}">${o.status || 'Albergado'}</span></td>
+          </tr>
+        `;
+      });
+
+      sections += `
+        <div class="section-title">📅 INGRESOS DEL DÍA: ${dateStr} <span style="font-size: 12px; color: #6b7280; font-weight: normal;">(${list.length} personas)</span></div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 4%;">#</th>
+              <th style="width: 25%;">Nombre Completo</th>
+              <th style="width: 15%;">Cédula</th>
+              <th style="width: 6%;">Edad</th>
+              <th style="width: 25%;">Refugio Asignado</th>
+              <th style="width: 12%;">Salida</th>
+              <th style="width: 13%;">Estatus</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+      `;
+    });
+
+    const content = `
+      <div class="header">
+        <div>
+          <div class="title">SISMOVZLA — INGRESOS DIARIOS</div>
+          <div class="subtitle">Desglose cronológico de ingreso de personas a la red de refugios</div>
+        </div>
+        <div class="stamp">LÍNEA DE TIEMPO</div>
+      </div>
+      <div class="meta-grid" style="grid-template-columns: 1fr 1fr;">
+        <div class="meta-item"><span class="meta-label">Total Personas Registradas</span><span class="meta-val">${occupants.length} ciudadanos</span></div>
+        <div class="meta-item"><span class="meta-label">Días de Operación Registrados</span><span class="meta-val">${Object.keys(groupedByDate).length} días distintos</span></div>
+      </div>
+      ${sections}
+    `;
+
+    printDocument(`Reporte_Ingresos_Cronologicos`, content);
+  };
+
   // --- GLOBAL REPORT 1: DENSIDAD REGIONAL DE DAÑOS POR ESTADO ---
   const exportRegionalDensityPdf = () => {
     const statesMap: { [st: string]: { total: number; crit: number; covenin: number } } = {};
@@ -1541,6 +1620,13 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
               >
                 <Printer className="w-4 h-4" />
                 📄 CONSOLIDADO
+              </button>
+              <button
+                onClick={exportOccupantsByEntryDatePdf}
+                className="py-2.5 px-4 bg-violet-600 hover:bg-violet-500 text-white rounded-xl font-mono font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg cursor-pointer transition-all"
+              >
+                <Printer className="w-4 h-4" />
+                📅 POR FECHA
               </button>
             </div>
           </div>
