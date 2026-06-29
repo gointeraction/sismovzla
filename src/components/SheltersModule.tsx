@@ -21,7 +21,9 @@ import {
   Users,
   ChevronLeft,
   ClipboardList,
-  CheckCircle2
+  CheckCircle2,
+  Search,
+  X
 } from 'lucide-react';
 
 import { VolunteerRole } from './VolunteerVerification';
@@ -71,6 +73,11 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
   const [reqDesc, setReqDesc] = useState('');
   const [isReqSubmitting, setIsReqSubmitting] = useState(false);
 
+  // Global person search
+  const [personSearchQuery, setPersonSearchQuery] = useState('');
+  const [allOccupants, setAllOccupants] = useState<ShelterOccupant[]>([]);
+  const [isSearchActive, setIsSearchActive] = useState(false);
+
   useEffect(() => {
     const q = query(collection(db, 'shelters'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -87,6 +94,20 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
       setIsLoading(false);
     });
 
+    return () => unsubscribe();
+  }, []);
+
+  // Sync ALL occupants for global search
+  useEffect(() => {
+    const q = query(collection(db, 'shelter_occupants'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const list: ShelterOccupant[] = [];
+      snapshot.forEach((d) => {
+        list.push({ id: d.id, ...d.data() } as ShelterOccupant);
+      });
+      list.sort((a, b) => b.createdAt - a.createdAt);
+      setAllOccupants(list);
+    });
     return () => unsubscribe();
   }, []);
 
@@ -420,6 +441,85 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
           SIN CONEXIÓN: CENTRO GUARDADO EN COLA OFFLINE LOCAL. SE TRANSMITIRÁ AL RECONECTAR.
         </div>
       )}
+
+      {/* Global Person Search */}
+      <div className="bg-gradient-to-r from-[#121212] to-[#0d0d0d] border border-white/10 rounded-xl p-4 shadow-xl">
+        <div className="flex items-center gap-3">
+          <Search className="w-4 h-4 text-cyan-400 shrink-0" />
+          <input
+            type="text"
+            value={personSearchQuery}
+            onChange={e => {
+              setPersonSearchQuery(e.target.value);
+              setIsSearchActive(e.target.value.trim().length >= 2);
+            }}
+            placeholder="BUSCAR PERSONA POR NOMBRE O CÉDULA EN TODOS LOS REFUGIOS..."
+            className="flex-1 bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white text-xs font-mono uppercase placeholder:text-white/30 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500/30 transition-all"
+          />
+          {personSearchQuery && (
+            <button
+              onClick={() => { setPersonSearchQuery(''); setIsSearchActive(false); }}
+              className="text-white/40 hover:text-white transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        {isSearchActive && (() => {
+          const q = personSearchQuery.toUpperCase().trim();
+          const results = allOccupants.filter(o =>
+            o.fullName.toUpperCase().includes(q) || (o.ci && o.ci.toUpperCase().includes(q))
+          ).slice(0, 50);
+          return (
+            <div className="mt-4 space-y-2 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
+              <p className="text-[10px] font-mono text-white/40 uppercase mb-2">
+                {results.length} resultado{results.length !== 1 ? 's' : ''} encontrado{results.length !== 1 ? 's' : ''}
+              </p>
+              {results.length === 0 ? (
+                <div className="text-center py-6 bg-white/5 border border-white/5 rounded-lg text-white/40">
+                  <Users className="w-6 h-6 mx-auto mb-2 opacity-50" />
+                  <p className="text-xs font-bold">NO SE ENCONTRARON PERSONAS</p>
+                </div>
+              ) : (
+                results.map(o => {
+                  const shelter = shelters.find(s => s.id === o.shelterId);
+                  return (
+                    <div key={o.id} className="bg-black/40 border border-white/5 p-3 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-white uppercase">{o.fullName}</p>
+                        <p className="text-[10px] text-white/50 font-mono flex flex-wrap gap-3 mt-0.5">
+                          <span>CI/ID: {o.ci}</span>
+                          {o.age && <span>Edad: {o.age}</span>}
+                          {o.contactPhone && <span>Tlf: {o.contactPhone}</span>}
+                        </p>
+                      </div>
+                      <div className="flex flex-col gap-1 text-[10px]">
+                        <span className="bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded border border-cyan-500/20 w-fit font-bold">
+                          🏨 {shelter?.name || 'Desconocido'}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded border w-fit font-bold ${
+                          o.status === 'Salida'
+                            ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                            : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                        }`}>
+                          {o.status === 'Salida' ? '🔴 SALIDA' : '🟢 ALBERGADO'}
+                        </span>
+                      </div>
+                      <div className="text-[9px] font-mono text-white/40">
+                        <div><span className="text-white/60">INGRESO:</span> {new Date(o.createdAt).toLocaleString('es-VE')}</div>
+                        {o.status === 'Salida' && o.exitDate && (
+                          <div className="text-red-400/80 mt-0.5"><span className="text-red-400">SALIDA:</span> {new Date(o.exitDate).toLocaleString('es-VE')}</div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          );
+        })()}
+      </div>
 
       {selectedShelterForOccupants ? (
         <div className="bg-gradient-to-br from-[#121212] to-[#080808] border border-white/10 rounded-xl p-6 shadow-2xl font-mono">
