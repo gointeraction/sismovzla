@@ -254,6 +254,7 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
       physicalCondition: occPhysical.trim() || 'Estable',
       medicalNeeds: occMedical.trim() || 'Ninguna',
       registeredBy: userId || 'Ciudadano',
+      status: 'Albergado',
       createdAt: Date.now()
     };
 
@@ -288,6 +289,38 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
       alert("Error al guardar la persona. Revise su conexión.");
     } finally {
       setIsOccSubmitting(false);
+    }
+  };
+
+  const handleRemoveOccupant = async (occupantId: string) => {
+    if (!selectedShelterForOccupants) return;
+    if (!confirm('¿Registrar salida de esta persona del albergue?')) return;
+    
+    try {
+      await updateDoc(doc(db, 'shelter_occupants', occupantId), {
+        status: 'Salida',
+        exitDate: Date.now()
+      });
+
+      // Update shelter occupantCount and recalculate status if maxCapacity exists
+      const currentCount = selectedShelterForOccupants.occupantCount || 0;
+      const newCount = Math.max(0, currentCount - 1);
+      let newStatus = selectedShelterForOccupants.capacityStatus;
+      
+      if (selectedShelterForOccupants.maxCapacity) {
+        const ratio = newCount / selectedShelterForOccupants.maxCapacity;
+        if (ratio >= 0.95) newStatus = 'Rojo';
+        else if (ratio >= 0.75) newStatus = 'Amarillo';
+        else newStatus = 'Verde';
+      }
+
+      await updateDoc(doc(db, 'shelters', selectedShelterForOccupants.id), {
+        occupantCount: increment(-1),
+        capacityStatus: newStatus
+      });
+    } catch (err) {
+      console.warn("Failed to mark occupant as exit:", err);
+      alert("Error al registrar la salida.");
     }
   };
 
@@ -500,14 +533,35 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
                         {o.contactPhone && <span>Tlf: {o.contactPhone}</span>}
                       </p>
                     </div>
-                    <div className="flex flex-col gap-1 text-[10px]">
-                      <span className="bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20 w-fit">
-                        Físico: {o.physicalCondition}
-                      </span>
-                      <span className="bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/20 w-fit">
-                        Médico: {o.medicalNeeds}
-                      </span>
+                    <div className="flex flex-col gap-2 flex-1 ml-0 sm:ml-4">
+                      <div className="flex flex-col gap-1 text-[10px]">
+                        <span className="bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20 w-fit">
+                          Físico: {o.physicalCondition}
+                        </span>
+                        <span className="bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/20 w-fit">
+                          Médico: {o.medicalNeeds}
+                        </span>
+                      </div>
+                      
+                      {/* Entry and Exit Dates */}
+                      <div className="text-[9px] font-mono text-white/40 mt-1">
+                        <div><span className="text-white/60">INGRESO:</span> {new Date(o.createdAt).toLocaleString('es-VE')}</div>
+                        {o.status === 'Salida' && o.exitDate && (
+                          <div className="text-red-400/80 mt-0.5"><span className="text-red-400">SALIDA:</span> {new Date(o.exitDate).toLocaleString('es-VE')}</div>
+                        )}
+                      </div>
                     </div>
+                    
+                    {/* Action Button */}
+                    {(role === 'shelter_coordinator' || role === 'operator' || role === 'admin') && o.status !== 'Salida' && (
+                      <button
+                        onClick={() => handleRemoveOccupant(o.id)}
+                        className="self-start sm:self-center shrink-0 px-3 py-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 text-[10px] font-bold uppercase rounded border border-red-500/30 transition-all"
+                        title="Marcar como Salida / Dar de baja"
+                      >
+                        REGISTRAR SALIDA
+                      </button>
+                    )}
                   </div>
                 ))
               )}

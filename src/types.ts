@@ -182,6 +182,8 @@ export interface ShelterOccupant {
   notes?: string;
   registeredBy: string;
   createdAt: number;
+  status?: 'Albergado' | 'Salida'; // default 'Albergado' for backward compatibility
+  exitDate?: number; // timestamp in milliseconds when they left
 }
 
 export interface ShelterRequest {

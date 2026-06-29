@@ -46,11 +46,13 @@ service cloud.firestore {
     }
     match /shelter_occupants/{occupantId} {
       allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['shelterId', 'fullName', 'ci', 'physicalCondition', 'medicalNeeds', 'registeredBy', 'createdAt'])
+      allow create: if request.resource.data.keys().hasAll(['shelterId', 'fullName', 'ci', 'physicalCondition', 'medicalNeeds', 'registeredBy', 'createdAt', 'status'])
                     && request.resource.data.fullName is string
                     && request.resource.data.ci is string
+                    && request.resource.data.status in ['Albergado', 'Salida']
                     && (!('age' in request.resource.data) || request.resource.data.age is number)
-                    && (!('contactPhone' in request.resource.data) || request.resource.data.contactPhone is string);
+                    && (!('contactPhone' in request.resource.data) || request.resource.data.contactPhone is string)
+                    && (!('exitDate' in request.resource.data) || request.resource.data.exitDate is number);
       allow update: if request.resource.data.createdAt == resource.data.createdAt;
       allow delete: if true;
     }
