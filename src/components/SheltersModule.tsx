@@ -61,6 +61,7 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
   const [occContact, setOccContact] = useState('');
   const [occPhysical, setOccPhysical] = useState('');
   const [occMedical, setOccMedical] = useState('');
+  const [occEntryDate, setOccEntryDate] = useState('');
   const [isOccSubmitting, setIsOccSubmitting] = useState(false);
 
   // Requests State
@@ -255,7 +256,7 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
       medicalNeeds: occMedical.trim() || 'Ninguna',
       registeredBy: userId || 'Ciudadano',
       status: 'Albergado',
-      createdAt: Date.now()
+      createdAt: occEntryDate ? new Date(occEntryDate).getTime() : Date.now()
     };
 
     try {
@@ -284,6 +285,7 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
       setOccContact('');
       setOccPhysical('');
       setOccMedical('');
+      setOccEntryDate('');
     } catch (err) {
       console.warn("Failed to save occupant:", err);
       alert("Error al guardar la persona. Revise su conexión.");
@@ -462,6 +464,15 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
                     onChange={e => setOccCI(e.target.value)}
                     className="w-full bg-[#121212] border border-white/10 rounded p-2 text-white text-xs focus:border-emerald-500 focus:outline-none"
                     required
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">FECHA DE INGRESO (OPCIONAL, POR DEFECTO AHORA)</label>
+                  <input
+                    type="datetime-local"
+                    value={occEntryDate}
+                    onChange={e => setOccEntryDate(e.target.value)}
+                    className="w-full bg-[#121212] border border-white/10 rounded p-2 text-white text-xs focus:border-emerald-500 focus:outline-none cursor-pointer"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
