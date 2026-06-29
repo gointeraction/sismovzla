@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Incident, StructuralEvaluation, Shelter, BloodDonor, HospitalPatient, DamageLevel } from '../types';
+import { Incident, StructuralEvaluation, Shelter, BloodDonor, HospitalPatient, DamageLevel, ShelterOccupant } from '../types';
 import { 
   FileText, Printer, Download, Search, Filter, CheckCircle2, AlertTriangle, 
   ShieldAlert, Activity, Droplet, Building2, MapPin, Calendar, ExternalLink, 
@@ -26,6 +26,7 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
   const [patients, setPatients] = useState<HospitalPatient[]>([]);
   const [donors, setDonors] = useState<BloodDonor[]>([]);
   const [shelters, setShelters] = useState<Shelter[]>([]);
+  const [occupants, setOccupants] = useState<ShelterOccupant[]>([]);
   const [isLoadingExternal, setIsLoadingExternal] = useState(false);
 
   // Fetch external collections when tab switches
@@ -49,6 +50,11 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
           const list: Shelter[] = [];
           snap.forEach(doc => list.push({ id: doc.id, ...doc.data() } as Shelter));
           setShelters(list);
+
+          const occSnap = await getDocs(collection(db, 'shelter_occupants'));
+          const occList: ShelterOccupant[] = [];
+          occSnap.forEach(doc => occList.push({ id: doc.id, ...doc.data() } as ShelterOccupant));
+          setOccupants(occList);
         }
       } catch (e) {
         console.error('Error fetching external reports data:', e);
@@ -524,6 +530,179 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
     `;
 
     printDocument(`Balance_Logistico_Refugios`, content);
+  };
+
+  // --- REPORT N° 6: REPORTE DE OCUPANTES POR REFUGIO (INDIVIDUAL) ---
+  const exportShelterOccupantsDetailPdf = () => {
+    const sheltersWithOcc = shelters.filter(s => occupants.some(o => o.shelterId === s.id));
+
+    if (sheltersWithOcc.length === 0) {
+      alert('No hay ocupantes registrados en los refugios para generar este reporte.');
+      return;
+    }
+
+    const fmtDate = (ts: number) => new Date(ts).toLocaleString('es-VE', {
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit'
+    });
+    const fmtDateShort = (ts: number) => new Date(ts).toLocaleDateString('es-VE', {
+      year: 'numeric', month: '2-digit', day: '2-digit'
+    });
+
+    let shelterSections = '';
+    sheltersWithOcc.forEach(s => {
+      const occs = occupants
+        .filter(o => o.shelterId === s.id)
+        .sort((a, b) => b.createdAt - a.createdAt);
+
+      if (occs.length === 0) return;
+
+      let rows = '';
+      occs.forEach((o, i) => {
+        const ingreso = o.createdAt ? fmtDateShort(o.createdAt) : 'N/R';
+        const salida = o.status === 'Salida' && o.exitDate ? fmtDateShort(o.exitDate) : (o.status === 'Salida' ? 'N/R' : '—');
+        rows += `
+          <tr>
+            <td style="text-align: center;">${i + 1}</td>
+            <td><strong>${o.fullName}</strong></td>
+            <td style="font-family: monospace;">${o.ci}</td>
+            <td>${o.age || '—'}</td>
+            <td>${ingreso}</td>
+            <td>${salida}</td>
+            <td><span class="badge-${o.status === 'Salida' ? 'red' : 'green'}">${o.status || 'Albergado'}</span></td>
+            <td>${o.physicalCondition}</td>
+            <td>${o.medicalNeeds}</td>
+          </tr>
+        `;
+      });
+
+      shelterSections += `
+        <div class="section-title">${s.name} (${s.state}) — ${occs.length} ocupantes</div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 4%;">#</th>
+              <th style="width: 18%;">Nombre Completo</th>
+              <th style="width: 12%;">Cédula</th>
+              <th style="width: 5%;">Edad</th>
+              <th style="width: 11%;">Ingreso</th>
+              <th style="width: 11%;">Salida</th>
+              <th style="width: 10%;">Estatus</th>
+              <th style="width: 14%;">Condición Física</th>
+              <th style="width: 15%;">Necesidades Médicas</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+      `;
+    });
+
+    if (shelterSections === '') {
+      shelterSections = '<p style="text-align: center; color: #6b7280;">No hay ocupantes registrados en ningún refugio.</p>';
+    }
+
+    const totalOcupantes = occupants.filter(o => o.status !== 'Salida').length;
+    const totalSalidas = occupants.filter(o => o.status === 'Salida').length;
+
+    const content = `
+      <div class="header">
+        <div>
+          <div class="title">SISMOVZLA — REPORTE DE OCUPANTES POR REFUGIO</div>
+          <div class="subtitle">Censo detallado de personas albergadas con fechas de ingreso y egreso</div>
+        </div>
+        <div class="stamp">CENSO REFUGIOS</div>
+      </div>
+
+      <div class="meta-grid">
+        <div class="meta-item"><span class="meta-label">Total Refugios con Ocupantes</span><span class="meta-val">${sheltersWithOcc.length} centros</span></div>
+        <div class="meta-item"><span class="meta-label">Total Personas Registradas</span><span class="meta-val">${occupants.length} ciudadanos</span></div>
+        <div class="meta-item"><span class="meta-label">Actualmente Albergados</span><span class="meta-val" style="color: #16a34a;">${totalOcupantes} personas</span></div>
+        <div class="meta-item"><span class="meta-label">Salidas Registradas</span><span class="meta-val" style="color: #dc2626;">${totalSalidas} personas</span></div>
+      </div>
+
+      ${shelterSections}
+    `;
+
+    printDocument(`Reporte_Ocupantes_Por_Refugio`, content);
+  };
+
+  // --- REPORT N° 7: REPORTE CONSOLIDADO DE TODOS LOS REFUGIOS ---
+  const exportAllSheltersOccupantsPdf = () => {
+    if (occupants.length === 0) {
+      alert('No hay ocupantes registrados en la base de datos.');
+      return;
+    }
+
+    const fmtDateShort = (ts: number) => new Date(ts).toLocaleDateString('es-VE', {
+      year: 'numeric', month: '2-digit', day: '2-digit'
+    });
+
+    const sorted = [...occupants].sort((a, b) => b.createdAt - a.createdAt);
+    let rows = '';
+    sorted.forEach((o, i) => {
+      const shelter = shelters.find(s => s.id === o.shelterId);
+      const ingreso = o.createdAt ? fmtDateShort(o.createdAt) : 'N/R';
+      const salida = o.status === 'Salida' && o.exitDate ? fmtDateShort(o.exitDate) : (o.status === 'Salida' ? 'N/R' : '—');
+      rows += `
+        <tr>
+          <td style="text-align: center;">${i + 1}</td>
+          <td><strong>${o.fullName}</strong></td>
+          <td style="font-family: monospace;">${o.ci}</td>
+          <td>${o.age || '—'}</td>
+          <td><strong>${shelter?.name || 'Refugio eliminado'}</strong><br><span style="font-size: 10px; color: #666;">${shelter?.state || ''}</span></td>
+          <td>${ingreso}</td>
+          <td>${salida}</td>
+          <td><span class="badge-${o.status === 'Salida' ? 'red' : 'green'}">${o.status || 'Albergado'}</span></td>
+          <td>${o.physicalCondition}</td>
+          <td>${o.medicalNeeds}</td>
+        </tr>
+      `;
+    });
+
+    const totalAlbergados = occupants.filter(o => o.status !== 'Salida').length;
+    const totalSalidas = occupants.filter(o => o.status === 'Salida').length;
+    const sheltersCount = new Set(occupants.map(o => o.shelterId)).size;
+
+    const content = `
+      <div class="header">
+        <div>
+          <div class="title">SISMOVZLA — CENSO CONSOLIDADO DE REFUGIOS</div>
+          <div class="subtitle">Directorio unificado de todas las personas albergadas en la red de refugios</div>
+        </div>
+        <div class="stamp">CONSOLIDADO NACIONAL</div>
+      </div>
+
+      <div class="meta-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+        <div class="meta-item"><span class="meta-label">Total Personas</span><span class="meta-val">${occupants.length}</span></div>
+        <div class="meta-item"><span class="meta-label">Albergados</span><span class="meta-val" style="color: #16a34a;">${totalAlbergados}</span></div>
+        <div class="meta-item"><span class="meta-label">Salidas</span><span class="meta-val" style="color: #dc2626;">${totalSalidas}</span></div>
+        <div class="meta-item"><span class="meta-label">Refugios Involucrados</span><span class="meta-val">${sheltersCount}</span></div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 3%;">#</th>
+            <th style="width: 16%;">Nombre Completo</th>
+            <th style="width: 10%;">Cédula</th>
+            <th style="width: 4%;">Edad</th>
+            <th style="width: 16%;">Refugio</th>
+            <th style="width: 10%;">Ingreso</th>
+            <th style="width: 10%;">Salida</th>
+            <th style="width: 9%;">Estatus</th>
+            <th style="width: 11%;">Condición Física</th>
+            <th style="width: 11%;">Necesidades Médicas</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+    `;
+
+    printDocument(`Censo_Consolidado_Refugios`, content);
   };
 
   // --- GLOBAL REPORT 1: DENSIDAD REGIONAL DE DAÑOS POR ESTADO ---
@@ -1336,27 +1515,70 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
 
       {/* --- CONTENT AREA N° 5: SHELTERS LOG --- */}
       {activeTab === 'shelters_log' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredShelters.map((s, idx) => (
-            <div key={s.id || idx} className="bg-zinc-900 border border-white/10 rounded-2xl p-5 shadow-lg">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-mono text-teal-400 font-bold uppercase">{s.type}</span>
-                <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
-                  s.capacityStatus === 'Verde' ? 'bg-emerald-500 text-white' : s.capacityStatus === 'Amarillo' ? 'bg-amber-500 text-black' : 'bg-red-500 text-white'
-                }`}>
-                  Cupo {s.capacityStatus}
-                </span>
-              </div>
-              <h4 className="font-bold text-white text-sm">{s.name}</h4>
-              <p className="text-xs text-white/60 font-mono mt-1">📍 {s.address}</p>
-              {s.needs && (
-                <div className="mt-3 p-2.5 bg-black/40 rounded-xl border border-white/5 text-xs font-mono text-amber-300/90">
-                  <strong className="block text-[10px] text-white/40 uppercase mb-0.5">Requerimientos:</strong>
-                  {s.needs}
-                </div>
-              )}
+        <div className="space-y-4">
+          {/* Export Buttons Bar */}
+          <div className="bg-teal-950/40 border border-teal-500/30 rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-3">
+            <div className="flex-1">
+              <h3 className="text-sm font-bold text-white uppercase font-mono flex items-center gap-2">
+                <Building className="w-4 h-4 text-teal-400" />
+                REPORTES DE OCUPANTES
+              </h3>
+              <p className="text-xs text-white/60 mt-0.5">
+                {occupants.length} personas registradas · {occupants.filter(o => o.status !== 'Salida').length} albergados actualmente
+              </p>
             </div>
-          ))}
+            <div className="flex gap-2">
+              <button
+                onClick={exportShelterOccupantsDetailPdf}
+                className="py-2.5 px-4 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-mono font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg cursor-pointer transition-all"
+              >
+                <Printer className="w-4 h-4" />
+                📄 POR REFUGIO
+              </button>
+              <button
+                onClick={exportAllSheltersOccupantsPdf}
+                className="py-2.5 px-4 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl font-mono font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg cursor-pointer transition-all"
+              >
+                <Printer className="w-4 h-4" />
+                📄 CONSOLIDADO
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredShelters.map((s, idx) => {
+              const occCount = occupants.filter(o => o.shelterId === s.id).length;
+              const activeOcc = occupants.filter(o => o.shelterId === s.id && o.status !== 'Salida').length;
+              return (
+                <div key={s.id || idx} className="bg-zinc-900 border border-white/10 rounded-2xl p-5 shadow-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-mono text-teal-400 font-bold uppercase">{s.type}</span>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
+                      s.capacityStatus === 'Verde' ? 'bg-emerald-500 text-white' : s.capacityStatus === 'Amarillo' ? 'bg-amber-500 text-black' : 'bg-red-500 text-white'
+                    }`}>
+                      Cupo {s.capacityStatus}
+                    </span>
+                  </div>
+                  <h4 className="font-bold text-white text-sm">{s.name}</h4>
+                  <p className="text-xs text-white/60 font-mono mt-1">📍 {s.address}</p>
+                  {occCount > 0 && (
+                    <div className="mt-3 p-2.5 bg-black/40 rounded-xl border border-white/5 text-xs font-mono">
+                      <span className="text-teal-300">👥 {occCount} ocupantes</span>
+                      {activeOcc < occCount && (
+                        <span className="text-white/50 ml-2">({activeOcc} activos)</span>
+                      )}
+                    </div>
+                  )}
+                  {s.needs && (
+                    <div className="mt-3 p-2.5 bg-black/40 rounded-xl border border-white/5 text-xs font-mono text-amber-300/90">
+                      <strong className="block text-[10px] text-white/40 uppercase mb-0.5">Requerimientos:</strong>
+                      {s.needs}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
