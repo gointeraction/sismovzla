@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, addDoc, orderBy, updateDoc, doc, deleteDoc, increment } from 'firebase/firestore';
+import { collection, query, onSnapshot, addDoc, updateDoc, doc, deleteDoc, increment } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Shelter, ShelterOccupant, ShelterRequest } from '../types';
 import { 
@@ -71,12 +71,14 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
   const [isReqSubmitting, setIsReqSubmitting] = useState(false);
 
   useEffect(() => {
-    const q = query(collection(db, 'shelters'), orderBy('updatedAt', 'desc'));
+    const q = query(collection(db, 'shelters'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const list: Shelter[] = [];
       snapshot.forEach((d) => {
         list.push({ id: d.id, ...d.data() } as Shelter);
       });
+      // Sort client-side descending by updatedAt (fallback to 0 if missing)
+      list.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
       setShelters(list);
       setIsLoading(false);
     }, (err) => {
@@ -93,10 +95,7 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
       setOccupants([]);
       return;
     }
-    const q = query(
-      collection(db, 'shelter_occupants'),
-      orderBy('createdAt', 'desc')
-    );
+    const q = query(collection(db, 'shelter_occupants'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const list: ShelterOccupant[] = [];
       snapshot.forEach((d) => {
@@ -105,6 +104,7 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
           list.push({ id: d.id, ...data });
         }
       });
+      list.sort((a, b) => b.createdAt - a.createdAt);
       setOccupants(list);
     });
     return () => unsubscribe();
@@ -116,10 +116,7 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
       setRequests([]);
       return;
     }
-    const q = query(
-      collection(db, 'shelter_requests'),
-      orderBy('createdAt', 'desc')
-    );
+    const q = query(collection(db, 'shelter_requests'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const list: ShelterRequest[] = [];
       snapshot.forEach((d) => {
@@ -128,6 +125,7 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
           list.push({ id: d.id, ...data });
         }
       });
+      list.sort((a, b) => b.createdAt - a.createdAt);
       setRequests(list);
     });
     return () => unsubscribe();

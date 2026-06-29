@@ -12,6 +12,7 @@ import SheltersModule from './components/SheltersModule';
 import BloodDonorsModule from './components/BloodDonorsModule';
 import HospitalPatientsModule from './components/HospitalPatientsModule';
 import { ReportsConsoleModule } from './components/ReportsConsoleModule';
+import ShelterTacticalMap from './components/ShelterTacticalMap';
 import { 
   ShieldAlert, 
   Wifi, 
@@ -33,7 +34,8 @@ import {
   Share2,
   Check,
   Droplet,
-  Printer
+  Printer,
+  Crosshair
 } from 'lucide-react';
 
 export default function App() {
@@ -75,7 +77,7 @@ export default function App() {
     window.location.hash === '#mapa-completo'
   );
 
-  const [activeTab, setActiveTab] = useState<'map_reports' | 'report_form' | 'survival_guides' | 'missing_search' | 'shelters' | 'blood_donors' | 'hospital_patients' | 'reports_console' | 'volunteer_gate'>('map_reports');
+  const [activeTab, setActiveTab] = useState<'map_reports' | 'report_form' | 'survival_guides' | 'missing_search' | 'shelters' | 'shelter_tactical' | 'blood_donors' | 'hospital_patients' | 'reports_console' | 'volunteer_gate'>('map_reports');
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState('');
   const [isLightMode, setIsLightMode] = useState(() => localStorage.getItem('sismovzla_light_mode') === 'true');
@@ -389,6 +391,18 @@ export default function App() {
           </button>
 
           <button
+            onClick={() => setActiveTab('shelter_tactical')}
+            className={`py-2 px-3 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+              activeTab === 'shelter_tactical'
+                ? 'bg-emerald-700 text-white shadow-[0_0_15px_rgba(5,150,105,0.5)] border border-emerald-500 font-black'
+                : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/5'
+            }`}
+          >
+            <Crosshair className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
+            <span className="text-[10px] opacity-70">[05b]</span> MAPA TÁCTICO
+          </button>
+
+          <button
             onClick={() => setActiveTab('blood_donors')}
             className={`py-2 px-3 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
               activeTab === 'blood_donors'
@@ -546,6 +560,12 @@ export default function App() {
               role={volunteerRole}
               userId="Ciudadano"
             />
+          </div>
+        )}
+
+        {activeTab === 'shelter_tactical' && (
+          <div className="space-y-4 animate-fade-in" id="tab-shelter-tactical">
+            <ShelterTacticalMap />
           </div>
         )}
 
