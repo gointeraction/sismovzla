@@ -784,6 +784,78 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
     printDocument(`Reporte_Ingresos_Cronologicos`, content);
   };
 
+  // --- REPORT N° 9: REPORTE DE PERSONAS ACTIVAMENTE ALBERGADAS (SIN SALIDA) ---
+  const exportActiveOccupantsPdf = () => {
+    const activeOccupants = occupants.filter(o => o.status !== 'Salida');
+
+    if (activeOccupants.length === 0) {
+      alert('No hay personas albergadas activamente en este momento (todas tienen fecha de salida).');
+      return;
+    }
+
+    const fmtDateShort = (ts: number) => new Date(ts).toLocaleDateString('es-VE', {
+      year: 'numeric', month: '2-digit', day: '2-digit'
+    });
+
+    let rows = '';
+    activeOccupants.forEach((o, i) => {
+      const shelter = shelters.find(s => s.id === o.shelterId);
+      const ingreso = o.createdAt ? fmtDateShort(o.createdAt) : 'N/R';
+      rows += `
+        <tr>
+          <td style="text-align: center;">${i + 1}</td>
+          <td><strong>${o.fullName}</strong></td>
+          <td style="font-family: monospace;">${o.ci}</td>
+          <td>${o.age || '—'}</td>
+          <td><strong>${shelter?.name || 'Refugio eliminado'}</strong><br><span style="font-size: 10px; color: #666;">${shelter?.state || ''}</span></td>
+          <td>${ingreso}</td>
+          <td><span class="badge-green">Albergado</span></td>
+          <td>${o.physicalCondition}</td>
+          <td>${o.medicalNeeds}</td>
+        </tr>
+      `;
+    });
+
+    const sheltersCount = new Set(activeOccupants.map(o => o.shelterId)).size;
+
+    const content = `
+      <div class="header">
+        <div>
+          <div class="title">SISMOVZLA — ALBERGADOS ACTIVOS</div>
+          <div class="subtitle">Directorio de personas que permanecen actualmente en la red de refugios (sin fecha de salida)</div>
+        </div>
+        <div class="stamp" style="border-color: #16a34a; color: #16a34a;">ALBERGADOS ACTIVOS</div>
+      </div>
+
+      <div class="meta-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="meta-item"><span class="meta-label">Total Personas Activas</span><span class="meta-val" style="color: #16a34a;">${activeOccupants.length}</span></div>
+        <div class="meta-item"><span class="meta-label">Refugios Ocupados</span><span class="meta-val">${sheltersCount}</span></div>
+        <div class="meta-item"><span class="meta-label">Porcentaje Activo</span><span class="meta-val">${Math.round((activeOccupants.length / occupants.length) * 100)}% de todos los ingresos</span></div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 3%;">#</th>
+            <th style="width: 17%;">Nombre Completo</th>
+            <th style="width: 10%;">Cédula</th>
+            <th style="width: 4%;">Edad</th>
+            <th style="width: 18%;">Refugio Actual</th>
+            <th style="width: 10%;">Fecha Ingreso</th>
+            <th style="width: 10%;">Estatus</th>
+            <th style="width: 14%;">Condición Física</th>
+            <th style="width: 14%;">Necesidades Médicas</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+    `;
+
+    printDocument(`Reporte_Albergados_Activos`, content);
+  };
+
   // --- GLOBAL REPORT 1: DENSIDAD REGIONAL DE DAÑOS POR ESTADO ---
   const exportRegionalDensityPdf = () => {
     const statesMap: { [st: string]: { total: number; crit: number; covenin: number } } = {};
@@ -1627,6 +1699,13 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
               >
                 <Printer className="w-4 h-4" />
                 📅 POR FECHA
+              </button>
+              <button
+                onClick={exportActiveOccupantsPdf}
+                className="py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-mono font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg cursor-pointer transition-all"
+              >
+                <Printer className="w-4 h-4" />
+                🟢 ALBERGADOS
               </button>
             </div>
           </div>
