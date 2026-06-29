@@ -5,7 +5,8 @@ import {
   ShieldAlert, Activity, Droplet, Building2, MapPin, Calendar, ExternalLink, 
   ChevronRight, Eye, RefreshCw, SlidersHorizontal, Table, LayoutGrid, Building, Heart
 } from 'lucide-react';
-import { collection, getDocs, getFirestore } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase';
 
 interface Props {
   incidents: Incident[];
@@ -34,7 +35,6 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
     const fetchExternalData = async () => {
       setIsLoadingExternal(true);
       try {
-        const db = getFirestore();
         if (activeTab === 'hospital_patients' && patients.length === 0) {
           const snap = await getDocs(collection(db, 'hospital_patients'));
           const list: HospitalPatient[] = [];
