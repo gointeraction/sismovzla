@@ -13,6 +13,7 @@ import BloodDonorsModule from './components/BloodDonorsModule';
 import HospitalPatientsModule from './components/HospitalPatientsModule';
 import { ReportsConsoleModule } from './components/ReportsConsoleModule';
 import ShelterTacticalMap from './components/ShelterTacticalMap';
+import ShelterRequestsDashboard from './components/ShelterRequestsDashboard';
 import { 
   ShieldAlert, 
   Wifi, 
@@ -594,6 +595,10 @@ export default function App() {
               role={volunteerRole}
               userId="Ciudadano"
             />
+            {/* Dashboard de solicitudes para Coordinador de Refugio */}
+            {volunteerRole === 'shelter_coordinator' && (
+              <ShelterRequestsDashboard role={volunteerRole} userId="CoordRefugio" />
+            )}
           </div>
         )}
 
@@ -638,11 +643,20 @@ export default function App() {
               onRoleChange={setVolunteerRole}
             />
             {isVolunteerVerified && (
-              <AdminPanel 
-                incidents={incidents}
-                isVerified={isVolunteerVerified}
-                role={volunteerRole}
-              />
+              <>
+                {/* Panel de solicitudes para Coordinador de Refugio */}
+                {volunteerRole === 'shelter_coordinator' && (
+                  <ShelterRequestsDashboard role={volunteerRole} userId="CoordRefugio" />
+                )}
+                {/* Panel administrativo general para operator / admin */}
+                {(volunteerRole === 'operator' || volunteerRole === 'admin') && (
+                  <AdminPanel 
+                    incidents={incidents}
+                    isVerified={isVolunteerVerified}
+                    role={volunteerRole}
+                  />
+                )}
+              </>
             )}
           </div>
         )}

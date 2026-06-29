@@ -156,7 +156,7 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (role !== 'admin' || !name.trim() || !address.trim()) return;
+    if ((role !== 'admin' && role !== 'operator') || !name.trim() || !address.trim()) return;
 
     setIsSubmitting(true);
     setSubmitSuccess(false);
@@ -855,26 +855,35 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
                       <span>Contacto: <strong className="text-white">{s.contact || 'No provisto'}</strong></span>
                     </div>
 
-                    {(role === 'operator' || role === 'admin' || (isVolunteerVerified && role === 'none')) && (
+                    {(role === 'shelter_coordinator' || role === 'operator' || role === 'admin') && (
                       <div className="flex items-center gap-1.5">
+                        {/* Personas — coordinator + operator + admin */}
                         <button
                           onClick={() => { setSelectedShelterForOccupants(s); setSelectedShelterForRequests(null); }}
                           className="px-2 py-1 bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase rounded border border-blue-500/30 hover:bg-blue-500/20 transition-all flex items-center gap-1"
                         >
                           <Users className="w-3.5 h-3.5" /> Personas
                         </button>
-                        
+
+                        {/* Solicitudes — coordinator + operator + admin */}
                         <button
                           onClick={() => { setSelectedShelterForRequests(s); setSelectedShelterForOccupants(null); }}
-                          className="px-2 py-1 bg-amber-500/10 text-amber-400 text-[10px] font-bold uppercase rounded border border-amber-500/30 hover:bg-amber-500/20 transition-all flex items-center gap-1 mr-1"
+                          className="px-2 py-1 bg-amber-500/10 text-amber-400 text-[10px] font-bold uppercase rounded border border-amber-500/30 hover:bg-amber-500/20 transition-all flex items-center gap-1"
                         >
                           <ClipboardList className="w-3.5 h-3.5" /> Solicitudes
                         </button>
 
+                        {/* Semáforo — coordinator + operator + admin */}
                         <select
                           value={s.capacityStatus}
                           onChange={e => handleUpdateStatus(s.id, e.target.value as any)}
-                          className="bg-black text-[10px] text-emerald-400 font-bold border border-emerald-500/30 rounded px-2 py-1 cursor-pointer focus:outline-none"
+                          className={`text-[10px] font-bold rounded px-2 py-1 cursor-pointer focus:outline-none border transition-colors ${
+                            s.capacityStatus === 'Verde'
+                              ? 'bg-emerald-900/30 text-emerald-400 border-emerald-500/30'
+                              : s.capacityStatus === 'Amarillo'
+                              ? 'bg-amber-900/30 text-amber-400 border-amber-500/30'
+                              : 'bg-red-900/30 text-red-400 border-red-500/30'
+                          }`}
                           title="Actualizar semáforo de capacidad"
                         >
                           <option value="Verde">🟢 DISP</option>
@@ -882,7 +891,8 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
                           <option value="Rojo">🔴 COLAP</option>
                         </select>
 
-                        {(role === 'admin' || (isVolunteerVerified && role === 'none')) && (
+                        {/* Eliminar — solo admin */}
+                        {role === 'admin' && (
                           <button
                             onClick={() => handleDelete(s.id)}
                             className="p-1.5 bg-red-500/10 text-red-400 rounded border border-red-500/20 hover:bg-red-500/30 transition-all cursor-pointer"

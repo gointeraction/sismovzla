@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Key, CheckCircle2 } from 'lucide-react';
 
-export type VolunteerRole = 'none' | 'volunteer' | 'operator' | 'admin';
+export type VolunteerRole = 'none' | 'volunteer' | 'shelter_coordinator' | 'operator' | 'admin';
 
 interface VolunteerVerificationProps {
   role: VolunteerRole;
@@ -29,6 +29,11 @@ export default function VolunteerVerification({ role, onRoleChange }: VolunteerV
       setSuccess(true);
       onRoleChange('operator');
       localStorage.setItem('sismovzla_volunteer_role', 'operator');
+      setToken('');
+    } else if (cleanToken === 'COORD_REFUGIO') {
+      setSuccess(true);
+      onRoleChange('shelter_coordinator');
+      localStorage.setItem('sismovzla_volunteer_role', 'shelter_coordinator');
       setToken('');
     } else if (cleanToken === 'SISMO_CRISIS_ADMIN') {
       setSuccess(true);
@@ -65,28 +70,39 @@ export default function VolunteerVerification({ role, onRoleChange }: VolunteerV
               ? 'bg-red-500/10 text-red-400 border-red-500/30 shadow-[0_0_8px_rgba(239,68,68,0.2)] animate-pulse'
               : role === 'operator'
               ? 'bg-[#4CAF50]/10 text-[#4CAF50] border-[#4CAF50]/20 shadow-[0_0_8px_rgba(76,175,80,0.15)]'
+              : role === 'shelter_coordinator'
+              ? 'bg-teal-500/10 text-teal-300 border-teal-500/20 shadow-[0_0_8px_rgba(20,184,166,0.15)]'
               : role === 'volunteer'
               ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
               : 'bg-black/40 text-white/40 border-white/10'
           }`}
         >
-          {role === 'admin' ? '👑 DIRECTOR GENERAL' : role === 'operator' ? '🛡️ OPERADOR 911/PC' : role === 'volunteer' ? '🤝 VOLUNTARIO CIVIL' : 'MODO CIUDADANO'}
+          {role === 'admin' ? '👑 DIRECTOR GENERAL' : role === 'operator' ? '🛡️ OPERADOR 911/PC' : role === 'shelter_coordinator' ? '🏠 COORD. REFUGIO' : role === 'volunteer' ? '🤝 VOLUNTARIO CIVIL' : 'MODO CIUDADANO'}
         </span>
       </div>
 
       {role !== 'none' ? (
         <div className="space-y-5" id="volunteer-active-info">
           <div className={`border p-5 rounded-xl flex items-start gap-4 ${
-            role === 'admin' ? 'bg-red-950/20 border-red-500/30 text-red-200' : role === 'operator' ? 'bg-[#4CAF50]/10 border-[#4CAF50]/20 text-white' : 'bg-blue-950/20 border-blue-500/30 text-blue-200'
+            role === 'admin' ? 'bg-red-950/20 border-red-500/30 text-red-200'
+            : role === 'operator' ? 'bg-[#4CAF50]/10 border-[#4CAF50]/20 text-white'
+            : role === 'shelter_coordinator' ? 'bg-teal-950/20 border-teal-500/30 text-teal-100'
+            : 'bg-blue-950/20 border-blue-500/30 text-blue-200'
           }`}>
-            <CheckCircle2 className={`w-6 h-6 shrink-0 mt-0.5 ${role === 'admin' ? 'text-red-400' : role === 'operator' ? 'text-[#4CAF50]' : 'text-blue-400'}`} />
+            <CheckCircle2 className={`w-6 h-6 shrink-0 mt-0.5 ${
+              role === 'admin' ? 'text-red-400'
+              : role === 'operator' ? 'text-[#4CAF50]'
+              : role === 'shelter_coordinator' ? 'text-teal-400'
+              : 'text-blue-400'
+            }`} />
             <div>
               <p className="font-bold text-sm uppercase tracking-wide">
-                ACREDITACIÓN ACTIVA: {role === 'admin' ? 'DIRECTOR DE MANDO' : role === 'operator' ? 'OPERADOR DE RESCATE' : 'VOLUNTARIO EN TIERRA'}
+                ACREDITACIÓN ACTIVA: {role === 'admin' ? 'DIRECTOR DE MANDO' : role === 'operator' ? 'OPERADOR DE RESCATE' : role === 'shelter_coordinator' ? 'COORDINADOR DE REFUGIO' : 'VOLUNTARIO EN TIERRA'}
               </p>
               <p className="text-xs opacity-80 mt-1.5 leading-relaxed font-sans">
                 {role === 'admin' && "Potestad absoluta en sala de crisis. Autorizado para verificar/resolver reportes, despachar agencias de rescate, eliminar refugios oficiales o minutas fútiles y exportar bases de datos en hojas de cálculo."}
                 {role === 'operator' && "Permisos tácticos de intervención. Autorizado para oficializar reportes ciudadanos, despachar unidades de emergencia (VEN 911, Bomberos, PC) y actualizar el semáforo de capacidad de refugios."}
+                {role === 'shelter_coordinator' && "Acceso de coordinación logística de refugios. Autorizado para gestionar solicitudes de ayuda, registrar personas albergadas, actualizar estado de capacidad y consultar el panel administrativo de solicitudes de todos los refugios asignados."}
                 {role === 'volunteer' && "Terminal de apoyo civil. Autorizado para visualizar teléfonos de contacto protegidos de reportantes ciudadanos y registrar nuevos refugios en el mapa oficial."}
               </p>
             </div>
