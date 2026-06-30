@@ -18,6 +18,7 @@ service cloud.firestore {
       allow update: if request.resource.data.createdAt == resource.data.createdAt;
       allow delete: if true;
     }
+
     match /people_search/{personId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['name', 'name_slug', 'last_known_loc', 'status', 'contact_info', 'registeredBy', 'createdAt'])
@@ -26,12 +27,14 @@ service cloud.firestore {
       allow update: if request.resource.data.createdAt == resource.data.createdAt;
       allow delete: if true;
     }
+
     match /dispatches/{dispatchId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['incidentId', 'incidentType', 'incidentState', 'incidentDesc', 'agency', 'priority', 'resources', 'notes', 'dispatchedAt', 'status']);
       allow update: if request.resource.data.dispatchedAt == resource.data.dispatchedAt;
       allow delete: if true;
     }
+
     match /shelters/{shelterId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['name', 'state', 'address', 'latitude', 'longitude', 'type', 'capacityStatus', 'verified', 'updatedAt', 'updatedBy'])
@@ -44,6 +47,7 @@ service cloud.firestore {
       allow update: if true;
       allow delete: if true;
     }
+
     match /shelter_occupants/{occupantId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['shelterId', 'fullName', 'ci', 'physicalCondition', 'medicalNeeds', 'registeredBy', 'createdAt', 'status'])
@@ -56,6 +60,7 @@ service cloud.firestore {
       allow update: if request.resource.data.createdAt == resource.data.createdAt;
       allow delete: if true;
     }
+
     match /shelter_requests/{requestId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['shelterId', 'type', 'description', 'status', 'reportedBy', 'createdAt'])
@@ -63,6 +68,186 @@ service cloud.firestore {
                     && request.resource.data.status == 'Abierto';
       allow update: if request.resource.data.createdAt == resource.data.createdAt;
       allow delete: if true;
+    }
+
+    /* FASE 0 — Módulo 1: Vías y Rutas de Evacuación */
+    match /evacuation_routes/{routeId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['name', 'state', 'segment', 'status', 'latitude', 'longitude', 'reportedBy', 'createdAt', 'updatedAt'])
+                    && request.resource.data.name is string
+                    && request.resource.data.status in ['Despejada', 'Parcial', 'Bloqueada', 'Evaluando']
+                    && (!('blockageType' in request.resource.data) || request.resource.data.blockageType in ['Escombros', 'Hundimiento', 'Deslizamiento', 'Vehículos', 'Agua', 'Otro']);
+      allow update: if request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if request.auth != null;
+    }
+
+    /* FASE 0 — Módulo 2: Triaje de Víctimas */
+    match /triage_patients/{patientId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['triageCode', 'isPediatric', 'locationLat', 'locationLng', 'conscious', 'breathing', 'ambulatory', 'reportedBy', 'createdAt', 'updatedAt'])
+                    && request.resource.data.triageCode in ['Rojo', 'Amarillo', 'Verde', 'Negro'];
+      allow update: if request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if request.auth != null;
+    }
+
+    match /triage_teams/{teamId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['teamName', 'location', 'members', 'status', 'createdAt']);
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    /* FASE 0 — Módulo 3: Cascading Disaster Timeline */
+    match /cascade_events/{eventId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['eventType', 'severity', 'status', 'reportedBy', 'createdAt'])
+                    && request.resource.data.eventType in ['Réplica', 'Incendio', 'Fuga de Gas', 'Deslizamiento', 'Inundación', 'Tsunami', 'Colapso Estructural', 'Explosión', 'Derrame Químico', 'Ruptura de Presa', 'Licuefacción', 'Otro']
+                    && request.resource.data.severity in ['Bajo', 'Medio', 'Alto', 'Crítico']
+                    && request.resource.data.status in ['Activo', 'Contenido', 'Resuelto', 'Monitoreando'];
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    /* FASE 1 — Módulo 4: Coordinación USAR */
+    match /search_sectors/{sectorId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['gridRef', 'boundaryCoords', 'state', 'priority', 'status', 'createdAt', 'updatedAt'])
+                    && request.resource.data.priority in ['Crítico', 'Alto', 'Medio', 'Bajo']
+                    && request.resource.data.status in ['No Iniciado', 'En Progreso', 'Completado', 'Verificado'];
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    match /rescue_teams/{teamId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['teamName', 'type', 'members', 'equipment', 'status', 'teamLeader', 'contact', 'createdAt']);
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    /* FASE 1 — Módulo 5: Logística de Suministros */
+    match /supply_inventory/{itemId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['warehouseId', 'category', 'itemName', 'unit', 'quantity', 'createdAt'])
+                    && request.resource.data.category in ['Agua', 'Alimentos', 'Medicamentos', 'Carpas', 'Mantas/Ropa', 'Higiene', 'Herramientas', 'Combustible', 'Comunicaciones', 'Otro']
+                    && request.resource.data.unit in ['Unidades', 'Litros', 'Kilogramos', 'Cajas', 'Pallets'];
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    match /supply_requests/{requestId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['fromWarehouse', 'toLocation', 'priority', 'items', 'status', 'reportedBy', 'createdAt']);
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    /* FASE 2 — Módulo 7: Agua y Saneamiento */
+    match /water_points/{pointId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['name', 'type', 'latitude', 'longitude', 'waterStatus', 'reportedBy', 'createdAt'])
+                    && request.resource.data.waterStatus in ['Potable', 'No Potable', 'En Prueba', 'Agotado'];
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    match /sanitation_points/{pointId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['name', 'latitude', 'longitude', 'type', 'capacity', 'gender', 'status', 'reportedBy', 'createdAt']);
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    /* FASE 2 — Módulo 8: Gestión de Fallecidos */
+    match /deceased_persons/{personId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['caseId', 'recoveryLat', 'recoveryLng', 'recoveryTime', 'identified', 'familyNotified', 'status', 'reportedBy', 'createdAt', 'updatedAt'])
+                    && request.resource.data.status in ['Recuperado', 'En Morgue', 'Identificado', 'Entregado a Familiares', 'Sepultado'];
+      allow update: if request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if request.auth != null;
+    }
+
+    /* FASE 2 — Módulo 9: Apoyo Psicosocial */
+    match /psychosocial_cases/{caseId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['crisisType', 'triagePriority', 'status', 'reportedBy', 'createdAt'])
+                    && request.resource.data.crisisType in ['Pérdida Familiar', 'Pérdida de Vivienda', 'Estrés Agudo', 'Crisis de Pánico', 'Menor No Acompañado', 'Violencia', 'Intento Suicida', 'Otro']
+                    && request.resource.data.triagePriority in ['Inmediato', 'Alto', 'Medio', 'Bajo']
+                    && request.resource.data.status in ['Abierto', 'En Seguimiento', 'Cerrado', 'Derivado'];
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    /* FASE 2 — Módulo 10: Comunicaciones de Emergencia */
+    match /emergency_comms/{commId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['type', 'status', 'messageRelay', 'reportedBy', 'createdAt'])
+                    && request.resource.data.type in ['Radioaficionado', 'Repetidora', 'Frecuencia VHF', 'Frecuencia UHF', 'HF', 'Satélite', 'Mesh WiFi', 'Punto de Mensajería']
+                    && request.resource.data.status in ['Activo', 'Standby', 'Fuera de Servicio'];
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    /* FASE 3 — Módulo 11: Voluntarios y Donaciones */
+    match /volunteers_registry/{volunteerId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['fullName', 'ci', 'phone', 'availability', 'status', 'registeredBy', 'createdAt']);
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    match /donations/{donationId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['donorType', 'donorName', 'donationType', 'status', 'createdAt']);
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    /* FASE 3 — Módulo 12: Coordinación Interagencial */
+    match /interagency_tasks/{taskId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['agencyName', 'task', 'priority', 'status', 'reportedBy', 'createdAt'])
+                    && request.resource.data.priority in ['Crítica', 'Alta', 'Media', 'Baja']
+                    && request.resource.data.status in ['Pendiente', 'En Progreso', 'Completada', 'Bloqueada'];
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    /* FASE 3 — Módulo 13: Drones y Apoyo Aéreo */
+    match /aerial_operations/{opId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['aircraftType', 'missionType', 'status', 'noFlyZone', 'reportedBy', 'createdAt'])
+                    && request.resource.data.aircraftType in ['Dron', 'Helicóptero', 'Avión Ligero', 'Comercial']
+                    && request.resource.data.missionType in ['Evaluación de Daños', 'Búsqueda', 'Entrega de Suministros', 'Evacuación Aeromédica', 'Reconocimiento', 'Mapeo Térmico']
+                    && request.resource.data.status in ['Planificado', 'En Vuelo', 'Completado', 'En Tierra'];
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    /* FASE 3 — Módulo 14: Combustible y Energía */
+    match /fuel_energy_points/{pointId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['name', 'type', 'state', 'latitude', 'longitude', 'operationalStatus', 'reportedBy', 'createdAt'])
+                    && request.resource.data.operationalStatus in ['Operativo', 'Parcial', 'Fuera de Servicio', 'Agotado'];
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    /* Banco de Sangre */
+    match /blood_donors/{donorId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['fullName', 'contactPhone', 'state', 'bloodType', 'status', 'createdAt'])
+                    && request.resource.data.status in ['Registrado', 'Calificado', 'Remitido', 'Donación Completada'];
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    /* Registro Hospitalario */
+    match /hospital_patients/{patientId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['fullName', 'state', 'status', 'createdAt']);
+      allow update: if true;
+      allow delete: if request.auth != null;
     }
   }
 }

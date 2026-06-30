@@ -1,18 +1,10 @@
-import * as admin from 'firebase-admin';
+import { initializeApp, cert, applicationDefault } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
 
-// Initialize with environment variables or application default credentials
-if (!admin.apps.length) {
-  try {
-    admin.initializeApp({
-      credential: admin.credential.applicationDefault()
-    });
-    console.log("Firebase Admin SDK initialized successfully");
-  } catch (error) {
-    console.error("Firebase Admin SDK initialization error:", error);
-    // Fallback for local development if GOOGLE_APPLICATION_CREDENTIALS is not set
-    admin.initializeApp();
-  }
-}
+const app = initializeApp({
+  credential: applicationDefault(),
+});
 
-export const db = admin.firestore();
-export const auth = admin.auth();
+export const db = getFirestore(app);
+export const auth = getAuth(app);

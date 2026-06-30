@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, orderBy, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Shelter, ShelterRequest } from '../types';
@@ -33,7 +33,7 @@ const REQUEST_TYPE_COLORS: Record<ShelterRequest['type'], string> = {
   'Otros':            'bg-white/10 text-white/60 border-white/10',
 };
 
-const REQUEST_TYPE_ICONS: Record<ShelterRequest['type'], JSX.Element> = {
+const REQUEST_TYPE_ICONS: Record<ShelterRequest['type'], React.ReactElement> = {
   'Atención Médica':  <HeartPulse className="w-3.5 h-3.5" />,
   'Insumos Médicos':  <Activity className="w-3.5 h-3.5" />,
   'Alimentos':        <Package className="w-3.5 h-3.5" />,
@@ -174,7 +174,7 @@ export default function ShelterRequestsDashboard({ role, userId }: ShelterReques
         {/* By type */}
         <select
           value={filterType}
-          onChange={e => setFilterType(e.target.value as any)}
+          onChange={e => setFilterType(e.target.value as ShelterRequest['type'] | 'Todos')}
           className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white/80 focus:outline-none focus:border-teal-500 cursor-pointer"
         >
           <option value="Todos">Todos los tipos</option>

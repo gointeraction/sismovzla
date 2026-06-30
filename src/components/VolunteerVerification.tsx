@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Key, CheckCircle2 } from 'lucide-react';
 
-export type VolunteerRole = 'none' | 'volunteer' | 'shelter_coordinator' | 'operator' | 'admin';
+export type VolunteerRole = 'none' | 'volunteer' | 'shelter_coordinator' | 'operator' | 'admin'
+  | 'triage_medico' | 'rescate_coord' | 'logistica_admin' | 'radio_op' | 'forense' | 'psicosocial' | 'aereo_coord';
 
 interface VolunteerVerificationProps {
   role: VolunteerRole;
@@ -40,6 +41,41 @@ export default function VolunteerVerification({ role, onRoleChange }: VolunteerV
       onRoleChange('admin');
       localStorage.setItem('sismovzla_volunteer_role', 'admin');
       setToken('');
+    } else if (cleanToken === 'TRIAGE_MEDICO') {
+      setSuccess(true);
+      onRoleChange('triage_medico');
+      localStorage.setItem('sismovzla_volunteer_role', 'triage_medico');
+      setToken('');
+    } else if (cleanToken === 'RESCATE_COORD') {
+      setSuccess(true);
+      onRoleChange('rescate_coord');
+      localStorage.setItem('sismovzla_volunteer_role', 'rescate_coord');
+      setToken('');
+    } else if (cleanToken === 'LOGISTICA_ADMIN') {
+      setSuccess(true);
+      onRoleChange('logistica_admin');
+      localStorage.setItem('sismovzla_volunteer_role', 'logistica_admin');
+      setToken('');
+    } else if (cleanToken === 'RADIO_OP') {
+      setSuccess(true);
+      onRoleChange('radio_op');
+      localStorage.setItem('sismovzla_volunteer_role', 'radio_op');
+      setToken('');
+    } else if (cleanToken === 'FORENSE') {
+      setSuccess(true);
+      onRoleChange('forense');
+      localStorage.setItem('sismovzla_volunteer_role', 'forense');
+      setToken('');
+    } else if (cleanToken === 'PSICOSOCIAL') {
+      setSuccess(true);
+      onRoleChange('psicosocial');
+      localStorage.setItem('sismovzla_volunteer_role', 'psicosocial');
+      setToken('');
+    } else if (cleanToken === 'AEREO_COORD') {
+      setSuccess(true);
+      onRoleChange('aereo_coord');
+      localStorage.setItem('sismovzla_volunteer_role', 'aereo_coord');
+      setToken('');
     } else {
       setError('Código de acreditación inválido. Intente de nuevo.');
     }
@@ -74,10 +110,24 @@ export default function VolunteerVerification({ role, onRoleChange }: VolunteerV
               ? 'bg-teal-500/10 text-teal-300 border-teal-500/20 shadow-[0_0_8px_rgba(20,184,166,0.15)]'
               : role === 'volunteer'
               ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+              : role === 'triage_medico'
+              ? 'bg-rose-500/10 text-rose-300 border-rose-500/30'
+              : role === 'rescate_coord'
+              ? 'bg-orange-500/10 text-orange-300 border-orange-500/30'
+              : role === 'logistica_admin'
+              ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
+              : role === 'radio_op'
+              ? 'bg-amber-500/10 text-amber-300 border-amber-500/30'
+              : role === 'forense'
+              ? 'bg-gray-500/10 text-gray-300 border-gray-500/30'
+              : role === 'psicosocial'
+              ? 'bg-pink-500/10 text-pink-300 border-pink-500/30'
+              : role === 'aereo_coord'
+              ? 'bg-sky-500/10 text-sky-300 border-sky-500/30'
               : 'bg-black/40 text-white/40 border-white/10'
           }`}
         >
-          {role === 'admin' ? '👑 DIRECTOR GENERAL' : role === 'operator' ? '🛡️ OPERADOR 911/PC' : role === 'shelter_coordinator' ? '🏠 COORD. REFUGIO' : role === 'volunteer' ? '🤝 VOLUNTARIO CIVIL' : 'MODO CIUDADANO'}
+          {role === 'admin' ? '👑 DIRECTOR GENERAL' : role === 'operator' ? '🛡️ OPERADOR 911/PC' : role === 'shelter_coordinator' ? '🏠 COORD. REFUGIO' : role === 'volunteer' ? '🤝 VOLUNTARIO CIVIL' : role === 'triage_medico' ? '🩺 MÉDICO TRIAJE' : role === 'rescate_coord' ? '🚒 COORD. RESCATE' : role === 'logistica_admin' ? '📦 ADMIN. LOGÍSTICA' : role === 'radio_op' ? '📡 OPERADOR RADIO' : role === 'forense' ? '⚰️ FORENSE' : role === 'psicosocial' ? '🧠 APOYO PSICOSOCIAL' : role === 'aereo_coord' ? '🚁 COORD. AÉREO' : 'MODO CIUDADANO'}
         </span>
       </div>
 
@@ -87,23 +137,44 @@ export default function VolunteerVerification({ role, onRoleChange }: VolunteerV
             role === 'admin' ? 'bg-red-950/20 border-red-500/30 text-red-200'
             : role === 'operator' ? 'bg-[#4CAF50]/10 border-[#4CAF50]/20 text-white'
             : role === 'shelter_coordinator' ? 'bg-teal-950/20 border-teal-500/30 text-teal-100'
+            : role === 'triage_medico' ? 'bg-rose-950/20 border-rose-500/30 text-rose-200'
+            : role === 'rescate_coord' ? 'bg-orange-950/20 border-orange-500/30 text-orange-200'
+            : role === 'logistica_admin' ? 'bg-emerald-950/20 border-emerald-500/30 text-emerald-200'
+            : role === 'radio_op' ? 'bg-amber-950/20 border-amber-500/30 text-amber-200'
+            : role === 'forense' ? 'bg-gray-950/20 border-gray-500/30 text-gray-200'
+            : role === 'psicosocial' ? 'bg-pink-950/20 border-pink-500/30 text-pink-200'
+            : role === 'aereo_coord' ? 'bg-sky-950/20 border-sky-500/30 text-sky-200'
             : 'bg-blue-950/20 border-blue-500/30 text-blue-200'
           }`}>
             <CheckCircle2 className={`w-6 h-6 shrink-0 mt-0.5 ${
               role === 'admin' ? 'text-red-400'
               : role === 'operator' ? 'text-[#4CAF50]'
               : role === 'shelter_coordinator' ? 'text-teal-400'
+              : role === 'triage_medico' ? 'text-rose-400'
+              : role === 'rescate_coord' ? 'text-orange-400'
+              : role === 'logistica_admin' ? 'text-emerald-400'
+              : role === 'radio_op' ? 'text-amber-400'
+              : role === 'forense' ? 'text-gray-400'
+              : role === 'psicosocial' ? 'text-pink-400'
+              : role === 'aereo_coord' ? 'text-sky-400'
               : 'text-blue-400'
             }`} />
             <div>
               <p className="font-bold text-sm uppercase tracking-wide">
-                ACREDITACIÓN ACTIVA: {role === 'admin' ? 'DIRECTOR DE MANDO' : role === 'operator' ? 'OPERADOR DE RESCATE' : role === 'shelter_coordinator' ? 'COORDINADOR DE REFUGIO' : 'VOLUNTARIO EN TIERRA'}
+                ACREDITACIÓN ACTIVA: {role === 'admin' ? 'DIRECTOR DE MANDO' : role === 'operator' ? 'OPERADOR DE RESCATE' : role === 'shelter_coordinator' ? 'COORDINADOR DE REFUGIO' : role === 'triage_medico' ? 'MÉDICO DE TRIAJE' : role === 'rescate_coord' ? 'COORDINADOR DE RESCATE' : role === 'logistica_admin' ? 'ADMINISTRADOR LOGÍSTICO' : role === 'radio_op' ? 'OPERADOR DE RADIO' : role === 'forense' ? 'FORENSE' : role === 'psicosocial' ? 'APOYO PSICOSOCIAL' : role === 'aereo_coord' ? 'COORDINADOR AÉREO' : 'VOLUNTARIO EN TIERRA'}
               </p>
               <p className="text-xs opacity-80 mt-1.5 leading-relaxed font-sans">
                 {role === 'admin' && "Potestad absoluta en sala de crisis. Autorizado para verificar/resolver reportes, despachar agencias de rescate, eliminar refugios oficiales o minutas fútiles y exportar bases de datos en hojas de cálculo."}
                 {role === 'operator' && "Permisos tácticos de intervención. Autorizado para oficializar reportes ciudadanos, despachar unidades de emergencia (VEN 911, Bomberos, PC) y actualizar el semáforo de capacidad de refugios."}
                 {role === 'shelter_coordinator' && "Acceso de coordinación logística de refugios. Autorizado para gestionar solicitudes de ayuda, registrar personas albergadas, actualizar estado de capacidad y consultar el panel administrativo de solicitudes de todos los refugios asignados."}
                 {role === 'volunteer' && "Terminal de apoyo civil. Autorizado para visualizar teléfonos de contacto protegidos de reportantes ciudadanos y registrar nuevos refugios en el mapa oficial."}
+                {role === 'triage_medico' && "Evaluación clínica en zona cero. Autorizado para clasificar víctimas mediante protocolo START, priorizar evacuación por gravedad y registrar datos vitales en el módulo de triaje."}
+                {role === 'rescate_coord' && "Coordinación táctica de equipos USAR. Autorizado para desplegar brigadas de búsqueda y rescate en estructuras colapsadas, asignar sectores de operación y actualizar el estatus de víctimas atrapadas."}
+                {role === 'logistica_admin' && "Gestión de cadena de suministro en crisis. Autorizado para administrar inventario de insumos críticos, coordinar despachos a refugios y puntos de distribución, y supervisar rutas de abastecimiento."}
+                {role === 'radio_op' && "Comunicaciones de emergencia en espectro táctico. Autorizado para operar enlaces VHF/UHF, retransmitir mensajes entre agencias y mantener el registro de comunicaciones en el módulo de radio."}
+                {role === 'forense' && "Manejo de fallecidos en desastre masivo. Autorizado para registrar cadáveres, gestionar el proceso de identificación forense y coordinar el traslado a morgues temporales."}
+                {role === 'psicosocial' && "Intervención en crisis y primeros auxilios psicológicos. Autorizado para brindar contención emocional a afectados, activar redes de apoyo y registrar casos en el módulo psicosocial."}
+                {role === 'aereo_coord' && "Operaciones aéreas en espacio aéreo degradado. Autorizado para coordinar despegue/aterrizaje de aeronaves de emergencia, gestionar helipuertos tácticos y priorizar evacuación aeromédica."}
               </p>
             </div>
           </div>

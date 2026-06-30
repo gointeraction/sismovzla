@@ -1,42 +1,42 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { collection, query, onSnapshot, orderBy, limit, addDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import { Incident } from './types';
-import ReportForm from './components/ReportForm';
-import MapViewer from './components/MapViewer';
-import PeopleSearch from './components/PeopleSearch';
-import SurvivalSection from './components/SurvivalSection';
-import VolunteerVerification, { VolunteerRole } from './components/VolunteerVerification';
-import AdminPanel from './components/AdminPanel';
-import SheltersModule from './components/SheltersModule';
-import BloodDonorsModule from './components/BloodDonorsModule';
-import HospitalPatientsModule from './components/HospitalPatientsModule';
-import { ReportsConsoleModule } from './components/ReportsConsoleModule';
-import ShelterTacticalMap from './components/ShelterTacticalMap';
-import ShelterRequestsDashboard from './components/ShelterRequestsDashboard';
+import type { VolunteerRole } from './components/VolunteerVerification';
+import ModuleSkeleton from './components/ModuleSkeleton';
+const ReportForm = React.lazy(() => import('./components/ReportForm'));
+const MapViewer = React.lazy(() => import('./components/MapViewer'));
+const PeopleSearch = React.lazy(() => import('./components/PeopleSearch'));
+const SurvivalSection = React.lazy(() => import('./components/SurvivalSection'));
+const VolunteerVerification = React.lazy(() => import('./components/VolunteerVerification'));
+const AdminPanel = React.lazy(() => import('./components/AdminPanel'));
+const SheltersModule = React.lazy(() => import('./components/SheltersModule'));
+const BloodDonorsModule = React.lazy(() => import('./components/BloodDonorsModule'));
+const HospitalPatientsModule = React.lazy(() => import('./components/HospitalPatientsModule'));
+const ReportsConsoleModule = React.lazy(() => import('./components/ReportsConsoleModule').then(m => ({ default: m.ReportsConsoleModule })));
+const ShelterTacticalMap = React.lazy(() => import('./components/ShelterTacticalMap'));
+const ShelterRequestsDashboard = React.lazy(() => import('./components/ShelterRequestsDashboard'));
+const EvacuationRoutesPanel = React.lazy(() => import('./components/EvacuationRoutesPanel'));
+const TriageModule = React.lazy(() => import('./components/TriageModule'));
+const CascadeTimeline = React.lazy(() => import('./components/CascadeTimeline'));
+const SearchAndRescueModule = React.lazy(() => import('./components/SearchAndRescueModule'));
+const SupplyLogisticsModule = React.lazy(() => import('./components/SupplyLogisticsModule'));
+const EOCDashboard = React.lazy(() => import('./components/EOCDashboard'));
+const WaterSanitationModule = React.lazy(() => import('./components/WaterSanitationModule'));
+const DeceasedManagementModule = React.lazy(() => import('./components/DeceasedManagementModule'));
+const PsychosocialModule = React.lazy(() => import('./components/PsychosocialModule'));
+const EmergencyCommsModule = React.lazy(() => import('./components/EmergencyCommsModule'));
+const VolunteerDonationsModule = React.lazy(() => import('./components/VolunteerDonationsModule'));
+const InteragencyModule = React.lazy(() => import('./components/InteragencyModule'));
+const AerialOpsModule = React.lazy(() => import('./components/AerialOpsModule'));
+const FuelEnergyModule = React.lazy(() => import('./components/FuelEnergyModule'));
+import ErrorBoundary from './components/ErrorBoundary';
 import { 
-  ShieldAlert, 
-  Wifi, 
-  WifiOff, 
-  Activity, 
-  AlertTriangle, 
-  Heart, 
-  Compass, 
-  ShieldCheck, 
-  Clock, 
-  Database,
-  MapPin,
-  Flame,
-  UserCheck,
-  Building,
-  Sun,
-  Moon,
-  Send,
-  Share2,
-  Check,
-  Droplet,
-  Printer,
-  Crosshair
+  ShieldAlert, Wifi, WifiOff, Activity, AlertTriangle, Heart, Compass,
+  ShieldCheck, Clock, Database, MapPin, Flame, UserCheck, Building,
+  Sun, Moon, Send, Share2, Check, Droplet, Printer, Crosshair,
+  Route, HeartPulse, LayoutDashboard, Search, Package, Droplets,
+  HeartOff, Radio, Users, GitMerge, Plane, Fuel
 } from 'lucide-react';
 
 export default function App() {
@@ -48,13 +48,8 @@ export default function App() {
       text: 'Plataforma táctica ciudadana para reporte de daños por sismos, refugios seguros y búsqueda de desaparecidos en Venezuela.',
       url: 'https://sismovzla.web.app'
     };
-
     if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-      } catch (err) {
-        // user cancelled share
-      }
+      try { await navigator.share(shareData); } catch (err) {}
     } else {
       try {
         await navigator.clipboard.writeText('https://sismovzla.web.app');
@@ -78,7 +73,13 @@ export default function App() {
     window.location.hash === '#mapa-completo'
   );
 
-  const [activeTab, setActiveTab] = useState<'map_reports' | 'report_form' | 'survival_guides' | 'missing_search' | 'shelters' | 'shelter_tactical' | 'blood_donors' | 'hospital_patients' | 'reports_console' | 'volunteer_gate'>('map_reports');
+  type TabKey = 'map_reports' | 'report_form' | 'survival_guides' | 'missing_search' | 'shelters'
+    | 'shelter_tactical' | 'blood_donors' | 'hospital_patients' | 'reports_console' | 'volunteer_gate'
+    | 'evacuation_routes' | 'triage' | 'cascade_events' | 'search_rescue' | 'supply_logistics'
+    | 'eoc' | 'water_sanitation' | 'deceased' | 'psychosocial' | 'comms'
+    | 'volunteers' | 'interagency' | 'aerial_ops' | 'fuel_energy';
+
+  const [activeTab, setActiveTab] = useState<TabKey>('map_reports');
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState('');
   const [isLightMode, setIsLightMode] = useState(() => localStorage.getItem('sismovzla_light_mode') === 'true');
@@ -93,7 +94,6 @@ export default function App() {
     }
   }, [isLightMode]);
 
-  // Live Tactical Clock
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
@@ -104,106 +104,101 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // Load Volunteer Role from LocalStorage on mount
   useEffect(() => {
     const savedRole = localStorage.getItem('sismovzla_volunteer_role') as VolunteerRole;
-    if (savedRole && ['volunteer', 'operator', 'admin'].includes(savedRole)) {
+    if (savedRole && ['volunteer', 'operator', 'admin', 'shelter_coordinator', 'triage_medico', 'rescate_coord', 'logistica_admin', 'radio_op', 'forense', 'psicosocial', 'aereo_coord'].includes(savedRole)) {
       setVolunteerRole(savedRole);
     } else if (localStorage.getItem('sismovzla_volunteer_mode') === 'true') {
       setVolunteerRole('operator');
     }
   }, []);
 
-  // Register PWA Service Worker
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js')
-          .then((reg) => {
-            console.log('[SismoVZLA PWA] Service Worker registrado con éxito.', reg);
-          })
-          .catch((err) => {
-            console.error('[SismoVZLA PWA] Error al registrar Service Worker:', err);
-          });
+          .then((reg) => console.log('[SismoVZLA PWA] Service Worker registrado.', reg))
+          .catch((err) => console.error('[SismoVZLA PWA] Error SW:', err));
       });
     }
   }, []);
 
-  // Track Network Online/Offline status
   useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
-      syncOfflineQueue();
-    };
-    const handleOffline = () => {
-      setIsOnline(false);
-    };
-
+    const handleOnline = () => { setIsOnline(true); syncOfflineQueue(); };
+    const handleOffline = () => setIsOnline(false);
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-
-    // Initial check
-    if (navigator.onLine) {
-      syncOfflineQueue();
-    }
-
+    if (navigator.onLine) syncOfflineQueue();
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
 
-  // Sync Offline Queue automatically
   const syncOfflineQueue = async () => {
     const queue = JSON.parse(localStorage.getItem('sismovzla_offline_incidents') || '[]');
     if (queue.length === 0) return;
-
     setSyncMessage(`CONEXIÓN DETECTADA: Sincronizando ${queue.length} reportes en cola offline...`);
-
     let successCount = 0;
     for (const report of queue) {
-      try {
-        await addDoc(collection(db, 'incidents'), report);
-        successCount++;
-      } catch (err) {
-        console.error("Error al sincronizar reporte offline:", err);
-      }
+      try { await addDoc(collection(db, 'incidents'), report); successCount++; }
+      catch (err) { console.error("Error al sincronizar reporte offline:", err); }
     }
-
     if (successCount > 0) {
       setSyncMessage(`CONEXIÓN RESTABLECIDA: ${successCount} reportes transmitidos al servidor de crisis.`);
       setTimeout(() => setSyncMessage(null), 6000);
       localStorage.removeItem('sismovzla_offline_incidents');
-    } else {
-      setSyncMessage(null);
-    }
+    } else setSyncMessage(null);
   };
 
-  // Real-Time Firestore listener for incidents
   useEffect(() => {
-    const q = query(
-      collection(db, 'incidents'),
-      orderBy('createdAt', 'desc'),
-      limit(150)
-    );
-
+    const q = query(collection(db, 'incidents'), orderBy('createdAt', 'desc'), limit(150));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const list: Incident[] = [];
-      snapshot.forEach((doc) => {
-        list.push({ id: doc.id, ...doc.data() } as Incident);
-      });
+      snapshot.forEach((doc) => list.push({ id: doc.id, ...doc.data() } as Incident));
       setIncidents(list);
-    }, (error) => {
-      console.warn("Firestore listener fallback to IndexedDB cache:", error);
-    });
-
+    }, (error) => console.warn("Firestore listener fallback to IndexedDB cache:", error));
     return () => unsubscribe();
   }, []);
 
-  // Compute stats for Central Axis
   const totalActive = incidents.filter(i => !i.resolved).length;
   const totalVerified = incidents.filter(i => i.verified && !i.resolved).length;
   const totalByState = (st: Incident['state']) => incidents.filter(i => i.state === st && !i.resolved).length;
+
+  const tabLabel = (key: TabKey) => {
+    const labels: Record<TabKey, string> = {
+      eoc: '00 · Centro de Operaciones', map_reports: '01 · Mapa de Incidentes',
+      report_form: '02 · Formulario de Reporte', missing_search: '03 · Búsqueda de Personas',
+      shelters: '04 · Directorio de Refugios', shelter_tactical: '05 · Mapa Táctico de Refugios',
+      survival_guides: '06 · Auxilios & Directorio de Emergencia', blood_donors: '07 · Banco de Sangre',
+      hospital_patients: '08 · Registro Hospitalario', reports_console: '09 · Consola de Reportes',
+      volunteer_gate: 'ADM · Panel de Coordinación', evacuation_routes: '10 · Vías y Rutas',
+      triage: '11 · Triaje de Víctimas', cascade_events: '12 · Eventos en Cascada',
+      search_rescue: '13 · Búsqueda y Rescate', supply_logistics: '14 · Logística',
+      water_sanitation: '15 · Agua y Saneamiento', deceased: '16 · Gestión de Fallecidos',
+      psychosocial: '17 · Apoyo Psicosocial', comms: '18 · Comunicaciones',
+      volunteers: '19 · Voluntarios', interagency: '20 · Coordinación Interagencial',
+      aerial_ops: '21 · Operaciones Aéreas', fuel_energy: '22 · Combustible y Energía',
+    };
+    return labels[key] || key;
+  };
+
+  const renderTab = (key: TabKey, label: string, icon: React.ReactNode, activeColor: string, glowColor: string, show: boolean = true) => {
+    if (!show) return null;
+    return (
+      <button key={key} onClick={() => setActiveTab(key)}
+        className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all duration-200 cursor-pointer border ${
+          activeTab === key
+            ? `${activeColor} text-white shadow-[0_0_14px_${glowColor}] ${glowColor.includes('40') ? 'border-transparent' : ''} scale-[1.02]`
+            : 'bg-white/5 text-white/65 hover:text-white hover:bg-white/10 border-white/5 hover:border-white/15'
+        }`}>
+        {icon}
+        <span>{label}</span>
+      </button>
+    );
+  };
+
+  const isOp = volunteerRole === 'operator' || volunteerRole === 'admin' || volunteerRole === 'triage_medico' || volunteerRole === 'rescate_coord' || volunteerRole === 'logistica_admin' || volunteerRole === 'radio_op' || volunteerRole === 'forense' || volunteerRole === 'psicosocial' || volunteerRole === 'aereo_coord';
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white flex flex-col font-sans selection:bg-[#D32F2F] selection:text-white overflow-x-hidden" id="sismovzla-app">
@@ -216,12 +211,9 @@ export default function App() {
             ESTADO: CRÍTICO / DESPLIEGUE DE EMERGENCIA
           </span>
         </div>
-        
         <div className="flex items-center gap-4 text-[10px] sm:text-xs font-mono font-bold">
           <span className="hidden lg:inline text-white/90">EJE CENTRAL: CARACAS / LA GUAIRA / ARAGUA / CARABOBO</span>
-          
           <div className="flex items-center gap-2">
-            {/* Network indicator */}
             {isOnline ? (
               <span className="inline-flex items-center gap-1 bg-black/30 text-[#4CAF50] px-2.5 py-1 rounded border border-[#4CAF50]/30">
                 <Wifi className="w-3 h-3" /> CONECTADO
@@ -231,7 +223,6 @@ export default function App() {
                 <WifiOff className="w-3 h-3" /> OFFLINE
               </span>
             )}
-
             {isVolunteerVerified && (
               <span className="inline-flex items-center gap-1 bg-black/40 text-blue-400 px-2.5 py-1 rounded border border-blue-500/30">
                 <ShieldCheck className="w-3 h-3" /> COORDINACIÓN
@@ -241,7 +232,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* Main Branding Header */}
+      {/* Header */}
       <header className="bg-gradient-to-br from-[#121212] to-[#050505] border-b border-white/10 py-6 px-4 md:px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-start gap-4">
@@ -251,37 +242,21 @@ export default function App() {
             <div>
               <div className="flex flex-wrap items-center gap-2.5">
                 <h1 className="text-3xl md:text-4xl font-display font-black tracking-tighter text-white">SISMOVZLA</h1>
-                <span className="text-[10px] bg-white/10 text-white/70 px-2 py-0.5 rounded font-mono font-bold border border-white/10">PWA v1.2</span>
-                <button
-                  onClick={() => setIsLightMode(!isLightMode)}
+                <span className="text-[10px] bg-white/10 text-white/70 px-2 py-0.5 rounded font-mono font-bold border border-white/10">PWA v2.0</span>
+                <button onClick={() => setIsLightMode(!isLightMode)}
                   className={`px-3 py-1 rounded-lg text-[10px] font-mono font-black uppercase flex items-center gap-1.5 transition-all cursor-pointer border ${
-                    isLightMode 
-                      ? 'bg-amber-400 text-black border-amber-500 shadow-md' 
-                      : 'bg-white/10 text-amber-300 border-white/20 hover:bg-white/20'
-                  }`}
-                  title={isLightMode ? 'Cambiar a Modo Nocturno Táctico' : 'Cambiar a Versión Clara Diurna'}
-                >
+                    isLightMode ? 'bg-amber-400 text-black border-amber-500 shadow-md' : 'bg-white/10 text-amber-300 border-white/20 hover:bg-white/20'
+                  }`}>
                   {isLightMode ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5 animate-spin-slow" />}
                   {isLightMode ? 'MODO NOCTURNO' : 'VERSIÓN CLARA'}
                 </button>
-
-                <a
-                  href="https://t.me/+q9ScOcEulV9kY2Q5"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3 py-1 bg-[#229ED9] hover:bg-[#1E8BC0] text-white border border-[#229ED9]/50 rounded-lg text-[10px] font-mono font-black uppercase flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
-                  title="Unirse al canal oficial de coordinación comunitaria en Telegram"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  GRUPO TELEGRAM
+                <a href="https://t.me/+q9ScOcEulV9kY2Q5" target="_blank" rel="noopener noreferrer"
+                  className="px-3 py-1 bg-[#229ED9] hover:bg-[#1E8BC0] text-white border border-[#229ED9]/50 rounded-lg text-[10px] font-mono font-black uppercase flex items-center gap-1.5 transition-all shadow-md cursor-pointer">
+                  <Send className="w-3.5 h-3.5" /> GRUPO TELEGRAM
                 </a>
-
-                <button
-                  onClick={handleShareApp}
-                  className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-400/40 rounded-lg text-[10px] font-mono font-black uppercase flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
-                  title="Compartir o copiar enlace oficial de la PWA"
-                >
-                  {copiedLink ? <Check className="w-3.5 h-3.5 text-white" /> : <Share2 className="w-3.5 h-3.5" />}
+                <button onClick={handleShareApp}
+                  className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-400/40 rounded-lg text-[10px] font-mono font-black uppercase flex items-center gap-1.5 transition-all shadow-md cursor-pointer">
+                  {copiedLink ? <Check className="w-3.5 h-3.5" /> : <Share2 className="w-3.5 h-3.5" />}
                   {copiedLink ? '¡ENLACE COPIADO!' : 'COMPARTIR APP'}
                 </button>
               </div>
@@ -290,15 +265,11 @@ export default function App() {
               </p>
             </div>
           </div>
-
-          {/* Tactical Clock & Summary Cards */}
           <div className="flex flex-wrap md:flex-nowrap items-center gap-4">
             <div className="text-left md:text-right font-mono bg-black/30 border border-white/5 p-3 rounded-lg min-w-[140px]">
               <p className="text-[9px] text-white/40 uppercase tracking-widest font-bold">HORA OFICIAL VZLA</p>
               <p className="text-lg font-bold text-[#4CAF50]">{currentTime || '00:00:00'}</p>
             </div>
-
-            {/* Quick Metrics Dashboard */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 w-full md:w-auto" id="mini-metrics">
               <div className="bg-black/40 p-3 rounded-lg border border-white/10 text-center min-w-[85px] shadow-sm">
                 <p className="text-[9px] text-white/40 uppercase tracking-wider font-bold">ACTIVOS</p>
@@ -321,189 +292,70 @@ export default function App() {
         </div>
       </header>
 
-      {/* Sync Banner Notification */}
       {syncMessage && (
         <div className="bg-[#D32F2F] text-white font-mono font-bold text-xs py-2.5 px-4 text-center border-b border-[#FF5252] shadow-[inset_0_0_10px_rgba(255,255,255,0.2)] animate-pulse" id="sync-banner">
           {syncMessage}
         </div>
       )}
 
-      {/* Primary HUD Navigation Tabs */}
+      {/* Navigation */}
       <nav className="border-b border-white/10 bg-zinc-950/90 sticky top-[49px] sm:top-[51px] z-40 backdrop-blur-xl shadow-lg">
         <div className="max-w-7xl mx-auto px-2 md:px-4 py-2">
-
-          {/* Primary tabs — main actions */}
           <div className="flex flex-wrap gap-1.5">
-
-            {/* === GRUPO 1: MAPA & REPORTE === */}
-            <button
-              onClick={() => setActiveTab('map_reports')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all duration-200 cursor-pointer border ${
-                activeTab === 'map_reports'
-                  ? 'bg-red-600 text-white shadow-[0_0_14px_rgba(220,38,38,0.45)] border-red-400 scale-[1.02]'
-                  : 'bg-white/5 text-white/65 hover:text-white hover:bg-white/10 border-white/5 hover:border-white/15'
-              }`}
-            >
-              <Clock className="w-4 h-4 shrink-0" />
-              <span>MAPA TÁCTICO</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('report_form')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all duration-200 cursor-pointer border ${
-                activeTab === 'report_form'
-                  ? 'bg-amber-500 text-white shadow-[0_0_14px_rgba(245,158,11,0.4)] border-amber-400 scale-[1.02]'
-                  : 'bg-white/5 text-white/65 hover:text-white hover:bg-white/10 border-white/5 hover:border-white/15'
-              }`}
-            >
-              <AlertTriangle className="w-4 h-4 shrink-0" />
-              <span>REPORTAR DAÑO</span>
-            </button>
-
-            {/* === GRUPO 2: PERSONAS & REFUGIOS === */}
-            <button
-              onClick={() => setActiveTab('missing_search')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all duration-200 cursor-pointer border ${
-                activeTab === 'missing_search'
-                  ? 'bg-rose-600 text-white shadow-[0_0_14px_rgba(225,29,72,0.4)] border-rose-400 scale-[1.02]'
-                  : 'bg-white/5 text-white/65 hover:text-white hover:bg-white/10 border-white/5 hover:border-white/15'
-              }`}
-            >
-              <Heart className="w-4 h-4 shrink-0" />
-              <span>PERSONAS</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('shelters')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all duration-200 cursor-pointer border ${
-                activeTab === 'shelters'
-                  ? 'bg-teal-600 text-white shadow-[0_0_14px_rgba(13,148,136,0.4)] border-teal-400 scale-[1.02]'
-                  : 'bg-white/5 text-white/65 hover:text-white hover:bg-white/10 border-white/5 hover:border-white/15'
-              }`}
-            >
-              <Building className="w-4 h-4 shrink-0" />
-              <span>REFUGIOS</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('shelter_tactical')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all duration-200 cursor-pointer border ${
-                activeTab === 'shelter_tactical'
-                  ? 'bg-emerald-700 text-white shadow-[0_0_14px_rgba(5,150,105,0.4)] border-emerald-500 scale-[1.02]'
-                  : 'bg-white/5 text-white/65 hover:text-white hover:bg-white/10 border-white/5 hover:border-white/15'
-              }`}
-            >
-              <Crosshair className="w-4 h-4 shrink-0" />
-              <span>MAPA REFUGIOS</span>
-            </button>
-
-            {/* === GRUPO 3: SALUD === */}
-            <button
-              onClick={() => setActiveTab('survival_guides')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all duration-200 cursor-pointer border ${
-                activeTab === 'survival_guides'
-                  ? 'bg-emerald-600 text-white shadow-[0_0_14px_rgba(5,150,105,0.4)] border-emerald-400 scale-[1.02]'
-                  : 'bg-white/5 text-white/65 hover:text-white hover:bg-white/10 border-white/5 hover:border-white/15'
-              }`}
-            >
-              <Compass className="w-4 h-4 shrink-0" />
-              <span>AUXILIOS</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('blood_donors')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all duration-200 cursor-pointer border ${
-                activeTab === 'blood_donors'
-                  ? 'bg-red-700 text-white shadow-[0_0_14px_rgba(185,28,28,0.4)] border-red-500 scale-[1.02]'
-                  : 'bg-white/5 text-white/65 hover:text-white hover:bg-white/10 border-white/5 hover:border-white/15'
-              }`}
-            >
-              <Droplet className="w-4 h-4 shrink-0" />
-              <span>SANGRE</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('hospital_patients')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all duration-200 cursor-pointer border ${
-                activeTab === 'hospital_patients'
-                  ? 'bg-amber-600 text-white shadow-[0_0_14px_rgba(217,119,6,0.4)] border-amber-400 scale-[1.02]'
-                  : 'bg-white/5 text-white/65 hover:text-white hover:bg-white/10 border-white/5 hover:border-white/15'
-              }`}
-            >
-              <Activity className="w-4 h-4 shrink-0" />
-              <span>HOSPITALES</span>
-            </button>
-
-            {/* === GRUPO 4: OPERACIONES === */}
-            <button
-              onClick={() => setActiveTab('reports_console')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all duration-200 cursor-pointer border ${
-                activeTab === 'reports_console'
-                  ? 'bg-violet-600 text-white shadow-[0_0_14px_rgba(139,92,246,0.4)] border-violet-400 scale-[1.02]'
-                  : 'bg-white/5 text-white/65 hover:text-white hover:bg-white/10 border-white/5 hover:border-white/15'
-              }`}
-            >
-              <Printer className="w-4 h-4 shrink-0" />
-              <span>REPORTES</span>
-            </button>
-
-            {/* Separator spacer */}
+            {renderTab('eoc', 'EOC', <LayoutDashboard className="w-4 h-4 shrink-0" />, 'bg-red-800', 'rgba(220,38,38,0.45)', isOp)}
+            {renderTab('map_reports', 'MAPA TÁCTICO', <Clock className="w-4 h-4 shrink-0" />, 'bg-red-600', 'rgba(220,38,38,0.45)')}
+            {renderTab('cascade_events', 'CASCADA', <Flame className="w-4 h-4 shrink-0" />, 'bg-orange-600', 'rgba(234,88,12,0.45)')}
+            {renderTab('triage', 'TRIAJE', <HeartPulse className="w-4 h-4 shrink-0" />, 'bg-rose-600', 'rgba(225,29,72,0.45)')}
+            {renderTab('evacuation_routes', 'VÍAS', <Route className="w-4 h-4 shrink-0" />, 'bg-emerald-700', 'rgba(5,150,105,0.45)')}
+            {renderTab('search_rescue', 'RESCATE', <Search className="w-4 h-4 shrink-0" />, 'bg-blue-700', 'rgba(29,78,216,0.45)', isOp)}
+            {renderTab('report_form', 'REPORTAR', <AlertTriangle className="w-4 h-4 shrink-0" />, 'bg-amber-500', 'rgba(245,158,11,0.4)')}
+            {renderTab('missing_search', 'PERSONAS', <Heart className="w-4 h-4 shrink-0" />, 'bg-rose-600', 'rgba(225,29,72,0.4)')}
+            {renderTab('shelters', 'REFUGIOS', <Building className="w-4 h-4 shrink-0" />, 'bg-teal-600', 'rgba(13,148,136,0.4)')}
+            {renderTab('shelter_tactical', 'MAPA REFUGIOS', <Crosshair className="w-4 h-4 shrink-0" />, 'bg-emerald-700', 'rgba(5,150,105,0.4)')}
+            {renderTab('supply_logistics', 'LOGÍSTICA', <Package className="w-4 h-4 shrink-0" />, 'bg-emerald-600', 'rgba(5,150,105,0.4)', isOp)}
+            {renderTab('water_sanitation', 'AGUA', <Droplets className="w-4 h-4 shrink-0" />, 'bg-sky-700', 'rgba(3,105,161,0.4)')}
+            {renderTab('comms', 'RADIO', <Radio className="w-4 h-4 shrink-0" />, 'bg-amber-700', 'rgba(180,83,9,0.4)')}
+            {renderTab('fuel_energy', 'COMBUSTIBLE', <Fuel className="w-4 h-4 shrink-0" />, 'bg-yellow-700', 'rgba(161,98,7,0.4)')}
+            {renderTab('aerial_ops', 'AÉREO', <Plane className="w-4 h-4 shrink-0" />, 'bg-sky-600', 'rgba(2,132,199,0.4)', isOp)}
+            {renderTab('interagency', 'INTERAGENCIAL', <GitMerge className="w-4 h-4 shrink-0" />, 'bg-violet-700', 'rgba(109,40,217,0.4)', isOp)}
+            {renderTab('deceased', 'FALLECIDOS', <HeartOff className="w-4 h-4 shrink-0" />, 'bg-gray-700', 'rgba(75,85,99,0.4)', isOp)}
+            {renderTab('psychosocial', 'PSICOSOCIAL', <Heart className="w-4 h-4 shrink-0" />, 'bg-pink-700', 'rgba(159,18,57,0.4)')}
+            {renderTab('volunteers', 'VOLUNTARIOS', <Users className="w-4 h-4 shrink-0" />, 'bg-blue-600', 'rgba(37,99,235,0.4)')}
+            {renderTab('survival_guides', 'AUXILIOS', <Compass className="w-4 h-4 shrink-0" />, 'bg-emerald-600', 'rgba(5,150,105,0.4)')}
+            {renderTab('blood_donors', 'SANGRE', <Droplet className="w-4 h-4 shrink-0" />, 'bg-red-700', 'rgba(185,28,28,0.4)')}
+            {renderTab('hospital_patients', 'HOSPITALES', <Activity className="w-4 h-4 shrink-0" />, 'bg-amber-600', 'rgba(217,119,6,0.4)')}
+            {renderTab('reports_console', 'REPORTES', <Printer className="w-4 h-4 shrink-0" />, 'bg-violet-600', 'rgba(139,92,246,0.4)')}
             <div className="flex-1 hidden sm:block" />
-
-            {/* Coordinator — visually distinct */}
-            <button
-              onClick={() => setActiveTab('volunteer_gate')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-mono font-bold text-xs tracking-tight whitespace-nowrap transition-all duration-200 cursor-pointer border ${
-                activeTab === 'volunteer_gate'
-                  ? 'bg-blue-600 text-white shadow-[0_0_14px_rgba(37,99,235,0.4)] border-blue-400 scale-[1.02]'
-                  : 'bg-blue-500/10 text-blue-300 hover:text-white hover:bg-blue-500/20 border border-blue-500/30 hover:border-blue-400/50'
-              }`}
-            >
-              <ShieldCheck className="w-4 h-4 shrink-0" />
-              <span>COORDINADOR</span>
-            </button>
-
+            {renderTab('volunteer_gate', 'COORDINADOR', <ShieldCheck className="w-4 h-4 shrink-0" />, 'bg-blue-600', 'rgba(37,99,235,0.4)')}
           </div>
-
-          {/* Active tab indicator label */}
           <div className="mt-1.5 flex items-center gap-2 px-0.5">
             <div className="h-px flex-1 bg-white/5" />
-            <span className="text-[9px] font-mono text-white/25 uppercase tracking-widest">
-              {activeTab === 'map_reports' && '01 · Mapa de Incidentes'}
-              {activeTab === 'report_form' && '02 · Formulario de Reporte'}
-              {activeTab === 'missing_search' && '03 · Búsqueda de Personas'}
-              {activeTab === 'shelters' && '04 · Directorio de Refugios'}
-              {activeTab === 'shelter_tactical' && '05 · Mapa Táctico de Refugios'}
-              {activeTab === 'survival_guides' && '06 · Auxilios & Directorio de Emergencia'}
-              {activeTab === 'blood_donors' && '07 · Banco de Sangre'}
-              {activeTab === 'hospital_patients' && '08 · Registro Hospitalario'}
-              {activeTab === 'reports_console' && '09 · Consola de Reportes'}
-              {activeTab === 'volunteer_gate' && 'ADM · Panel de Coordinación'}
-            </span>
+            <span className="text-[9px] font-mono text-white/25 uppercase tracking-widest">{tabLabel(activeTab)}</span>
             <div className="h-px flex-1 bg-white/5" />
           </div>
-
         </div>
       </nav>
 
-
-      {/* Main Content Area */}
+      {/* Main Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6" id="main-content-area">
+        <ErrorBoundary>
+          <Suspense fallback={<ModuleSkeleton tabKey={activeTab} label={tabLabel(activeTab)} />}>
         
-        {/* Offline notice when applicable */}
         {!isOnline && (
           <div className="bg-[#FF9800]/10 border border-[#FF9800]/30 rounded-xl p-5 flex gap-4 items-start shadow-[0_0_15px_rgba(255,152,0,0.1)]">
             <WifiOff className="w-6 h-6 text-[#FF9800] shrink-0 mt-0.5 animate-pulse" />
             <div>
               <h4 className="font-mono font-bold text-[#FF9800] text-sm uppercase">CONEXIÓN RED: DEGRADADA / INOPERATIVA</h4>
               <p className="text-xs text-white/70 mt-1 leading-relaxed">
-                Su terminal está operando localmente. Toda la base de datos táctica de ciudadanos y reportes se lee y escribe directamente en su dispositivo. El envío de reportes guardará los datos de inmediato en la cola de contingencia local, retransmitiéndose automáticamente tan pronto se detecte red móvil o canal alternativo.
+                Su terminal está operando localmente. Toda la base de datos táctica se lee y escribe directamente en su dispositivo. El envío de reportes guardará los datos de inmediato en la cola de contingencia local, retransmitiéndose automáticamente tan pronto se detecte red móvil o canal alternativo.
               </p>
             </div>
           </div>
         )}
 
         {/* Tab Routing */}
+        {activeTab === 'eoc' && isOp && <EOCDashboard />}
+
         {activeTab === 'map_reports' && (
           <div className="space-y-6 animate-fade-in" id="tab-monitoring">
             <div className="bg-[#121212] border border-white/10 rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -513,21 +365,7 @@ export default function App() {
                   CONSOLA DE MONITOREO DE CRISIS
                 </h2>
                 <p className="text-xs text-white/50 mt-1">Monitoreo de coordenadas críticas e infraestructura en el Eje Central.</p>
-                <div className="mt-2.5 flex flex-wrap items-center gap-2">
-                  <a
-                    href="/?mapa=completo"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-600/15 hover:bg-red-600 text-red-300 hover:text-white border border-red-500/30 rounded-lg font-mono text-[10px] font-black uppercase transition-all shadow cursor-pointer"
-                    title="Abre una ventana nueva con el mapa táctico expandido a pantalla completa por defecto"
-                  >
-                    <Share2 className="w-3.5 h-3.5 text-red-400" />
-                    Enlace Precargado a Mapa Pantalla Completa
-                  </a>
-                </div>
               </div>
-
-              {/* General details of affected cities */}
               <div className="flex flex-wrap gap-2 text-[11px] font-mono">
                 <span className="bg-black/40 px-3 py-1.5 rounded border border-white/10 flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-[#D32F2F]" /> CCS: <strong className="text-white">{totalByState('Caracas')}</strong>
@@ -543,133 +381,103 @@ export default function App() {
                 </span>
               </div>
             </div>
-
-            <MapViewer 
-              incidents={incidents}
-              isVolunteerVerified={isVolunteerVerified}
-              selectedStateFilter={selectedStateFilter}
-              onStateFilterChange={setSelectedStateFilter}
-              initialFullScreen={isDirectFullMap}
-            />
+            <MapViewer incidents={incidents} isVolunteerVerified={isVolunteerVerified}
+              selectedStateFilter={selectedStateFilter} onStateFilterChange={setSelectedStateFilter}
+              initialFullScreen={isDirectFullMap} />
           </div>
         )}
+
+        {activeTab === 'cascade_events' && <CascadeTimeline />}
+
+        {activeTab === 'triage' && <TriageModule />}
+
+        {activeTab === 'evacuation_routes' && <EvacuationRoutesPanel />}
+
+        {activeTab === 'search_rescue' && isOp && <SearchAndRescueModule />}
 
         {activeTab === 'report_form' && (
           <div className="max-w-3xl mx-auto space-y-6 animate-fade-in" id="tab-report-form">
             <div className="text-center bg-[#121212]/50 border border-white/5 p-6 rounded-2xl">
               <h2 className="text-2xl font-display font-black text-white uppercase tracking-wide">CANALIZACIÓN DE EMERGENCIAS</h2>
-              <p className="text-xs text-white/50 mt-1 max-w-lg mx-auto leading-relaxed">
-                Reporte de riesgos y salvamento. Esta información alimenta el mapa táctico de rescate de manera directa. No requiere Internet para encolar datos.
-              </p>
+              <p className="text-xs text-white/50 mt-1 max-w-lg mx-auto leading-relaxed">Reporte de riesgos y salvamento. Esta información alimenta el mapa táctico de rescate de manera directa. No requiere Internet para encolar datos.</p>
             </div>
-            
-            <ReportForm 
-              userId="Anon"
-              onReportSuccess={(newInc) => {
-                // Switch back to monitoring to show the new incident
-                setActiveTab('map_reports');
-              }}
-            />
+            <ReportForm userId="Anon" onReportSuccess={() => setActiveTab('map_reports')} />
           </div>
         )}
 
         {activeTab === 'missing_search' && (
-          <div className="space-y-6 animate-fade-in" id="tab-people-search">
-            <PeopleSearch 
-              isVolunteerVerified={isVolunteerVerified}
-              userId="Anon"
-            />
-          </div>
-        )}
-
-        {activeTab === 'survival_guides' && (
-          <div className="space-y-6 animate-fade-in" id="tab-survival-guides">
-            <SurvivalSection />
-          </div>
+          <PeopleSearch isVolunteerVerified={isVolunteerVerified} userId="Anon" />
         )}
 
         {activeTab === 'shelters' && (
           <div className="space-y-6 animate-fade-in" id="tab-shelters">
-            <SheltersModule 
-              isVolunteerVerified={isVolunteerVerified}
-              role={volunteerRole}
-              userId="Ciudadano"
-            />
-            {/* Dashboard de solicitudes para Coordinador de Refugio */}
+            <SheltersModule isVolunteerVerified={isVolunteerVerified} role={volunteerRole} userId="Ciudadano" />
             {volunteerRole === 'shelter_coordinator' && (
               <ShelterRequestsDashboard role={volunteerRole} userId="CoordRefugio" />
             )}
           </div>
         )}
 
-        {activeTab === 'shelter_tactical' && (
-          <div className="space-y-4 animate-fade-in" id="tab-shelter-tactical">
-            <ShelterTacticalMap />
-          </div>
-        )}
+        {activeTab === 'shelter_tactical' && <ShelterTacticalMap />}
+
+        {activeTab === 'supply_logistics' && isOp && <SupplyLogisticsModule />}
+
+        {activeTab === 'water_sanitation' && <WaterSanitationModule />}
+
+        {activeTab === 'comms' && <EmergencyCommsModule />}
+
+        {activeTab === 'fuel_energy' && <FuelEnergyModule />}
+
+        {activeTab === 'aerial_ops' && isOp && <AerialOpsModule />}
+
+        {activeTab === 'interagency' && isOp && <InteragencyModule />}
+
+        {activeTab === 'deceased' && isOp && <DeceasedManagementModule />}
+
+        {activeTab === 'psychosocial' && <PsychosocialModule />}
+
+        {activeTab === 'volunteers' && <VolunteerDonationsModule />}
+
+        {activeTab === 'survival_guides' && <SurvivalSection />}
 
         {activeTab === 'blood_donors' && (
-          <div className="space-y-6 animate-fade-in" id="tab-blood-donors">
-            <BloodDonorsModule 
-              isVolunteerVerified={isVolunteerVerified}
-              role={volunteerRole}
-            />
-          </div>
+          <BloodDonorsModule isVolunteerVerified={isVolunteerVerified} role={volunteerRole} />
         )}
 
         {activeTab === 'hospital_patients' && (
-          <div className="space-y-6 animate-fade-in" id="tab-hospital-patients">
-            <HospitalPatientsModule 
-              isVerified={isVolunteerVerified}
-              role={volunteerRole}
-            />
-          </div>
+          <HospitalPatientsModule isVerified={isVolunteerVerified} role={volunteerRole} />
         )}
 
         {activeTab === 'reports_console' && (
-          <div className="space-y-6 animate-fade-in" id="tab-reports-console">
-            <ReportsConsoleModule 
-              incidents={incidents}
-              isVerified={isVolunteerVerified}
-              role={volunteerRole}
-            />
-          </div>
+          <ReportsConsoleModule incidents={incidents} isVerified={isVolunteerVerified} role={volunteerRole} />
         )}
 
         {activeTab === 'volunteer_gate' && (
           <div className={`${isVolunteerVerified ? 'w-full' : 'max-w-2xl mx-auto'} space-y-6 animate-fade-in`} id="tab-coordinacion">
-            <VolunteerVerification 
-              role={volunteerRole}
-              onRoleChange={setVolunteerRole}
-            />
+            <VolunteerVerification role={volunteerRole} onRoleChange={setVolunteerRole} />
             {isVolunteerVerified && (
               <>
-                {/* Panel de solicitudes para Coordinador de Refugio */}
                 {volunteerRole === 'shelter_coordinator' && (
                   <ShelterRequestsDashboard role={volunteerRole} userId="CoordRefugio" />
                 )}
-                {/* Panel administrativo general para operator / admin */}
                 {(volunteerRole === 'operator' || volunteerRole === 'admin') && (
-                  <AdminPanel 
-                    incidents={incidents}
-                    isVerified={isVolunteerVerified}
-                    role={volunteerRole}
-                  />
+                  <AdminPanel incidents={incidents} isVerified={isVolunteerVerified} role={volunteerRole} />
                 )}
               </>
             )}
           </div>
         )}
 
+        </Suspense>
+        </ErrorBoundary>
       </main>
 
-      {/* Footer information section */}
+      {/* Footer */}
       <footer className="border-t border-white/10 bg-[#050505] py-10 px-4 mt-12 text-center" id="sismovzla-footer">
         <div className="max-w-7xl mx-auto space-y-4">
           <p className="text-xs text-white/40 max-w-2xl mx-auto leading-relaxed">
             SismoVZLA es un nodo civil y humanitario de contingencia abierta para canalizar recursos críticos de información tras catástrofes sísmicas. Desplegado en modo resiliente de máxima tolerancia a fallas.
           </p>
-          
           <div className="flex flex-wrap items-center justify-center gap-4 text-[10px] font-mono font-bold text-white/30">
             <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#4CAF50]" /> MODO CONEXIÓN RESILIENTE</span>
             <span>•</span>
@@ -677,7 +485,6 @@ export default function App() {
             <span>•</span>
             <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> COORDINACIÓN DE CRISIS EN CURSO</span>
           </div>
-          
           <div className="flex justify-center items-center gap-1.5 text-xs text-white/40">
             <Database className="w-4 h-4 text-white/30" />
             <span className="font-mono">PWA PERSISTENCIA OFF-LINE ACTIVA</span>

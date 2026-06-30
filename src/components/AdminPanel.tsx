@@ -344,7 +344,7 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
       const incRef = doc(db, 'incidents', editingIncident.id);
       const updateData: any = {
         type: editForm.type,
-        state: editForm.state,
+        state: editForm.state as 'Caracas' | 'La Guaira' | 'Aragua' | 'Carabobo' | 'Otros',
         address: editForm.address.trim() || null,
         severity: Number(editForm.severity),
         description: editForm.description,
@@ -372,7 +372,7 @@ export default function AdminPanel({ incidents, isVerified, role = 'admin' }: Ad
         setSelectedIncident({
           ...selectedIncident,
           type: editForm.type,
-          state: editForm.state,
+          state: editForm.state as typeof selectedIncident.state,
           address: editForm.address.trim() || undefined,
           severity: Number(editForm.severity),
           description: editForm.description,
