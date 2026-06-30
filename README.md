@@ -185,7 +185,11 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
    ```
 
 ---
+## 🙌 Agradecimientos
 
+- **Dirección Nacional de Inteligencia Artificial — CAVECOM-E.ORG.VE** — Por su invaluable aporte técnico y estratégico en el desarrollo e implementación de esta plataforma.
+
+--- 
 ## 🤝 Contribuciones y Coordinación Civil
 
 Las contribuciones ciudadanas para optimizar el rendimiento en redes degradadas, traducir manuales de supervivencia o ampliar el directorio hospitalario son bienvenidas.
