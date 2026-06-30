@@ -92,12 +92,14 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
 |---|---|
 | Ciudadano | Visualización pública |
 | Voluntario (`VOLUNTARIO_VZLA`) | Registro de personas + solicitudes |
+| Coordinador de Refugio (`COORD_REFUGIO`) | Actualizar semáforo de capacidad y registrar salidas de albergados |
 | Operador Táctico (`TACTICO_2026`) | Creación, actualización, eliminación, resolución |
 
 ---
 
 ### 7. 🛡️ Matriz de Roles de Seguridad
 - **Voluntario** (`VOLUNTARIO_VZLA`): Lectura general y envío de reportes.
+- **Coordinador de Refugio** (`COORD_REFUGIO`): Administración local de la ocupación del refugio (control del semáforo y gestión de egresos).
 - **Operador Táctico** (`TACTICO_2026`): Verificación, despacho y edición en Firestore.
 - **Coordinador/Admin** (`SISMO_CRISIS_ADMIN`): Administración absoluta.
 
