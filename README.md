@@ -3,11 +3,11 @@
 # 🚨 SISMOVZLA — Plataforma Táctica Comunitaria de Emergencia
 **Nodo Civil Descentralizado para Mapeo de Daños, Triaje de Riesgos y Respuesta Ante Catástrofes Sísmicas**
 
-[![Plataforma Oficial](https://img.shields.io/badge/Plataforma-sismovzla.web.app-FF9800?style=for-the-badge&logo=firebase&logoColor=black)](https://sismovzla.web.app)
+[![Plataforma Oficial](https://img.shields.io/badge/Plataforma-ayudasismovzla.web.app-FF9800?style=for-the-badge&logo=firebase&logoColor=black)](https://ayudasismovzla.web.app)
 [![PWA Offline-First](https://img.shields.io/badge/Arquitectura-PWA_Resiliente-4CAF50?style=for-the-badge&logo=pwa&logoColor=white)](#-arquitectura-resiliente-offline-first)
 [![Stack](https://img.shields.io/badge/Frontend-React_19_%2B_TypeScript-3178C6?style=for-the-badge&logo=react&logoColor=white)](https://react.dev)
 [![Estilos](https://img.shields.io/badge/UI-Tailwind_CSS_v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
-[![Versión](https://img.shields.io/badge/Versión-1.3-D32F2F?style=for-the-badge)](https://sismovzla.web.app)
+[![Versión](https://img.shields.io/badge/Versión-1.3-D32F2F?style=for-the-badge)](https://ayudasismovzla.web.app)
 
 <br />
 </div>
@@ -16,7 +16,7 @@
 
 ## 📖 Descripción General
 
-**🌐 URL Oficial de la Plataforma:** [https://sismovzla.web.app/](https://sismovzla.web.app/)
+**🌐 URL Oficial de la Plataforma:** [https://ayudasismovzla.web.app/](https://ayudasismovzla.web.app/)
 
 **SismoVZLA** es una Aplicación Web Progresiva (**PWA**) de código abierto diseñada para operar como una red de contingencia humanitaria en Venezuela tras eventos sísmicos de gran escala.
 
@@ -194,5 +194,5 @@ Las contribuciones ciudadanas para optimizar el rendimiento en redes degradadas,
 
 <div align="center">
   <p>Desplegado bajo licencia abierta MIT — Desarrollado por y para la sociedad civil venezolana.</p>
-  <p><strong><a href="https://sismovzla.web.app">🌐 sismovzla.web.app</a></strong></p>
+  <p><strong><a href="https://ayudasismovzla.web.app">🌐 ayudasismovzla.web.app</a></strong></p>
 </div>
