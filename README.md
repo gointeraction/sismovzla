@@ -1,4 +1,4 @@
-﻿<div align="center">
+<div align="center">
 
 # 🚨 SISMOVZLA — Plataforma Táctica Comunitaria de Emergencia
 **Nodo Civil Descentralizado para Mapeo de Daños, Triaje de Riesgos y Respuesta Ante Catástrofes Sísmicas**
@@ -59,10 +59,12 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
 - Contador de ocupantes actualizado atómicamente en Firestore
 
 #### 6.2 📋 Registro de Personas Albergadas (Padrón de Ocupantes) ⭐ NUEVO
-- Registro nominal: Nombre, CI, Edad, Teléfono, Condición física, Necesidades médicas
-- Incremento/decremento atómico del contador de ocupantes via `increment()` de Firestore
-- Listado en tiempo real con chips de condición médica coloreados
-- Acceso: botón **👥 VER PERSONAS** en cada tarjeta de refugio
+- Registro nominal: Nombre, CI, Edad, Teléfono, Condición física, Necesidades médicas.
+- Fechas de ingreso y egreso automáticas para control y auditoría.
+- Buscador global 🔎 para localizar personas en toda la red de refugios por nombre o CI.
+- Incremento/decremento atómico del contador de ocupantes via `increment()` de Firestore.
+- Listado en tiempo real con chips de condición médica coloreados.
+- Acceso: botón **👥 VER PERSONAS** en cada tarjeta de refugio.
 
 #### 6.3 🚨 Gestión de Solicitudes de Ayuda ⭐ NUEVO
 - 5 categorías: Atención Médica, Insumos Médicos, Alimentos, Logística, Otros
@@ -117,9 +119,14 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
 - Feedback: `scale-[1.02]` + glow de color al tab activo
 - Subtítulo de contexto de sección activa
 
-### 11. 📄 Consola de Bitácoras y Exportación PDF (A4)
-- 6 tipos de reportes oficiales incluyendo Suite Ejecutiva Gubernamental (ONU/OCHA)
-- Generación PDF Zero-Bloat con `window.print()` y `@media print`
+### 11. 📄 Consola de Bitácoras y Exportación PDF (A4) ⭐ ACTUALIZADO v1.3
+- 9 tipos de reportes oficiales incluyendo Suite Ejecutiva Gubernamental (ONU/OCHA).
+- **Módulo de Reportes de Refugios**:
+  - 📄 Consolidado nacional de todas las personas albergadas.
+  - 📄 Desglose individual de ocupantes por cada refugio.
+  - 📅 Línea de tiempo cronológica de personas agrupadas por fecha de ingreso.
+  - 🟢 Directorio de albergados activos (personas que permanecen sin fecha de salida).
+- Generación PDF Zero-Bloat con `window.print()` y `@media print`.
 
 ### 12. 🔌 API REST de Integración (Node.js)
 - Métodos `GET`, `POST`, `PUT` — Entidades: `/incidents`, `/shelters`, `/people`, `/patients`, `/donors`, `/evaluations`
