@@ -12,12 +12,15 @@ export default defineConfig(() => {
       },
     },
     build: {
+      chunkSizeWarningLimit: 800,
       rollupOptions: {
         output: {
           manualChunks: {
             'lucide': ['lucide-react'],
             'jspdf': ['jspdf', 'jspdf-autotable'],
-            'firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore'],
+            'firebase-core': ['firebase/app'],
+            'firebase-auth': ['firebase/auth'],
+            'firebase-firestore': ['firebase/firestore'],
           },
         },
       },
