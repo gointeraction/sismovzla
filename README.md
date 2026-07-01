@@ -6,7 +6,8 @@
 [![Plataforma Oficial](https://img.shields.io/badge/Plataforma-ayudasismovzla.web.app-FF9800?style=for-the-badge&logo=firebase&logoColor=black)](https://ayudasismovzla.web.app)
 [![PWA Offline-First](https://img.shields.io/badge/Arquitectura-PWA_Resiliente-4CAF50?style=for-the-badge&logo=pwa&logoColor=white)](#-arquitectura-resiliente-offline-first)
 [![Stack](https://img.shields.io/badge/Frontend-React_19_%2B_TypeScript-3178C6?style=for-the-badge&logo=react&logoColor=white)](https://react.dev)
-[![Versión](https://img.shields.io/badge/Versión-3.2-D32F2F?style=for-the-badge)](https://ayudasismovzla.web.app)
+[![Versión](https://img.shields.io/badge/Versión-3.4-D32F2F?style=for-the-badge)](https://ayudasismovzla.web.app)
+[![Tests](https://img.shields.io/badge/Tests-98_Passing-22C55E?style=for-the-badge&logo=vitest&logoColor=white)](https://ayudasismovzla.web.app)
 
 <br />
 </div>
@@ -19,7 +20,7 @@
 
 **SismoVZLA** es una Aplicación Web Progresiva (**PWA**) de código abierto diseñada para operar como una red de contingencia humanitaria en Venezuela tras eventos sísmicos de gran escala.
 
-La plataforma cubre **35 módulos tácticos** organizados en **4 capas**: **Coordinación**, **Apoyo Táctico**, **Logística** y **Apoyo Ciudadano**, con **38 colecciones Firestore**, **43 reportes PDF**, **20+ APIs tipadas** y un sistema de **12 roles tácticos** especializados.
+La plataforma cubre **35 módulos tácticos** organizados en **4 capas**: **Coordinación**, **Apoyo Táctico**, **Logística** y **Apoyo Ciudadano**, con **38 colecciones Firestore**, **43 reportes PDF**, **20+ APIs tipadas**, **98 tests unitarios** y un sistema de **12 roles tácticos** especializados.
 
 Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones colapsan. SismoVZLA resuelve este problema mediante una arquitectura **Offline-First** que permite a los ciudadanos guardar reportes, consultar manuales de auxilio y buscar familiares **completamente sin internet**.
 
@@ -162,7 +163,7 @@ La Consola de Reportes es el centro maestro de generación de documentos oficial
 
 ---
 
-## ✨ Características de la Plataforma v3.2
+## ✨ Características de la Plataforma v3.4
 
 ### 🏗️ Arquitectura Técnica
 
@@ -173,10 +174,27 @@ La Consola de Reportes es el centro maestro de generación de documentos oficial
 | **Skeletons Contextuales** | 36 esqueletos visuales por módulo durante carga (tabla, mapa, dashboard, formulario) |
 | **Error Boundary** | Captura de errores por módulo con botón de reintento |
 | **Chunk Optimization** | Main: 222 kB \| lucide: 50 kB \| jspdf: 422 kB \| firebase-core: 0.7 kB \| firebase-auth: 111 kB \| firebase-firestore: 661 kB |
+| **ReportsConsole Lazy Loading** | 0 colecciones en mount, carga on-demand por tab con cache — ~85% menos tiempo/memoria inicial |
 | **Geolocalización Centralizada** | Hook `useGeolocation` compartido en 12+ módulos |
 | **Exportación PDF** | 43 reportes PDF con template institucional A4, firmas y disclaimer legal |
 | **Exportación CSV** | Módulos de logística y recursos con exportación CSV nativa |
 | **Consola de Reportes** | Módulo 09 con interfaz de pestañas colapsables y 34 vistas de datos |
+
+### 🛡️ Seguridad Firestore (v3.3)
+
+- **38 colecciones** — reglas endurecidas: `allow update/delete: if request.auth != null`
+- **12 colecciones sensibles** — requieren autenticación inclusive para lecturas (deceased, psychosocial, volunteers, hospital, child protection, legal aid, blood donors, etc.)
+- **6 colecciones** — requieren autenticación para crear registros (psychosocial, hospital, child protection, legal aid, weather alerts, press releases, training sessions)
+- **Helper `isShortStr(field, maxLen)`** — validación de longitudes de texto contra spam/abuso
+- **Rangos numéricos** — maxCapacity ≤100000, occupantCount ≥0, childAge 0-18, quantity ≥0
+- **Campo `type` protegido** — incidents update impide cambiar tipo de incidente
+
+### ✅ Tests Unitarios (v3.3)
+
+- **98 tests passing** — cobertura completa de 13 APIs con Vitest + jsdom
+- **Firebase mocks** — `vi.mock('firebase/firestore')` + `vi.mock('../../firebase')` con overrides por test
+- **13 archivos de test** — `crud.test.ts` (7), `triage.test.ts` (10), `incidents.test.ts` (5), `supply.test.ts` (4), `shelters.test.ts` (8), `family.test.ts` (7), `comms.test.ts` (5), `water.test.ts` (4), `deceased.test.ts` (6), `psychosocial.test.ts` (6), `eoc.test.ts` (16), `alerts.test.ts` (12), `volunteers.test.ts` (8)
+- Scripts: `npm test` (run) / `npm run test:watch` (watch mode)
 
 ### 🗺️ Mapa Táctico Georeferenciado
 - Marcadores de colores por gravedad (**Gravedad 1 a 5**)
@@ -253,19 +271,22 @@ La Consola de Reportes es el centro maestro de generación de documentos oficial
 
 ## 📊 Métricas de Rendimiento
 
-| Métrica | v1.0 | v2.0 | v3.0 | v3.1 | v3.2 | Mejora Total |
-|---------|------|------|------|------|------|--------------|
-| Main bundle | 1,699 kB | 213 kB | 222 kB | 222 kB | 222 kB | **-87%** |
-| Chunks lucide | 27 × 0.3kB | 1 × 45kB | 1 × 50kB | 1 × 50kB | 1 × 50kB | Consolidados |
-| Firebase | En main | 1 chunk 772kB | 3 chunks | 3 chunks | 3 chunks | Mejor cache |
-| Build time | ~7s | ~5s | ~6s | ~8s | ~6s | API optimizada |
-| Módulos | 8 | 23 | 35 | 35 | 35 | +27 |
-| Colecciones | 14 | 26 | 38 | 38 | 38 | +24 |
-| Reportes PDF | 0 | 6 | 15 | 43 | **43** | +43 |
-| APIs tipadas | 0 | 0 | 0 | 0 | **13** | +13 |
-| Métodos API | 0 | 0 | 0 | 0 | **20+** | +20 |
-| Roles | 4 | 11 | 12 | 12 | 12 | +8 |
-| Capas | 2 | 3 | 4 | 4 | 4 | +2 |
+| Métrica | v1.0 | v2.0 | v3.0 | v3.1 | v3.2 | v3.3 | v3.4 | Mejora Total |
+|---------|------|------|------|------|------|------|------|--------------|
+| Main bundle | 1,699 kB | 213 kB | 222 kB | 222 kB | 222 kB | 222 kB | 222 kB | **-87%** |
+| Chunks lucide | 27 × 0.3kB | 1 × 45kB | 1 × 50kB | 1 × 50kB | 1 × 50kB | 1 × 50kB | 1 × 50kB | Consolidados |
+| Firebase | En main | 1 chunk 772kB | 3 chunks | 3 chunks | 3 chunks | 3 chunks | 3 chunks | Mejor cache |
+| Build time | ~7s | ~5s | ~6s | ~8s | ~6s | ~6s | ~6s | API optimizada |
+| Módulos | 8 | 23 | 35 | 35 | 35 | 35 | 35 | +27 |
+| Colecciones | 14 | 26 | 38 | 38 | 38 | 38 | 38 | +24 |
+| Reportes PDF | 0 | 6 | 15 | 43 | **43** | **43** | **43** | +43 |
+| APIs tipadas | 0 | 0 | 0 | 0 | **13** | **13** | **13** | +13 |
+| Métodos API | 0 | 0 | 0 | 0 | **20+** | **20+** | **20+** | +20 |
+| Roles | 4 | 11 | 12 | 12 | 12 | 12 | 12 | +8 |
+| Capas | 2 | 3 | 4 | 4 | 4 | 4 | 4 | +2 |
+| Tests unitarios | 0 | 0 | 0 | 0 | 0 | **98** | **98** | +98 |
+| Firestore rules | Básicas | Básicas | 38 coll | 38 coll | 38 coll | **Endurecidas** | **Endurecidas** | Auth + validación |
+| ReportsConsole mount | — | — | — | 31 coll | 31 coll | 31 coll | **0 coll** | **-85%** carga/mem |
 
 ---
 
@@ -287,6 +308,12 @@ npm run build
 
 # Verificar tipos
 npx tsc --noEmit
+
+# Ejecutar tests (98 unitarios)
+npm test
+
+# Tests en modo watch
+npm run test:watch
 
 # Desplegar nodo principal
 npx firebase deploy --only hosting --project sismovzla
@@ -320,6 +347,7 @@ sismovzla/
 │   │   ├── psychosocial.ts               # open, followUp, close, refer
 │   │   ├── eoc.ts                        # cascadeEvents, searchSectors, interagencyTasks
 │   │   ├── alerts.ts                     # weatherAlerts, publicAlerts, aerialOps
+│   │   ├── __tests__/                    # 13 archivos de tests (98 tests)
 │   │   └── index.ts                      # Barrel export
 │   ├── components/
 │   │   ├── ReportsConsoleModule.tsx      # Consola maestra: 43 reportes PDF (3,176 líneas)
@@ -360,14 +388,16 @@ sismovzla/
 │   │   └── ErrorBoundary.tsx             # Captura de errores
 │   ├── hooks/
 │   │   └── useGeolocation.ts             # Hook centralizado
+│   ├── test/
+│   │   └── setup.ts                      # Firebase mocks para Vitest
 │   ├── types.ts                          # 38 interfaces TypeScript
 │   ├── firebase.ts                       # Configuración Firebase
 │   └── App.tsx                           # Orquestador principal (35 tabs)
 ├── server/
 │   └── firebaseAdmin.ts                  # Firebase Admin v14
-├── firestore.rules                       # 38 reglas de colección
-├── vite.config.ts                        # Configuración Vite + chunks
-└── package.json                          # Dependencias
+├── firestore.rules                       # 38 colecciones — auth + validación numérica + isShortStr
+├── vite.config.ts                        # Configuración Vite + chunks + Vitest
+└── package.json                          # Dependencias + scripts (test, test:watch)
 ```
 
 ---
@@ -415,8 +445,13 @@ const user = currentUser(); // 'admin@sismovzla.com'
 | `psychosocial.ts` | `psychosocialCasesApi` | `open()`, `followUp()`, `close()`, `refer()` |
 | `eoc.ts` | `cascadeEventsApi` | `contain()`, `resolve()`, `monitor()` |
 | `eoc.ts` | `searchSectorsApi` | `start()`, `complete()`, `verify()` |
+| `eoc.ts` | `rescueTeamsApi` | `deploy()`, `standDown()`, `markFound()` |
+| `eoc.ts` | `evacuationRoutesApi` | `open()`, `close()`, `block()` |
+| `eoc.ts` | `interagencyTasksApi` | `assign()`, `start()`, `complete()` |
 | `alerts.ts` | `weatherAlertsApi` | `activate()`, `deactivate()` |
+| `alerts.ts` | `publicAlertsApi` | `publish()`, `unpublish()` |
 | `alerts.ts` | `aerialOpsApi` | `start()`, `complete()`, `land()` |
+| `alerts.ts` | `fuelEnergyApi` | `activate()`, `deactivate()` |
 
 ### Uso en Módulos React
 
@@ -444,6 +479,20 @@ await searchSectorsApi.complete(sectorId);
 import { familyRequestsApi } from '../api';
 const matches = await familyRequestsApi.findMatches('Juan Pérez');
 ```
+
+---
+
+## 📋 Changelog
+
+| Versión | Commit | Mejoras |
+|---------|--------|---------|
+| **v3.4** | `b765566` | ReportsConsole lazy loading — 0 colecciones en mount, carga on-demand por tab con `loadedTabs` Set (~85% menos tiempo/memoria inicial) |
+| **v3.3** | `036de48` | 98 tests unitarios Vitest + seguridad Firestore endurecida (auth reads, isShortStr, rangos numéricos) + docs usuario |
+| **v3.2** | `7a28204` | API Layer tipada (13 archivos, 20+ métodos) + seguridad Firestore (auth updates/deletes) + mejoras funcionales |
+| **v3.1** | `949d392` | 43 reportes PDF (28 nuevos) incluyendo suite ONU/OCHA |
+| **v3.0** | `571cae6` | 35 módulos tácticos, 4 capas, 12 roles |
+| **v2.0** | — | 23 módulos, code-splitting, chunk optimization |
+| **v1.0** | — | 8 módulos base, PWA offline-first |
 
 ---
 
