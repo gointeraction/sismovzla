@@ -1,28 +1,33 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    /* Helper: validate string length */
+    function isShortStr(field, maxLen) {
+      return field is string && field.size() <= maxLen;
+    }
+
     match /incidents/{incidentId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['type', 'severity', 'description', 'state', 'latitude', 'longitude', 'resolved', 'verified', 'createdAt', 'reportedBy'])
                     && request.resource.data.type is string
                     && request.resource.data.severity is number
                     && request.resource.data.severity >= 1 && request.resource.data.severity <= 5
-                    && request.resource.data.description is string
-                    && request.resource.data.description.size() <= 2000
+                    && isShortStr(request.resource.data.description, 2000)
                     && request.resource.data.state is string
                     && request.resource.data.latitude is number
                     && request.resource.data.longitude is number
                     && request.resource.data.resolved is bool
                     && request.resource.data.verified is bool
                     && (!('audioUrl' in request.resource.data) || (request.resource.data.audioUrl is string && request.resource.data.audioUrl.size() <= 80000));
-      allow update: if request.resource.data.createdAt == resource.data.createdAt;
+      allow update: if request.resource.data.createdAt == resource.data.createdAt
+                    && request.resource.data.type == resource.data.type;
       allow delete: if request.auth != null;
     }
 
     match /people_search/{personId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['name', 'name_slug', 'last_known_loc', 'status', 'contact_info', 'registeredBy', 'createdAt'])
-                    && request.resource.data.name is string
+                    && isShortStr(request.resource.data.name, 200)
                     && request.resource.data.status in ['Buscado', 'Localizado', 'Hospitalizado'];
       allow update: if request.resource.data.createdAt == resource.data.createdAt;
       allow delete: if request.auth != null;
@@ -30,7 +35,9 @@ service cloud.firestore {
 
     match /dispatches/{dispatchId} {
       allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['incidentId', 'incidentType', 'incidentState', 'incidentDesc', 'agency', 'priority', 'resources', 'notes', 'dispatchedAt', 'status']);
+      allow create: if request.resource.data.keys().hasAll(['incidentId', 'incidentType', 'incidentState', 'incidentDesc', 'agency', 'priority', 'resources', 'notes', 'dispatchedAt', 'status'])
+                    && isShortStr(request.resource.data.agency, 200)
+                    && isShortStr(request.resource.data.notes, 2000);
       allow update: if request.resource.data.dispatchedAt == resource.data.dispatchedAt;
       allow delete: if request.auth != null;
     }
@@ -38,12 +45,12 @@ service cloud.firestore {
     match /shelters/{shelterId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['name', 'state', 'address', 'latitude', 'longitude', 'type', 'capacityStatus', 'verified', 'updatedAt', 'updatedBy'])
-                    && request.resource.data.name is string
+                    && isShortStr(request.resource.data.name, 200)
                     && request.resource.data.state in ['Caracas', 'La Guaira', 'Aragua', 'Carabobo', 'Otros']
                     && request.resource.data.type in ['Refugio', 'Hospital', 'Centro de Acopio', 'Punto de Agua']
                     && request.resource.data.capacityStatus in ['Verde', 'Amarillo', 'Rojo']
-                    && (!('maxCapacity' in request.resource.data) || request.resource.data.maxCapacity is number)
-                    && (!('occupantCount' in request.resource.data) || request.resource.data.occupantCount is number);
+                    && (!('maxCapacity' in request.resource.data) || (request.resource.data.maxCapacity is number && request.resource.data.maxCapacity >= 0 && request.resource.data.maxCapacity <= 100000))
+                    && (!('occupantCount' in request.resource.data) || (request.resource.data.occupantCount is number && request.resource.data.occupantCount >= 0));
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
@@ -51,11 +58,11 @@ service cloud.firestore {
     match /shelter_occupants/{occupantId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['shelterId', 'fullName', 'ci', 'physicalCondition', 'medicalNeeds', 'registeredBy', 'createdAt', 'status'])
-                    && request.resource.data.fullName is string
-                    && request.resource.data.ci is string
+                    && isShortStr(request.resource.data.fullName, 200)
+                    && isShortStr(request.resource.data.ci, 20)
                     && request.resource.data.status in ['Albergado', 'Salida']
-                    && (!('age' in request.resource.data) || request.resource.data.age is number)
-                    && (!('contactPhone' in request.resource.data) || request.resource.data.contactPhone is string)
+                    && (!('age' in request.resource.data) || (request.resource.data.age is number && request.resource.data.age >= 0 && request.resource.data.age <= 150))
+                    && (!('contactPhone' in request.resource.data) || isShortStr(request.resource.data.contactPhone, 20))
                     && (!('exitDate' in request.resource.data) || request.resource.data.exitDate is number);
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
@@ -65,39 +72,40 @@ service cloud.firestore {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['shelterId', 'type', 'description', 'status', 'reportedBy', 'createdAt'])
                     && request.resource.data.type in ['Atención Médica', 'Insumos Médicos', 'Alimentos', 'Logística', 'Otros']
+                    && isShortStr(request.resource.data.description, 1000)
                     && request.resource.data.status == 'Abierto';
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
-    /* FASE 0 — Módulo 1: Vías y Rutas de Evacuación */
     match /evacuation_routes/{routeId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['name', 'state', 'segment', 'status', 'latitude', 'longitude', 'reportedBy', 'createdAt', 'updatedAt'])
-                    && request.resource.data.name is string
+                    && isShortStr(request.resource.data.name, 200)
                     && request.resource.data.status in ['Despejada', 'Parcial', 'Bloqueada', 'Evaluando']
                     && (!('blockageType' in request.resource.data) || request.resource.data.blockageType in ['Escombros', 'Hundimiento', 'Deslizamiento', 'Vehículos', 'Agua', 'Otro']);
       allow update: if request.resource.data.createdAt == resource.data.createdAt;
       allow delete: if request.auth != null;
     }
 
-    /* FASE 0 — Módulo 2: Triaje de Víctimas */
     match /triage_patients/{patientId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['triageCode', 'isPediatric', 'locationLat', 'locationLng', 'conscious', 'breathing', 'ambulatory', 'reportedBy', 'createdAt', 'updatedAt'])
-                    && request.resource.data.triageCode in ['Rojo', 'Amarillo', 'Verde', 'Negro'];
+                    && request.resource.data.triageCode in ['Rojo', 'Amarillo', 'Verde', 'Negro']
+                    && request.resource.data.locationLat is number
+                    && request.resource.data.locationLng is number;
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
     match /triage_teams/{teamId} {
       allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['teamName', 'location', 'members', 'status', 'createdAt']);
+      allow create: if request.resource.data.keys().hasAll(['teamName', 'location', 'members', 'status', 'createdAt'])
+                    && isShortStr(request.resource.data.teamName, 200);
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
-    /* FASE 0 — Módulo 3: Cascading Disaster Timeline */
     match /cascade_events/{eventId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['eventType', 'severity', 'status', 'reportedBy', 'createdAt'])
@@ -108,7 +116,6 @@ service cloud.firestore {
       allow delete: if request.auth != null;
     }
 
-    /* FASE 1 — Módulo 4: Coordinación USAR */
     match /search_sectors/{sectorId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['gridRef', 'boundaryCoords', 'state', 'priority', 'status', 'createdAt', 'updatedAt'])
@@ -120,17 +127,20 @@ service cloud.firestore {
 
     match /rescue_teams/{teamId} {
       allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['teamName', 'type', 'members', 'equipment', 'status', 'teamLeader', 'contact', 'createdAt']);
+      allow create: if request.resource.data.keys().hasAll(['teamName', 'type', 'members', 'equipment', 'status', 'teamLeader', 'contact', 'createdAt'])
+                    && isShortStr(request.resource.data.teamName, 200)
+                    && isShortStr(request.resource.data.contact, 200);
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
-    /* FASE 1 — Módulo 5: Logística de Suministros */
     match /supply_inventory/{itemId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['warehouseId', 'category', 'itemName', 'unit', 'quantity', 'createdAt'])
                     && request.resource.data.category in ['Agua', 'Alimentos', 'Medicamentos', 'Carpas', 'Mantas/Ropa', 'Higiene', 'Herramientas', 'Combustible', 'Comunicaciones', 'Otro']
-                    && request.resource.data.unit in ['Unidades', 'Litros', 'Kilogramos', 'Cajas', 'Pallets'];
+                    && request.resource.data.unit in ['Unidades', 'Litros', 'Kilogramos', 'Cajas', 'Pallets']
+                    && request.resource.data.quantity is number
+                    && request.resource.data.quantity >= 0;
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
@@ -142,35 +152,39 @@ service cloud.firestore {
       allow delete: if request.auth != null;
     }
 
-    /* FASE 2 — Módulo 7: Agua y Saneamiento */
     match /water_points/{pointId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['name', 'type', 'latitude', 'longitude', 'waterStatus', 'reportedBy', 'createdAt'])
-                    && request.resource.data.waterStatus in ['Potable', 'No Potable', 'En Prueba', 'Agotado'];
+                    && request.resource.data.waterStatus in ['Potable', 'No Potable', 'En Prueba', 'Agotado']
+                    && isShortStr(request.resource.data.name, 200);
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
     match /sanitation_points/{pointId} {
       allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['name', 'latitude', 'longitude', 'type', 'capacity', 'gender', 'status', 'reportedBy', 'createdAt']);
+      allow create: if request.resource.data.keys().hasAll(['name', 'latitude', 'longitude', 'type', 'capacity', 'gender', 'status', 'reportedBy', 'createdAt'])
+                    && isShortStr(request.resource.data.name, 200)
+                    && request.resource.data.capacity is number
+                    && request.resource.data.capacity >= 0;
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
-    /* FASE 2 — Módulo 8: Gestión de Fallecidos */
     match /deceased_persons/{personId} {
-      allow read: if true;
+      allow read: if request.auth != null;
       allow create: if request.resource.data.keys().hasAll(['caseId', 'recoveryLat', 'recoveryLng', 'recoveryTime', 'identified', 'familyNotified', 'status', 'reportedBy', 'createdAt', 'updatedAt'])
-                    && request.resource.data.status in ['Recuperado', 'En Morgue', 'Identificado', 'Entregado a Familiares', 'Sepultado'];
-      allow update: if request.resource.data.createdAt == resource.data.createdAt;
+                    && request.resource.data.status in ['Recuperado', 'En Morgue', 'Identificado', 'Entregado a Familiares', 'Sepultado']
+                    && request.resource.data.recoveryLat is number
+                    && request.resource.data.recoveryLng is number;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
-    /* FASE 2 — Módulo 9: Apoyo Psicosocial */
     match /psychosocial_cases/{caseId} {
-      allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['crisisType', 'triagePriority', 'status', 'reportedBy', 'createdAt'])
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+                    && request.resource.data.keys().hasAll(['crisisType', 'triagePriority', 'status', 'reportedBy', 'createdAt'])
                     && request.resource.data.crisisType in ['Pérdida Familiar', 'Pérdida de Vivienda', 'Estrés Agudo', 'Crisis de Pánico', 'Menor No Acompañado', 'Violencia', 'Intento Suicida', 'Otro']
                     && request.resource.data.triagePriority in ['Inmediato', 'Alto', 'Medio', 'Bajo']
                     && request.resource.data.status in ['Abierto', 'En Seguimiento', 'Cerrado', 'Derivado'];
@@ -178,7 +192,6 @@ service cloud.firestore {
       allow delete: if request.auth != null;
     }
 
-    /* FASE 2 — Módulo 10: Comunicaciones de Emergencia */
     match /emergency_comms/{commId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['type', 'status', 'messageRelay', 'reportedBy', 'createdAt'])
@@ -188,34 +201,35 @@ service cloud.firestore {
       allow delete: if request.auth != null;
     }
 
-    /* FASE 3 — Módulo 11: Voluntarios y Donaciones */
     match /volunteers_registry/{volunteerId} {
-      allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['fullName', 'ci', 'phone', 'availability', 'status', 'registeredBy', 'createdAt']);
+      allow read: if request.auth != null;
+      allow create: if request.resource.data.keys().hasAll(['fullName', 'ci', 'phone', 'availability', 'status', 'registeredBy', 'createdAt'])
+                    && isShortStr(request.resource.data.fullName, 200)
+                    && isShortStr(request.resource.data.ci, 20);
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
     match /donations/{donationId} {
       allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['donorType', 'donorName', 'donationType', 'status', 'createdAt']);
+      allow create: if request.resource.data.keys().hasAll(['donorType', 'donorName', 'donationType', 'status', 'createdAt'])
+                    && isShortStr(request.resource.data.donorName, 200);
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
-    /* FASE 3 — Módulo 12: Coordinación Interagencial */
     match /interagency_tasks/{taskId} {
-      allow read: if true;
+      allow read: if request.auth != null;
       allow create: if request.resource.data.keys().hasAll(['agencyName', 'task', 'priority', 'status', 'reportedBy', 'createdAt'])
                     && request.resource.data.priority in ['Crítica', 'Alta', 'Media', 'Baja']
-                    && request.resource.data.status in ['Pendiente', 'En Progreso', 'Completada', 'Bloqueada'];
+                    && request.resource.data.status in ['Pendiente', 'En Progreso', 'Completada', 'Bloqueada']
+                    && isShortStr(request.resource.data.task, 500);
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
-    /* FASE 3 — Módulo 13: Drones y Apoyo Aéreo */
     match /aerial_operations/{opId} {
-      allow read: if true;
+      allow read: if request.auth != null;
       allow create: if request.resource.data.keys().hasAll(['aircraftType', 'missionType', 'status', 'noFlyZone', 'reportedBy', 'createdAt'])
                     && request.resource.data.aircraftType in ['Dron', 'Helicóptero', 'Avión Ligero', 'Comercial']
                     && request.resource.data.missionType in ['Evaluación de Daños', 'Búsqueda', 'Entrega de Suministros', 'Evacuación Aeromédica', 'Reconocimiento', 'Mapeo Térmico']
@@ -224,124 +238,144 @@ service cloud.firestore {
       allow delete: if request.auth != null;
     }
 
-    /* FASE 3 — Módulo 14: Combustible y Energía */
     match /fuel_energy_points/{pointId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['name', 'type', 'state', 'latitude', 'longitude', 'operationalStatus', 'reportedBy', 'createdAt'])
-                    && request.resource.data.operationalStatus in ['Operativo', 'Parcial', 'Fuera de Servicio', 'Agotado'];
+                    && request.resource.data.operationalStatus in ['Operativo', 'Parcial', 'Fuera de Servicio', 'Agotado']
+                    && isShortStr(request.resource.data.name, 200);
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
-    /* Banco de Sangre */
     match /blood_donors/{donorId} {
-      allow read: if true;
+      allow read: if request.auth != null;
       allow create: if request.resource.data.keys().hasAll(['fullName', 'contactPhone', 'state', 'bloodType', 'status', 'createdAt'])
+                    && isShortStr(request.resource.data.fullName, 200)
                     && request.resource.data.status in ['Registrado', 'Calificado', 'Remitido', 'Donación Completada'];
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
-    /* Registro Hospitalario */
     match /hospital_patients/{patientId} {
-      allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['fullName', 'state', 'status', 'createdAt']);
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+                    && request.resource.data.keys().hasAll(['fullName', 'state', 'status', 'createdAt'])
+                    && isShortStr(request.resource.data.fullName, 200);
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
-    /* Alertas Meteorológicas */
     match /weather_alerts/{alertId} {
       allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['title', 'type', 'severity', 'state', 'description', 'active', 'createdAt']);
+      allow create: if request.auth != null
+                    && request.resource.data.keys().hasAll(['title', 'type', 'severity', 'state', 'description', 'active', 'createdAt'])
+                    && isShortStr(request.resource.data.title, 200)
+                    && isShortStr(request.resource.data.description, 2000);
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
-    /* Centro de Alertas Públicas */
     match /public_alerts/{alertId} {
       allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['title', 'message', 'type', 'priority', 'active', 'createdAt']);
+      allow create: if request.auth != null
+                    && request.resource.data.keys().hasAll(['title', 'message', 'type', 'priority', 'active', 'createdAt'])
+                    && isShortStr(request.resource.data.title, 200)
+                    && isShortStr(request.resource.data.message, 2000);
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
-    /* Reunificación Familiar */
     match /family_requests/{requestId} {
-      allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['seekerName', 'seekerPhone', 'missingName', 'lastSeenLocation', 'lastSeenDate', 'status', 'createdAt']);
+      allow read: if request.auth != null;
+      allow create: if request.resource.data.keys().hasAll(['seekerName', 'seekerPhone', 'missingName', 'lastSeenLocation', 'lastSeenDate', 'status', 'createdAt'])
+                    && isShortStr(request.resource.data.seekerName, 200)
+                    && isShortStr(request.resource.data.missingName, 200);
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
-    /* Protección de la Infancia */
     match /child_protection_cases/{caseId} {
-      allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['childName', 'childAge', 'status', 'location', 'createdAt']);
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+                    && request.resource.data.keys().hasAll(['childName', 'childAge', 'status', 'location', 'createdAt'])
+                    && isShortStr(request.resource.data.childName, 200)
+                    && request.resource.data.childAge is number
+                    && request.resource.data.childAge >= 0 && request.resource.data.childAge <= 18;
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
-    /* Asistencia Legal Documental */
     match /legal_aid_requests/{requestId} {
-      allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['petitionerName', 'petitionerCI', 'requestType', 'status', 'createdAt']);
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+                    && request.resource.data.keys().hasAll(['petitionerName', 'petitionerCI', 'requestType', 'status', 'createdAt'])
+                    && isShortStr(request.resource.data.petitionerName, 200)
+                    && isShortStr(request.resource.data.petitionerCI, 20);
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
-    /* Centro de Prensa */
     match /press_releases/{releaseId} {
       allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['title', 'summary', 'content', 'category', 'published', 'createdAt']);
+      allow create: if request.auth != null
+                    && request.resource.data.keys().hasAll(['title', 'summary', 'content', 'category', 'published', 'createdAt'])
+                    && isShortStr(request.resource.data.title, 200)
+                    && isShortStr(request.resource.data.summary, 1000)
+                    && isShortStr(request.resource.data.content, 10000);
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
-    /* Capacitación y Simulacros */
     match /training_sessions/{sessionId} {
       allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['title', 'type', 'date', 'status', 'createdAt']);
+      allow create: if request.auth != null
+                    && request.resource.data.keys().hasAll(['title', 'type', 'date', 'status', 'createdAt'])
+                    && isShortStr(request.resource.data.title, 200);
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
-    /* Lecciones Aprendidas */
     match /after_action_reviews/{reviewId} {
-      allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['title', 'incidentDate', 'reviewDate', 'module', 'status', 'createdAt']);
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+                    && request.resource.data.keys().hasAll(['title', 'incidentDate', 'reviewDate', 'module', 'status', 'createdAt'])
+                    && isShortStr(request.resource.data.title, 200);
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
-    /* Turnos de Voluntarios */
     match /volunteer_shifts/{shiftId} {
-      allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['volunteerId', 'volunteerName', 'date', 'startTime', 'endTime', 'status', 'createdAt']);
+      allow read: if request.auth != null;
+      allow create: if request.resource.data.keys().hasAll(['volunteerId', 'volunteerName', 'date', 'startTime', 'endTime', 'status', 'createdAt'])
+                    && isShortStr(request.resource.data.volunteerName, 200);
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
-    /* Mapa de Recursos */
     match /resource_locations/{locationId} {
       allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['name', 'type', 'state', 'latitude', 'longitude', 'status', 'createdAt']);
+      allow create: if request.resource.data.keys().hasAll(['name', 'type', 'state', 'latitude', 'longitude', 'status', 'createdAt'])
+                    && isShortStr(request.resource.data.name, 200);
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
-    /* Educación y Escuelas */
     match /school_damage_reports/{schoolId} {
       allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['schoolName', 'schoolType', 'state', 'studentCount', 'status', 'createdAt']);
+      allow create: if request.resource.data.keys().hasAll(['schoolName', 'schoolType', 'state', 'studentCount', 'status', 'createdAt'])
+                    && isShortStr(request.resource.data.schoolName, 200)
+                    && request.resource.data.studentCount is number
+                    && request.resource.data.studentCount >= 0;
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
-    /* Vivienda Temporal */
     match /temporary_housing/{housingId} {
       allow read: if true;
-      allow create: if request.resource.data.keys().hasAll(['name', 'type', 'state', 'latitude', 'longitude', 'capacity', 'status', 'createdAt']);
+      allow create: if request.resource.data.keys().hasAll(['name', 'type', 'state', 'latitude', 'longitude', 'capacity', 'status', 'createdAt'])
+                    && isShortStr(request.resource.data.name, 200)
+                    && request.resource.data.capacity is number
+                    && request.resource.data.capacity >= 0;
       allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
