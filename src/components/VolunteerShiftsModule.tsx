@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, orderBy, addDoc, updateDoc, doc } from 'firebase/firestore';
-import { db } from '../firebase';
-import { VolunteerShift } from '../types';
+import { db, auth } from '../firebase';
+import { VolunteerShift, VolunteerRegistry } from '../types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { CalendarDays, Plus, Download, X, Clock, MapPin } from 'lucide-react';
@@ -17,6 +17,8 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function VolunteerShiftsModule() {
   const [shifts, setShifts] = useState<VolunteerShift[]>([]);
+  const [volunteers, setVolunteers] = useState<VolunteerRegistry[]>([]);
+  const [selectedVolunteer, setSelectedVolunteer] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('Todos');
@@ -30,6 +32,14 @@ export default function VolunteerShiftsModule() {
     return unsub;
   }, []);
 
+  useEffect(() => {
+    const q = query(collection(db, 'volunteers_registry'), orderBy('createdAt', 'desc'));
+    const unsub = onSnapshot(q, snap => {
+      setVolunteers(snap.docs.map(d => ({ id: d.id, ...d.data() } as VolunteerRegistry)));
+    });
+    return unsub;
+  }, []);
+
   const filtered = shifts.filter(s => filterStatus === 'Todos' || s.status === filterStatus);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,9 +48,11 @@ export default function VolunteerShiftsModule() {
     try {
       const form = e.target as HTMLFormElement;
       const formData = new FormData(form);
+      const volId = formData.get('volunteerId') as string;
+      const vol = volunteers.find(v => v.id === volId);
       await addDoc(collection(db, 'volunteer_shifts'), {
-        volunteerId: formData.get('volunteerId') as string,
-        volunteerName: formData.get('volunteerName') as string,
+        volunteerId: volId,
+        volunteerName: vol ? vol.fullName : formData.get('volunteerName') as string,
         shiftType: formData.get('shiftType') as string,
         date: new Date(formData.get('date') as string).getTime(),
         startTime: formData.get('startTime') as string,
@@ -48,10 +60,11 @@ export default function VolunteerShiftsModule() {
         location: formData.get('location') as string,
         role: formData.get('role') as string,
         status: 'Programado',
-        reportedBy: 'Anon',
+        reportedBy: auth.currentUser?.email || auth.currentUser?.uid || 'Anon',
         createdAt: Date.now(),
       });
       setShowForm(false);
+      setSelectedVolunteer('');
       form.reset();
     } catch (err) { console.error(err); }
     setSubmitting(false);
@@ -106,8 +119,26 @@ export default function VolunteerShiftsModule() {
       {showForm && (
         <form onSubmit={handleSubmit} className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            <input name="volunteerName" placeholder="Nombre del voluntario" required className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs font-mono" />
-            <input name="volunteerId" placeholder="ID del voluntario" required className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs font-mono" />
+            <div>
+              <label className="text-[10px] font-mono text-white/50 uppercase block mb-1">Seleccionar Voluntario</label>
+              <select name="volunteerId" value={selectedVolunteer} onChange={e => setSelectedVolunteer(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs font-mono" required>
+                <option value="">-- Seleccionar voluntario registrado --</option>
+                {volunteers.filter(v => v.status === 'Registrado' || v.status === 'En Campo').map(v => (
+                  <option key={v.id} value={v.id}>{v.fullName} (CI: {v.ci}) — {v.availability}</option>
+                ))}
+              </select>
+              {selectedVolunteer && (
+                <input type="hidden" name="volunteerName" value={volunteers.find(v => v.id === selectedVolunteer)?.fullName || ''} />
+              )}
+            </div>
+            <div>
+              <label className="text-[10px] font-mono text-white/50 uppercase block mb-1">O ingresar manualmente</label>
+              <input name="volunteerName" placeholder="Nombre del voluntario" required
+                disabled={!!selectedVolunteer}
+                value={selectedVolunteer ? volunteers.find(v => v.id === selectedVolunteer)?.fullName || '' : ''}
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs font-mono disabled:opacity-40" />
+            </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             <select name="shiftType" className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs font-mono">

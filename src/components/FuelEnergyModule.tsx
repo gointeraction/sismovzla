@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, orderBy, addDoc, updateDoc, doc, Timestamp } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { FuelEnergyPoint } from '../types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -38,7 +38,7 @@ export default function FuelEnergyModule() {
         ...form, fuelType: form.fuelType || null, capacityLiters: form.capacityLiters || null,
         litersRemaining: form.litersRemaining || null, generatorPowerKW: form.generatorPowerKW || null,
         priorityAccess: form.priorityAccess || null, latitude: pos?.lat ?? 0, longitude: pos?.lng ?? 0,
-        reportedBy: 'Anon', createdAt: Date.now(),
+        reportedBy: auth.currentUser?.email || auth.currentUser?.uid || 'Anon', createdAt: Date.now(),
       });
       setShowForm(false);
       setForm({ name: '', type: 'Gasolinera', state: 'Caracas', fuelType: '', capacityLiters: 0, litersRemaining: 0, generatorPowerKW: 0, operationalStatus: 'Operativo', priorityAccess: '' });

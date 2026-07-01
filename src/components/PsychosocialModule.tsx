@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, orderBy, addDoc, updateDoc, doc, Timestamp } from 'firebase/firestore';
-import { db } from '../firebase';
+import { collection, query, onSnapshot, orderBy, addDoc, updateDoc, deleteDoc, doc, Timestamp } from 'firebase/firestore';
+import { db, auth } from '../firebase';
 import { PsychosocialCase } from '../types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -49,7 +49,7 @@ export default function PsychosocialModule() {
         contact: form.contact || null, location: form.location || null,
         crisisType: form.crisisType, triagePriority: form.triagePriority,
         status: 'Abierto', sessionCount: 0,
-        reportedBy: 'Anon', createdAt: Date.now(),
+        reportedBy: auth.currentUser?.email || auth.currentUser?.uid || 'Anon', createdAt: Date.now(),
       });
       setShowForm(false);
       setForm({ patientName: '', age: 0, contact: '', location: '', crisisType: 'Estrés Agudo', triagePriority: 'Medio', notes: '' });
@@ -59,6 +59,15 @@ export default function PsychosocialModule() {
 
   const updateCase = async (id: string, data: Partial<PsychosocialCase>) => {
     try { await updateDoc(doc(db, 'psychosocial_cases', id), data); } catch (err) { console.error(err); }
+  };
+
+  const userRole = localStorage.getItem('sismovzla_volunteer_role') || '';
+  const canDelete = userRole === 'admin' || userRole === 'operator';
+
+  const deleteRecord = async (collectionName: string, id: string) => {
+    if (window.confirm('¿Eliminar este registro?')) {
+      try { await deleteDoc(doc(db, collectionName, id)); } catch (err) { console.error(err); }
+    }
   };
 
   const filtered = cases.filter(c => filterStatus === 'Todos' || c.status === filterStatus);
@@ -252,6 +261,13 @@ export default function PsychosocialModule() {
                       c.status === s ? 'bg-white/20 border-white/30 text-white' : 'bg-black/20 border-white/10 text-white/40'
                     }`}>{s === 'En Seguimiento' ? 'SEG' : s.slice(0, 5)}</button>
                 ))}
+                {canDelete && (
+                  <button onClick={() => deleteRecord('psychosocial_cases', c.id)}
+                    className="px-2 py-1 bg-red-600/20 text-red-400 rounded text-[9px] font-mono font-bold border border-red-500/30 cursor-pointer hover:bg-red-600/40"
+                    title="Eliminar">
+                    ✕
+                  </button>
+                )}
               </div>
             </div>
           </div>

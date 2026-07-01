@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, addDoc, updateDoc, doc, orderBy, Timestamp } from 'firebase/firestore';
-import { db } from '../firebase';
+import { collection, query, onSnapshot, addDoc, updateDoc, deleteDoc, doc, orderBy, Timestamp } from 'firebase/firestore';
+import { db, auth } from '../firebase';
 import { WaterPoint, SanitationPoint } from '../types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -51,7 +51,7 @@ export default function WaterSanitationModule() {
         ...waterForm, latitude: pos?.lat ?? 0, longitude: pos?.lng ?? 0, capacityLiters: waterForm.capacityLiters || null,
         chlorineLevel: waterForm.chlorineLevel || null, populationServed: waterForm.populationServed || null,
         openHours: waterForm.openHours || null, notes: waterForm.notes || null,
-        reportedBy: 'Anon', createdAt: Date.now(),
+        reportedBy: auth.currentUser?.email || auth.currentUser?.uid || 'Anon', createdAt: Date.now(),
       });
       setShowForm(false);
       setWaterForm({ name: '', type: 'Punto de Agua', waterStatus: 'En Prueba', capacityLiters: 0, chlorineLevel: 0, populationServed: 0, openHours: '', notes: '' });
@@ -65,7 +65,7 @@ export default function WaterSanitationModule() {
     try {
       const pos = await getPosition();
       await addDoc(collection(db, 'sanitation_points'), {
-        ...sanForm, latitude: pos?.lat ?? 0, longitude: pos?.lng ?? 0, reportedBy: 'Anon', createdAt: Date.now(),
+        ...sanForm, latitude: pos?.lat ?? 0, longitude: pos?.lng ?? 0, reportedBy: auth.currentUser?.email || auth.currentUser?.uid || 'Anon', createdAt: Date.now(),
       });
       setShowForm(false);
       setSanForm({ name: '', type: 'Letrina', capacity: 1, gender: 'Mixto' });
@@ -75,6 +75,15 @@ export default function WaterSanitationModule() {
 
   const updateWater = async (id: string, data: Partial<WaterPoint>) => {
     try { await updateDoc(doc(db, 'water_points', id), data); } catch (err) { console.error(err); }
+  };
+
+  const userRole = localStorage.getItem('sismovzla_volunteer_role') || '';
+  const canDelete = userRole === 'admin' || userRole === 'operator';
+
+  const deleteRecord = async (collectionName: string, id: string) => {
+    if (window.confirm('¿Eliminar este registro?')) {
+      try { await deleteDoc(doc(db, collectionName, id)); } catch (err) { console.error(err); }
+    }
   };
 
   const filtered = waterPoints.filter(p => filterWater === 'Todos' || p.waterStatus === filterWater);
@@ -281,6 +290,13 @@ export default function WaterSanitationModule() {
                         p.waterStatus === s ? 'bg-white/20 border-white/30 text-white' : 'bg-black/20 border-white/10 text-white/40'
                       }                      `}>{s === 'No Potable' ? 'NO POT' : s === 'En Prueba' ? 'PRUE' : s.slice(0, 4)}</button>
                   ))}
+                  {canDelete && (
+                    <button onClick={() => deleteRecord('water_points', p.id)}
+                      className="px-2 py-1 bg-red-600/20 text-red-400 rounded text-[9px] font-mono font-bold border border-red-500/30 cursor-pointer hover:bg-red-600/40"
+                      title="Eliminar">
+                      ✕
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -347,6 +363,13 @@ export default function WaterSanitationModule() {
                     </p>
                   </div>
                 </div>
+                {canDelete && (
+                  <button onClick={() => deleteRecord('sanitation_points', p.id)}
+                    className="px-2 py-1 bg-red-600/20 text-red-400 rounded text-[9px] font-mono font-bold border border-red-500/30 cursor-pointer hover:bg-red-600/40"
+                    title="Eliminar">
+                    ✕
+                  </button>
+                )}
               </div>
             ))}
             {sanPoints.length === 0 && <div className="text-center py-12 text-white/30 font-mono text-sm">No hay puntos de saneamiento registrados.</div>}

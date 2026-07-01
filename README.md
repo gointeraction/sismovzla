@@ -6,7 +6,7 @@
 [![Plataforma Oficial](https://img.shields.io/badge/Plataforma-ayudasismovzla.web.app-FF9800?style=for-the-badge&logo=firebase&logoColor=black)](https://ayudasismovzla.web.app)
 [![PWA Offline-First](https://img.shields.io/badge/Arquitectura-PWA_Resiliente-4CAF50?style=for-the-badge&logo=pwa&logoColor=white)](#-arquitectura-resiliente-offline-first)
 [![Stack](https://img.shields.io/badge/Frontend-React_19_%2B_TypeScript-3178C6?style=for-the-badge&logo=react&logoColor=white)](https://react.dev)
-[![Versión](https://img.shields.io/badge/Versión-3.1-D32F2F?style=for-the-badge)](https://ayudasismovzla.web.app)
+[![Versión](https://img.shields.io/badge/Versión-3.2-D32F2F?style=for-the-badge)](https://ayudasismovzla.web.app)
 
 <br />
 </div>
@@ -19,7 +19,7 @@
 
 **SismoVZLA** es una Aplicación Web Progresiva (**PWA**) de código abierto diseñada para operar como una red de contingencia humanitaria en Venezuela tras eventos sísmicos de gran escala.
 
-La plataforma cubre **35 módulos tácticos** organizados en **4 capas**: **Coordinación**, **Apoyo Táctico**, **Logística** y **Apoyo Ciudadano**, con **38 colecciones Firestore**, **43 reportes PDF** y un sistema de **12 roles tácticos** especializados.
+La plataforma cubre **35 módulos tácticos** organizados en **4 capas**: **Coordinación**, **Apoyo Táctico**, **Logística** y **Apoyo Ciudadano**, con **38 colecciones Firestore**, **43 reportes PDF**, **20+ APIs tipadas** y un sistema de **12 roles tácticos** especializados.
 
 Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones colapsan. SismoVZLA resuelve este problema mediante una arquitectura **Offline-First** que permite a los ciudadanos guardar reportes, consultar manuales de auxilio y buscar familiares **completamente sin internet**.
 
@@ -162,12 +162,13 @@ La Consola de Reportes es el centro maestro de generación de documentos oficial
 
 ---
 
-## ✨ Características de la Plataforma v3.1
+## ✨ Características de la Plataforma v3.2
 
 ### 🏗️ Arquitectura Técnica
 
 | Característica | Detalle |
 |---|---|
+| **API Layer** | 13 archivos `src/api/` con factoría CRUD genérica, 20+ métodos tipados |
 | **Code-Splitting** | 35 módulos lazy-loaded con `React.lazy` + `Suspense` |
 | **Skeletons Contextuales** | 36 esqueletos visuales por módulo durante carga (tabla, mapa, dashboard, formulario) |
 | **Error Boundary** | Captura de errores por módulo con botón de reintento |
@@ -242,6 +243,7 @@ La Consola de Reportes es el centro maestro de generación de documentos oficial
 | UI | Tailwind CSS v4 + Lucide React |
 | Mapas | Leaflet + react-leaflet |
 | PDF | jsPDF + jspdf-autotable |
+| API Layer | `createCrud()` genérico + 13 módulos tipados |
 | Base de Datos | Firebase Firestore (38 colecciones) |
 | Hosting | Firebase Hosting (2 nodos) |
 | Admin SDK | Firebase Admin v14 |
@@ -251,17 +253,19 @@ La Consola de Reportes es el centro maestro de generación de documentos oficial
 
 ## 📊 Métricas de Rendimiento
 
-| Métrica | v1.0 | v2.0 | v3.0 | v3.1 | Mejora Total |
-|---------|------|------|------|------|--------------|
-| Main bundle | 1,699 kB | 213 kB | 222 kB | 222 kB | **-87%** |
-| Chunks lucide | 27 × 0.3kB | 1 × 45kB | 1 × 50kB | 1 × 50kB | Consolidados |
-| Firebase | En main | 1 chunk 772kB | 3 chunks | 3 chunks | Mejor cache |
-| Build time | ~7s | ~5s | ~6s | ~8s | +12 módulos |
-| Módulos | 8 | 23 | 35 | 35 | +27 |
-| Colecciones | 14 | 26 | 38 | 38 | +24 |
-| Reportes PDF | 0 | 6 | 15 | **43** | +43 |
-| Roles | 4 | 11 | 12 | 12 | +8 |
-| Capas | 2 | 3 | 4 | 4 | +2 |
+| Métrica | v1.0 | v2.0 | v3.0 | v3.1 | v3.2 | Mejora Total |
+|---------|------|------|------|------|------|--------------|
+| Main bundle | 1,699 kB | 213 kB | 222 kB | 222 kB | 222 kB | **-87%** |
+| Chunks lucide | 27 × 0.3kB | 1 × 45kB | 1 × 50kB | 1 × 50kB | 1 × 50kB | Consolidados |
+| Firebase | En main | 1 chunk 772kB | 3 chunks | 3 chunks | 3 chunks | Mejor cache |
+| Build time | ~7s | ~5s | ~6s | ~8s | ~6s | API optimizada |
+| Módulos | 8 | 23 | 35 | 35 | 35 | +27 |
+| Colecciones | 14 | 26 | 38 | 38 | 38 | +24 |
+| Reportes PDF | 0 | 6 | 15 | 43 | **43** | +43 |
+| APIs tipadas | 0 | 0 | 0 | 0 | **13** | +13 |
+| Métodos API | 0 | 0 | 0 | 0 | **20+** | +20 |
+| Roles | 4 | 11 | 12 | 12 | 12 | +8 |
+| Capas | 2 | 3 | 4 | 4 | 4 | +2 |
 
 ---
 
@@ -302,53 +306,143 @@ npx firebase deploy --only firestore:rules --project ayudasismovzla
 ```
 sismovzla/
 ├── src/
+│   ├── api/                              # Capa de APIs tipadas
+│   │   ├── crud.ts                       # Factoría genérica CRUD + setStatus + setField
+│   │   ├── incidents.ts                  # verify, resolve, queueOffline, syncOfflineQueue
+│   │   ├── triage.ts                     # assignStartCode, bulkCreate (batch)
+│   │   ├── supply.ts                     # deliver (batch con deducción automática)
+│   │   ├── shelters.ts                   # updateOccupancy, checkIn, checkOut
+│   │   ├── volunteers.ts                 # assignShift, startShift, completeShift
+│   │   ├── family.ts                     # findMatches, markContacted, markReunified
+│   │   ├── comms.ts                      # setOnline, setOffline, setStandby
+│   │   ├── water.ts                      # setPotable, setNonPotable, setTesting
+│   │   ├── deceased.ts                   # moveToMorgue, identify, deliverToFamily
+│   │   ├── psychosocial.ts               # open, followUp, close, refer
+│   │   ├── eoc.ts                        # cascadeEvents, searchSectors, interagencyTasks
+│   │   ├── alerts.ts                     # weatherAlerts, publicAlerts, aerialOps
+│   │   └── index.ts                      # Barrel export
 │   ├── components/
-│   │   ├── ReportsConsoleModule.tsx  # Consola maestra: 43 reportes PDF (3,176 líneas)
-│   │   ├── EOCDashboard.tsx          # Centro de Operaciones
-│   │   ├── MapViewer.tsx             # Mapa de incidentes
-│   │   ├── ReportForm.tsx            # Formulario ciudadano
-│   │   ├── PeopleSearch.tsx          # Búsqueda de personas
-│   │   ├── SheltersModule.tsx        # Directorio de refugios
-│   │   ├── ShelterTacticalMap.tsx    # Mapa táctico de refugios
-│   │   ├── BloodDonorsModule.tsx     # Banco de sangre
-│   │   ├── HospitalPatientsModule.tsx # Registro hospitalario
-│   │   ├── EvacuationRoutesPanel.tsx # Vías y rutas
-│   │   ├── TriageModule.tsx          # Triaje de víctimas
-│   │   ├── CascadeTimeline.tsx       # Eventos en cascada
-│   │   ├── SearchAndRescueModule.tsx # Búsqueda y rescate
-│   │   ├── SupplyLogisticsModule.tsx # Logística
-│   │   ├── WaterSanitationModule.tsx # Agua y saneamiento
-│   │   ├── DeceasedManagementModule.tsx # Gestión de fallecidos
-│   │   ├── PsychosocialModule.tsx    # Apoyo psicosocial
-│   │   ├── EmergencyCommsModule.tsx  # Comunicaciones
-│   │   ├── VolunteerDonationsModule.tsx # Voluntarios y donaciones
-│   │   ├── InteragencyModule.tsx     # Coordinación interagencial
-│   │   ├── AerialOpsModule.tsx       # Operaciones aéreas
-│   │   ├── FuelEnergyModule.tsx      # Combustible y energía
-│   │   ├── WeatherAlertsModule.tsx   # Alertas meteorológicas
-│   │   ├── PublicAlertsModule.tsx    # Alertas públicas
+│   │   ├── ReportsConsoleModule.tsx      # Consola maestra: 43 reportes PDF (3,176 líneas)
+│   │   ├── EOCDashboard.tsx              # Centro de Operaciones
+│   │   ├── MapViewer.tsx                 # Mapa de incidentes
+│   │   ├── ReportForm.tsx                # Formulario ciudadano
+│   │   ├── PeopleSearch.tsx              # Búsqueda de personas
+│   │   ├── SheltersModule.tsx            # Directorio de refugios
+│   │   ├── ShelterTacticalMap.tsx        # Mapa táctico de refugios
+│   │   ├── BloodDonorsModule.tsx         # Banco de sangre
+│   │   ├── HospitalPatientsModule.tsx    # Registro hospitalario
+│   │   ├── EvacuationRoutesPanel.tsx     # Vías y rutas
+│   │   ├── TriageModule.tsx              # Triaje de víctimas
+│   │   ├── CascadeTimeline.tsx           # Eventos en cascada
+│   │   ├── SearchAndRescueModule.tsx     # Búsqueda y rescate
+│   │   ├── SupplyLogisticsModule.tsx     # Logística
+│   │   ├── WaterSanitationModule.tsx     # Agua y saneamiento
+│   │   ├── DeceasedManagementModule.tsx  # Gestión de fallecidos
+│   │   ├── PsychosocialModule.tsx        # Apoyo psicosocial
+│   │   ├── EmergencyCommsModule.tsx      # Comunicaciones
+│   │   ├── VolunteerDonationsModule.tsx  # Voluntarios y donaciones
+│   │   ├── InteragencyModule.tsx         # Coordinación interagencial
+│   │   ├── AerialOpsModule.tsx           # Operaciones aéreas
+│   │   ├── FuelEnergyModule.tsx          # Combustible y energía
+│   │   ├── WeatherAlertsModule.tsx       # Alertas meteorológicas
+│   │   ├── PublicAlertsModule.tsx        # Alertas públicas
 │   │   ├── FamilyReunificationModule.tsx # Reunificación familiar
-│   │   ├── ChildProtectionModule.tsx # Protección infantil
-│   │   ├── LegalAidModule.tsx        # Asistencia legal
-│   │   ├── PressCenterModule.tsx     # Centro de prensa
-│   │   ├── TrainingModule.tsx        # Capacitación
-│   │   ├── LessonsLearnedModule.tsx  # Lecciones aprendidas
-│   │   ├── VolunteerShiftsModule.tsx # Turnos de voluntarios
-│   │   ├── ResourceMapModule.tsx     # Mapa de recursos
-│   │   ├── EducationModule.tsx       # Educación y escuelas
-│   │   ├── TemporaryHousingModule.tsx # Vivienda temporal
-│   │   ├── ModuleSkeleton.tsx        # 36 esqueletos contextuales
-│   │   └── ErrorBoundary.tsx         # Captura de errores
+│   │   ├── ChildProtectionModule.tsx     # Protección infantil
+│   │   ├── LegalAidModule.tsx            # Asistencia legal
+│   │   ├── PressCenterModule.tsx         # Centro de prensa
+│   │   ├── TrainingModule.tsx            # Capacitación
+│   │   ├── LessonsLearnedModule.tsx      # Lecciones aprendidas
+│   │   ├── VolunteerShiftsModule.tsx     # Turnos de voluntarios
+│   │   ├── ResourceMapModule.tsx         # Mapa de recursos
+│   │   ├── EducationModule.tsx           # Educación y escuelas
+│   │   ├── TemporaryHousingModule.tsx    # Vivienda temporal
+│   │   ├── ModuleSkeleton.tsx            # 36 esqueletos contextuales
+│   │   └── ErrorBoundary.tsx             # Captura de errores
 │   ├── hooks/
-│   │   └── useGeolocation.ts         # Hook centralizado
-│   ├── types.ts                      # 38 interfaces TypeScript
-│   ├── firebase.ts                   # Configuración Firebase
-│   └── App.tsx                       # Orquestador principal (35 tabs)
+│   │   └── useGeolocation.ts             # Hook centralizado
+│   ├── types.ts                          # 38 interfaces TypeScript
+│   ├── firebase.ts                       # Configuración Firebase
+│   └── App.tsx                           # Orquestador principal (35 tabs)
 ├── server/
-│   └── firebaseAdmin.ts              # Firebase Admin v14
-├── firestore.rules                   # 38 reglas de colección
-├── vite.config.ts                    # Configuración Vite + chunks
-└── package.json                      # Dependencias
+│   └── firebaseAdmin.ts                  # Firebase Admin v14
+├── firestore.rules                       # 38 reglas de colección
+├── vite.config.ts                        # Configuración Vite + chunks
+└── package.json                          # Dependencias
+```
+
+---
+
+## 🔌 API Layer (src/api/)
+
+Todas las operaciones CRUD de Firestore están centralizadas en **13 archivos API** con **20+ exports tipados**. Cada API extiende un CRUD genérico con lógica de negocio específica del módulo.
+
+### CRUD Genérico (`crud.ts`)
+
+```typescript
+import { createCrud, currentUser } from '../api';
+
+// Crear API para cualquier colección
+const myApi = createCrud<MyType>('collection_name');
+
+// Métodos disponibles:
+myApi.subscribe(callback, opts?)  // Listener en tiempo real
+myApi.create(data)                // Crear registro (auto-agrega reportedBy, createdAt)
+myApi.update(id, data)            // Actualizar registro
+myApi.remove(id)                  // Eliminar registro
+myApi.getAll(opts?)               // Obtener todos (una vez)
+myApi.getById(id)                 // Obtener por ID (usa getDoc, no query)
+myApi.setStatus(id, status)       // Actualizar solo el campo status
+myApi.setField(id, field, value)  // Actualizar cualquier campo
+
+// Helper de usuario actual
+const user = currentUser(); // 'admin@sismovzla.com'
+```
+
+### APIs por Módulo
+
+| Archivo | API | Métodos Especializados |
+|---------|-----|------------------------|
+| `incidents.ts` | `incidentsApi` | `verify()`, `resolve()`, `queueOffline()`, `syncOfflineQueue()` → retorna `{ synced, failed }` |
+| `triage.ts` | `triagePatientsApi` | `assignStartCode(vitals)` → retorna código START automático, `bulkCreate()` → batch de N pacientes |
+| `supply.ts` | `supplyRequestsApi` | `deliver(requestId, items)` → batch con deducción automática de inventario |
+| `shelters.ts` | `sheltersApi` | `updateOccupancy(id, delta)` → incrementa/decrementa ocupantes |
+| `shelters.ts` | `shelterOccupantsApi` | `checkIn(data)` → registra + actualiza refugio, `checkOut(id, shelterId)` → salida + actualiza refugio |
+| `volunteers.ts` | `volunteerShiftsApi` | `startShift()`, `completeShift()`, `cancelShift()` |
+| `family.ts` | `familyRequestsApi` | `findMatches(name)` → cruza con `people_search`, `markContacted()`, `markReunified()` |
+| `comms.ts` | `emergencyCommsApi` | `setOnline()`, `setOffline()`, `setStandby()` |
+| `water.ts` | `waterPointsApi` | `setPotable()`, `setNonPotable()`, `setTesting()`, `setDepleted()` |
+| `deceased.ts` | `deceasedPersonsApi` | `moveToMorgue()`, `identify()`, `deliverToFamily()`, `bury()` |
+| `psychosocial.ts` | `psychosocialCasesApi` | `open()`, `followUp()`, `close()`, `refer()` |
+| `eoc.ts` | `cascadeEventsApi` | `contain()`, `resolve()`, `monitor()` |
+| `eoc.ts` | `searchSectorsApi` | `start()`, `complete()`, `verify()` |
+| `alerts.ts` | `weatherAlertsApi` | `activate()`, `deactivate()` |
+| `alerts.ts` | `aerialOpsApi` | `start()`, `complete()`, `land()` |
+
+### Uso en Módulos React
+
+```typescript
+// Ejemplo: SupplyLogisticsModule
+import { supplyInventoryApi, supplyRequestsApi } from '../api';
+
+useEffect(() => {
+  const unsub = supplyInventoryApi.subscribe(setInventory);
+  return unsub;
+}, []);
+
+// Crear item
+await supplyInventoryApi.create({ itemName: 'Agua', category: 'Agua', ... });
+
+// Entregar solicitud (descuenta inventario automáticamente en batch)
+await supplyRequestsApi.deliver(requestId, items);
+
+// Ejemplo: EOC Dashboard
+import { incidentsApi, searchSectorsApi } from '../api';
+await incidentsApi.verify(incidentId);
+await searchSectorsApi.complete(sectorId);
+
+// Ejemplo: Reunificación Familiar
+import { familyRequestsApi } from '../api';
+const matches = await familyRequestsApi.findMatches('Juan Pérez');
 ```
 
 ---

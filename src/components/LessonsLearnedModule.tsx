@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, orderBy, addDoc, updateDoc, doc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { AfterActionReview } from '../types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -44,7 +44,7 @@ export default function LessonsLearnedModule() {
     setSubmitting(true);
     try {
       await addDoc(collection(db, 'after_action_reviews'), {
-        ...form, status: 'Pendiente', reportedBy: 'Anon', createdAt: Date.now(),
+        ...form, status: 'Pendiente', reportedBy: auth.currentUser?.email || auth.currentUser?.uid || 'Anon', createdAt: Date.now(),
       });
       setShowForm(false);
       setForm({ title: '', module: '', whatWorkedWell: '', whatNeedsImprovement: '', recommendations: '', priority: 'Media', incidentDate: Date.now(), reviewDate: Date.now() });

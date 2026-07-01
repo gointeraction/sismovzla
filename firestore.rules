@@ -16,7 +16,7 @@ service cloud.firestore {
                     && request.resource.data.verified is bool
                     && (!('audioUrl' in request.resource.data) || (request.resource.data.audioUrl is string && request.resource.data.audioUrl.size() <= 80000));
       allow update: if request.resource.data.createdAt == resource.data.createdAt;
-      allow delete: if true;
+      allow delete: if request.auth != null;
     }
 
     match /people_search/{personId} {
@@ -25,14 +25,14 @@ service cloud.firestore {
                     && request.resource.data.name is string
                     && request.resource.data.status in ['Buscado', 'Localizado', 'Hospitalizado'];
       allow update: if request.resource.data.createdAt == resource.data.createdAt;
-      allow delete: if true;
+      allow delete: if request.auth != null;
     }
 
     match /dispatches/{dispatchId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['incidentId', 'incidentType', 'incidentState', 'incidentDesc', 'agency', 'priority', 'resources', 'notes', 'dispatchedAt', 'status']);
       allow update: if request.resource.data.dispatchedAt == resource.data.dispatchedAt;
-      allow delete: if true;
+      allow delete: if request.auth != null;
     }
 
     match /shelters/{shelterId} {
@@ -44,8 +44,8 @@ service cloud.firestore {
                     && request.resource.data.capacityStatus in ['Verde', 'Amarillo', 'Rojo']
                     && (!('maxCapacity' in request.resource.data) || request.resource.data.maxCapacity is number)
                     && (!('occupantCount' in request.resource.data) || request.resource.data.occupantCount is number);
-      allow update: if true;
-      allow delete: if true;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null;
     }
 
     match /shelter_occupants/{occupantId} {
@@ -57,8 +57,8 @@ service cloud.firestore {
                     && (!('age' in request.resource.data) || request.resource.data.age is number)
                     && (!('contactPhone' in request.resource.data) || request.resource.data.contactPhone is string)
                     && (!('exitDate' in request.resource.data) || request.resource.data.exitDate is number);
-      allow update: if request.resource.data.createdAt == resource.data.createdAt;
-      allow delete: if true;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null;
     }
 
     match /shelter_requests/{requestId} {
@@ -66,8 +66,8 @@ service cloud.firestore {
       allow create: if request.resource.data.keys().hasAll(['shelterId', 'type', 'description', 'status', 'reportedBy', 'createdAt'])
                     && request.resource.data.type in ['Atención Médica', 'Insumos Médicos', 'Alimentos', 'Logística', 'Otros']
                     && request.resource.data.status == 'Abierto';
-      allow update: if request.resource.data.createdAt == resource.data.createdAt;
-      allow delete: if true;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null;
     }
 
     /* FASE 0 — Módulo 1: Vías y Rutas de Evacuación */
@@ -86,14 +86,14 @@ service cloud.firestore {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['triageCode', 'isPediatric', 'locationLat', 'locationLng', 'conscious', 'breathing', 'ambulatory', 'reportedBy', 'createdAt', 'updatedAt'])
                     && request.resource.data.triageCode in ['Rojo', 'Amarillo', 'Verde', 'Negro'];
-      allow update: if request.resource.data.createdAt == resource.data.createdAt;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
     match /triage_teams/{teamId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['teamName', 'location', 'members', 'status', 'createdAt']);
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
@@ -104,7 +104,7 @@ service cloud.firestore {
                     && request.resource.data.eventType in ['Réplica', 'Incendio', 'Fuga de Gas', 'Deslizamiento', 'Inundación', 'Tsunami', 'Colapso Estructural', 'Explosión', 'Derrame Químico', 'Ruptura de Presa', 'Licuefacción', 'Otro']
                     && request.resource.data.severity in ['Bajo', 'Medio', 'Alto', 'Crítico']
                     && request.resource.data.status in ['Activo', 'Contenido', 'Resuelto', 'Monitoreando'];
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
@@ -114,14 +114,14 @@ service cloud.firestore {
       allow create: if request.resource.data.keys().hasAll(['gridRef', 'boundaryCoords', 'state', 'priority', 'status', 'createdAt', 'updatedAt'])
                     && request.resource.data.priority in ['Crítico', 'Alto', 'Medio', 'Bajo']
                     && request.resource.data.status in ['No Iniciado', 'En Progreso', 'Completado', 'Verificado'];
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
     match /rescue_teams/{teamId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['teamName', 'type', 'members', 'equipment', 'status', 'teamLeader', 'contact', 'createdAt']);
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
@@ -131,14 +131,14 @@ service cloud.firestore {
       allow create: if request.resource.data.keys().hasAll(['warehouseId', 'category', 'itemName', 'unit', 'quantity', 'createdAt'])
                     && request.resource.data.category in ['Agua', 'Alimentos', 'Medicamentos', 'Carpas', 'Mantas/Ropa', 'Higiene', 'Herramientas', 'Combustible', 'Comunicaciones', 'Otro']
                     && request.resource.data.unit in ['Unidades', 'Litros', 'Kilogramos', 'Cajas', 'Pallets'];
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
     match /supply_requests/{requestId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['fromWarehouse', 'toLocation', 'priority', 'items', 'status', 'reportedBy', 'createdAt']);
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
@@ -147,14 +147,14 @@ service cloud.firestore {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['name', 'type', 'latitude', 'longitude', 'waterStatus', 'reportedBy', 'createdAt'])
                     && request.resource.data.waterStatus in ['Potable', 'No Potable', 'En Prueba', 'Agotado'];
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
     match /sanitation_points/{pointId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['name', 'latitude', 'longitude', 'type', 'capacity', 'gender', 'status', 'reportedBy', 'createdAt']);
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
@@ -174,7 +174,7 @@ service cloud.firestore {
                     && request.resource.data.crisisType in ['Pérdida Familiar', 'Pérdida de Vivienda', 'Estrés Agudo', 'Crisis de Pánico', 'Menor No Acompañado', 'Violencia', 'Intento Suicida', 'Otro']
                     && request.resource.data.triagePriority in ['Inmediato', 'Alto', 'Medio', 'Bajo']
                     && request.resource.data.status in ['Abierto', 'En Seguimiento', 'Cerrado', 'Derivado'];
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
@@ -184,7 +184,7 @@ service cloud.firestore {
       allow create: if request.resource.data.keys().hasAll(['type', 'status', 'messageRelay', 'reportedBy', 'createdAt'])
                     && request.resource.data.type in ['Radioaficionado', 'Repetidora', 'Frecuencia VHF', 'Frecuencia UHF', 'HF', 'Satélite', 'Mesh WiFi', 'Punto de Mensajería']
                     && request.resource.data.status in ['Activo', 'Standby', 'Fuera de Servicio'];
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
@@ -192,14 +192,14 @@ service cloud.firestore {
     match /volunteers_registry/{volunteerId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['fullName', 'ci', 'phone', 'availability', 'status', 'registeredBy', 'createdAt']);
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
     match /donations/{donationId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['donorType', 'donorName', 'donationType', 'status', 'createdAt']);
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
@@ -209,7 +209,7 @@ service cloud.firestore {
       allow create: if request.resource.data.keys().hasAll(['agencyName', 'task', 'priority', 'status', 'reportedBy', 'createdAt'])
                     && request.resource.data.priority in ['Crítica', 'Alta', 'Media', 'Baja']
                     && request.resource.data.status in ['Pendiente', 'En Progreso', 'Completada', 'Bloqueada'];
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
@@ -220,7 +220,7 @@ service cloud.firestore {
                     && request.resource.data.aircraftType in ['Dron', 'Helicóptero', 'Avión Ligero', 'Comercial']
                     && request.resource.data.missionType in ['Evaluación de Daños', 'Búsqueda', 'Entrega de Suministros', 'Evacuación Aeromédica', 'Reconocimiento', 'Mapeo Térmico']
                     && request.resource.data.status in ['Planificado', 'En Vuelo', 'Completado', 'En Tierra'];
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
@@ -229,7 +229,7 @@ service cloud.firestore {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['name', 'type', 'state', 'latitude', 'longitude', 'operationalStatus', 'reportedBy', 'createdAt'])
                     && request.resource.data.operationalStatus in ['Operativo', 'Parcial', 'Fuera de Servicio', 'Agotado'];
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
@@ -238,7 +238,7 @@ service cloud.firestore {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['fullName', 'contactPhone', 'state', 'bloodType', 'status', 'createdAt'])
                     && request.resource.data.status in ['Registrado', 'Calificado', 'Remitido', 'Donación Completada'];
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
@@ -246,7 +246,7 @@ service cloud.firestore {
     match /hospital_patients/{patientId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['fullName', 'state', 'status', 'createdAt']);
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
@@ -254,7 +254,7 @@ service cloud.firestore {
     match /weather_alerts/{alertId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['title', 'type', 'severity', 'state', 'description', 'active', 'createdAt']);
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
@@ -262,7 +262,7 @@ service cloud.firestore {
     match /public_alerts/{alertId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['title', 'message', 'type', 'priority', 'active', 'createdAt']);
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
@@ -270,7 +270,7 @@ service cloud.firestore {
     match /family_requests/{requestId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['seekerName', 'seekerPhone', 'missingName', 'lastSeenLocation', 'lastSeenDate', 'status', 'createdAt']);
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
@@ -278,7 +278,7 @@ service cloud.firestore {
     match /child_protection_cases/{caseId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['childName', 'childAge', 'status', 'location', 'createdAt']);
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
@@ -286,7 +286,7 @@ service cloud.firestore {
     match /legal_aid_requests/{requestId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['petitionerName', 'petitionerCI', 'requestType', 'status', 'createdAt']);
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
@@ -294,7 +294,7 @@ service cloud.firestore {
     match /press_releases/{releaseId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['title', 'summary', 'content', 'category', 'published', 'createdAt']);
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
@@ -302,7 +302,7 @@ service cloud.firestore {
     match /training_sessions/{sessionId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['title', 'type', 'date', 'status', 'createdAt']);
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
@@ -310,7 +310,7 @@ service cloud.firestore {
     match /after_action_reviews/{reviewId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['title', 'incidentDate', 'reviewDate', 'module', 'status', 'createdAt']);
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
@@ -318,7 +318,7 @@ service cloud.firestore {
     match /volunteer_shifts/{shiftId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['volunteerId', 'volunteerName', 'date', 'startTime', 'endTime', 'status', 'createdAt']);
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
@@ -326,7 +326,7 @@ service cloud.firestore {
     match /resource_locations/{locationId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['name', 'type', 'state', 'latitude', 'longitude', 'status', 'createdAt']);
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
@@ -334,7 +334,7 @@ service cloud.firestore {
     match /school_damage_reports/{schoolId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['schoolName', 'schoolType', 'state', 'studentCount', 'status', 'createdAt']);
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
 
@@ -342,7 +342,7 @@ service cloud.firestore {
     match /temporary_housing/{housingId} {
       allow read: if true;
       allow create: if request.resource.data.keys().hasAll(['name', 'type', 'state', 'latitude', 'longitude', 'capacity', 'status', 'createdAt']);
-      allow update: if true;
+      allow update: if request.auth != null;
       allow delete: if request.auth != null;
     }
   }

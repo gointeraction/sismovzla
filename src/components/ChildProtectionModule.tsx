@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, orderBy, addDoc, updateDoc, doc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { ChildCase } from '../types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -40,7 +40,7 @@ export default function ChildProtectionModule() {
     setSubmitting(true);
     try {
       await addDoc(collection(db, 'child_protection_cases'), {
-        ...form, status: 'No Acompañado', reportedBy: 'Anon', createdAt: Date.now(),
+        ...form, status: 'No Acompañado', reportedBy: auth.currentUser?.email || auth.currentUser?.uid || 'Anon', createdAt: Date.now(),
       });
       setShowForm(false);
       setForm({ childName: '', childAge: 0, childGender: 'M', parentName: '', parentPhone: '', location: '', state: 'Caracas', medicalNeeds: '', notes: '' });

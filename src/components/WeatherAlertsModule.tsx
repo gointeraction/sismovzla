@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, orderBy, addDoc, updateDoc, doc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { WeatherAlert } from '../types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -42,7 +42,7 @@ export default function WeatherAlertsModule() {
       const pos = await getPosition();
       await addDoc(collection(db, 'weather_alerts'), {
         ...form, latitude: pos?.lat ?? 0, longitude: pos?.lng ?? 0,
-        active: true, reportedBy: 'Anon', createdAt: Date.now(),
+        active: true, reportedBy: auth.currentUser?.email || auth.currentUser?.uid || 'Anon', createdAt: Date.now(),
       });
       setShowForm(false);
       setForm({ title: '', type: 'Lluvia Fuerte', severity: 'Amarillo', state: 'Caracas', description: '', source: '', radiusKm: 5 });

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, orderBy, addDoc, updateDoc, doc, Timestamp } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { AerialOperation } from '../types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -41,7 +41,7 @@ export default function AerialOpsModule() {
         launchLat: pos?.lat ?? null, launchLng: pos?.lng ?? null,
         estimatedFlightTime: form.estimatedFlightTime || null,
         noFlyReason: form.noFlyReason || null, damageAssessment: form.damageAssessment || null,
-        status: 'Planificado', batteryFuelRemaining: 100, reportedBy: 'Anon', createdAt: Date.now(),
+        status: 'Planificado', batteryFuelRemaining: 100, reportedBy: auth.currentUser?.email || auth.currentUser?.uid || 'Anon', createdAt: Date.now(),
       });
       setShowForm(false);
       setForm({ aircraftType: 'Dron', registration: '', operatorName: '', missionType: 'Reconocimiento', assignedZone: '', launchPoint: '', estimatedFlightTime: 0, noFlyZone: false, noFlyReason: '', damageAssessment: '' });

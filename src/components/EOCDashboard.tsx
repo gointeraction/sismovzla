@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, orderBy, limit } from 'firebase/firestore';
+import { collection, query, onSnapshot, orderBy, limit, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Incident, EvacuationRoute, TriagePatient, CascadeEvent, SearchSector, Shelter } from '../types';
 import jsPDF from 'jspdf';
@@ -58,6 +58,21 @@ export default function EOCDashboard() {
   const totalDeceased = sectors.reduce((a, s) => a + (s.victimsDeceased || 0), 0);
   const sectorsComplete = sectors.filter(s => s.status === 'Completado' || s.status === 'Verificado').length;
   const sectorsTotal = sectors.length;
+
+  const acknowledgeIncident = async (id: string) => {
+    try { await updateDoc(doc(db, 'incidents', id), { verified: true, updatedAt: Date.now() }); }
+    catch (err) { console.error(err); }
+  };
+
+  const resolveIncident = async (id: string) => {
+    try { await updateDoc(doc(db, 'incidents', id), { resolved: true, updatedAt: Date.now() }); }
+    catch (err) { console.error(err); }
+  };
+
+  const updateSectorStatus = async (id: string, status: string) => {
+    try { await updateDoc(doc(db, 'search_sectors', id), { status, updatedAt: Date.now() }); }
+    catch (err) { console.error(err); }
+  };
 
   const generateSITREP = () => {
     const lines = [
@@ -255,7 +270,23 @@ export default function EOCDashboard() {
                   <span className={`w-2 h-2 rounded-full ${inc.resolved ? 'bg-gray-600' : inc.severity >= 4 ? 'bg-red-500 animate-pulse' : inc.severity >= 3 ? 'bg-orange-500' : 'bg-yellow-500'}`} />
                   <span className="text-xs font-mono text-white/80 truncate max-w-[200px]">{inc.type} · {inc.description.slice(0, 40)}</span>
                 </div>
-                <span className="text-[9px] font-mono text-white/40">{inc.state}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] font-mono text-white/40">{inc.state}</span>
+                  {!inc.resolved && !inc.verified && (
+                    <button onClick={() => acknowledgeIncident(inc.id)}
+                      className="px-1.5 py-0.5 bg-blue-600/20 text-blue-400 rounded text-[8px] font-mono font-bold border border-blue-500/30 cursor-pointer hover:bg-blue-600/40"
+                      title="Acusar recibo">
+                      ✓
+                    </button>
+                  )}
+                  {!inc.resolved && (
+                    <button onClick={() => resolveIncident(inc.id)}
+                      className="px-1.5 py-0.5 bg-green-600/20 text-green-400 rounded text-[8px] font-mono font-bold border border-green-500/30 cursor-pointer hover:bg-green-600/40"
+                      title="Resolver">
+                      ✕
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
             {incidents.length === 0 && <p className="text-xs font-mono text-white/30 text-center py-4">Sin incidentes</p>}
@@ -317,6 +348,19 @@ export default function EOCDashboard() {
                 </div>
               );
             })}
+          </div>
+          <div className="mt-3 space-y-1">
+            {sectors.filter(s => s.status !== 'Completado' && s.status !== 'Verificado').slice(0, 5).map(s => (
+              <div key={s.id} className="flex items-center justify-between py-1 border-b border-white/5">
+                <span className="text-[10px] font-mono text-white/70">{s.gridRef || s.id} · {s.priority}</span>
+                <div className="flex gap-1">
+                  <button onClick={() => updateSectorStatus(s.id, 'En Progreso')}
+                    className="px-1.5 py-0.5 bg-yellow-600/20 text-yellow-400 rounded text-[8px] font-mono font-bold border border-yellow-500/30 cursor-pointer">▶</button>
+                  <button onClick={() => updateSectorStatus(s.id, 'Completado')}
+                    className="px-1.5 py-0.5 bg-green-600/20 text-green-400 rounded text-[8px] font-mono font-bold border border-green-500/30 cursor-pointer">✓</button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 

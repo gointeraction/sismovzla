@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, orderBy, addDoc, updateDoc, doc, Timestamp } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { CascadeEvent } from '../types';
 import { Activity, Flame, Droplets, Wind, AlertTriangle, Truck, Zap, Skull, Bomb, Database, Plus, ChevronDown, ChevronUp, Download } from 'lucide-react';
 import { useGeolocation } from '../hooks/useGeolocation';
@@ -68,7 +68,7 @@ export default function CascadeTimeline() {
         affectedZones: form.affectedZones ? form.affectedZones.split(',').map(s => s.trim()) : [],
         description: form.description || null,
         parentEventId: form.parentEventId || null,
-        reportedBy: 'Anon',
+        reportedBy: auth.currentUser?.email || auth.currentUser?.uid || 'Anon',
         createdAt: Date.now(),
       });
       setShowForm(false);

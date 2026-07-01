@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, orderBy, addDoc, updateDoc, doc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { LegalAidRequest } from '../types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -39,7 +39,7 @@ export default function LegalAidModule() {
     setSubmitting(true);
     try {
       await addDoc(collection(db, 'legal_aid_requests'), {
-        ...form, status: 'Registrado', reportedBy: 'Anon', createdAt: Date.now(),
+        ...form, status: 'Registrado', reportedBy: auth.currentUser?.email || auth.currentUser?.uid || 'Anon', createdAt: Date.now(),
       });
       setShowForm(false);
       setForm({ petitionerName: '', petitionerCI: '', petitionerPhone: '', requestType: 'Acta de Defunción', description: '', state: 'Caracas', institution: '', notes: '' });

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, orderBy, addDoc, updateDoc, doc, Timestamp } from 'firebase/firestore';
-import { db } from '../firebase';
+import { collection, query, onSnapshot, orderBy, addDoc, updateDoc, deleteDoc, doc, Timestamp } from 'firebase/firestore';
+import { db, auth } from '../firebase';
 import { TriagePatient, TriageTeam } from '../types';
 import { HeartPulse, MapPin, Ambulance, Skull, Cross, ChevronRight, Download, Plus, UserCheck } from 'lucide-react';
 import { useGeolocation } from '../hooks/useGeolocation';
@@ -77,7 +77,7 @@ export default function TriageModule() {
       for (let i = 0; i < count; i++) {
         await addDoc(collection(db, 'triage_patients'), {
           triageCode: formData.triageCode,
-          fullName: formData.fullName || null,
+          fullName: massMode ? `Víctima ${i + 1}` : (formData.fullName || null),
           age: formData.age || null,
           isPediatric: formData.isPediatric,
           gender: formData.gender || null,
@@ -90,10 +90,10 @@ export default function TriageModule() {
           pulse: formData.pulse,
           ambulatory: formData.ambulatory,
           mechanism: formData.mechanism || null,
-          notes: formData.notes || null,
-          reportedBy: 'Anon',
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
+          notes: massMode ? `Registro masivo #${i + 1}` : (formData.notes || null),
+          reportedBy: auth.currentUser?.email || auth.currentUser?.uid || 'Anon',
+          createdAt: Date.now() + i,
+          updatedAt: Date.now() + i,
         });
       }
       setShowForm(false);
@@ -104,6 +104,15 @@ export default function TriageModule() {
       console.error('Error registering triage:', err);
     }
     setSubmitting(false);
+  };
+
+  const userRole = localStorage.getItem('sismovzla_volunteer_role') || '';
+  const canDelete = userRole === 'admin' || userRole === 'operator';
+
+  const deleteRecord = async (collectionName: string, id: string) => {
+    if (window.confirm('¿Eliminar este registro?')) {
+      try { await deleteDoc(doc(db, collectionName, id)); } catch (err) { console.error(err); }
+    }
   };
 
   const updatePatient = async (id: string, data: Partial<TriagePatient>) => {
@@ -325,6 +334,13 @@ export default function TriageModule() {
                 className="px-2 py-0.5 rounded text-[8px] font-mono font-bold uppercase border border-gray-600/30 bg-black/20 text-gray-500 hover:bg-gray-600/30 cursor-pointer">
                 FALL
               </button>
+              {canDelete && (
+                <button onClick={() => deleteRecord('triage_patients', p.id)}
+                  className="px-2 py-1 bg-red-600/20 text-red-400 rounded text-[9px] font-mono font-bold border border-red-500/30 cursor-pointer hover:bg-red-600/40"
+                  title="Eliminar">
+                  ✕
+                </button>
+              )}
             </div>
           </div>
         ))}

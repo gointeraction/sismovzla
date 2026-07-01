@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, orderBy, addDoc, updateDoc, doc, Timestamp } from 'firebase/firestore';
-import { db } from '../firebase';
+import { collection, query, onSnapshot, orderBy, addDoc, updateDoc, doc, Timestamp, writeBatch, where, getDocs } from 'firebase/firestore';
+import { db, auth } from '../firebase';
 import { SupplyInventory, SupplyRequest, Shelter } from '../types';
 import { Package, Truck, Plus, Download, AlertTriangle, CheckCircle, Clock, ArrowRight } from 'lucide-react';
 
@@ -68,7 +68,7 @@ export default function SupplyLogisticsModule() {
     setSubmitting(true);
     try {
       await addDoc(collection(db, 'supply_requests'), {
-        ...reqForm, status: 'Pendiente', reportedBy: 'Anon', createdAt: Date.now(),
+        ...reqForm, status: 'Pendiente', reportedBy: auth.currentUser?.email || auth.currentUser?.uid || 'Anon', createdAt: Date.now(),
       });
       setShowRequestForm(false);
       setReqForm({ fromWarehouse: '', toLocation: '', priority: 'Media', items: [{ itemId: '', itemName: '', quantityRequested: 0 }] });
@@ -79,7 +79,24 @@ export default function SupplyLogisticsModule() {
   const updateRequest = async (id: string, status: SupplyRequest['status']) => {
     try {
       const data: any = { status };
-      if (status === 'Entregado') data.deliveredAt = Date.now();
+      if (status === 'Entregado') {
+        data.deliveredAt = Date.now();
+        const req = requests.find(r => r.id === id);
+        if (req) {
+          const batch = writeBatch(db);
+          for (const item of req.items) {
+            const q = query(collection(db, 'supply_inventory'), where('itemName', '==', item.itemName));
+            const snap = await getDocs(q);
+            if (!snap.empty) {
+              const invDoc = snap.docs[0];
+              const invData = invDoc.data() as SupplyInventory;
+              const newQty = Math.max(0, invData.quantity - item.quantityRequested);
+              batch.update(doc(db, 'supply_inventory', invDoc.id), { quantity: newQty });
+            }
+          }
+          await batch.commit();
+        }
+      }
       await updateDoc(doc(db, 'supply_requests', id), data);
     } catch (err) { console.error(err); }
   };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, orderBy, addDoc, updateDoc, doc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { TrainingSession } from '../types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -39,7 +39,7 @@ export default function TrainingModule() {
     setSubmitting(true);
     try {
       await addDoc(collection(db, 'training_sessions'), {
-        ...form, enrolledCount: 0, participants: [], status: 'Programado', reportedBy: 'Anon', createdAt: Date.now(),
+        ...form, enrolledCount: 0, participants: [], status: 'Programado', reportedBy: auth.currentUser?.email || auth.currentUser?.uid || 'Anon', createdAt: Date.now(),
       });
       setShowForm(false);
       setForm({ title: '', type: 'Simulacro', description: '', date: Date.now(), duration: '', location: '', state: 'Caracas', instructor: '', maxParticipants: 20 });

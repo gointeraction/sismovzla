@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, orderBy, addDoc, updateDoc, doc } from 'firebase/firestore';
-import { db } from '../firebase';
-import { FamilyRequest } from '../types';
+import { collection, query, onSnapshot, orderBy, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { db, auth } from '../firebase';
+import { FamilyRequest, PersonSearch } from '../types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Heart, Plus, Download, Search, CheckCircle, Filter, X, Phone } from 'lucide-react';
@@ -15,6 +15,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function FamilyReunificationModule() {
   const [requests, setRequests] = useState<FamilyRequest[]>([]);
+  const [peopleMatches, setPeopleMatches] = useState<PersonSearch[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('Todos');
@@ -33,17 +34,32 @@ export default function FamilyReunificationModule() {
     return unsub;
   }, []);
 
+  useEffect(() => {
+    const q = query(collection(db, 'people_search'), orderBy('createdAt', 'desc'));
+    const unsub = onSnapshot(q, snap => {
+      setPeopleMatches(snap.docs.map(d => ({ id: d.id, ...d.data() } as PersonSearch)));
+    });
+    return unsub;
+  }, []);
+
   const filtered = requests.filter(r =>
     (filterStatus === 'Todos' || r.status === filterStatus) &&
     (searchTerm === '' || r.missingName.toLowerCase().includes(searchTerm.toLowerCase()) || r.seekerName.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  const findPersonMatch = (missingName: string) => {
+    return peopleMatches.find(p =>
+      p.name.toLowerCase().includes(missingName.toLowerCase()) ||
+      missingName.toLowerCase().includes(p.name.toLowerCase())
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     try {
       await addDoc(collection(db, 'family_requests'), {
-        ...form, lastSeenDate: Date.now(), status: 'Buscando', reportedBy: 'Anon', createdAt: Date.now(),
+        ...form, lastSeenDate: Date.now(), status: 'Buscando', reportedBy: auth.currentUser?.email || auth.currentUser?.uid || 'Anon', createdAt: Date.now(),
       });
       setShowForm(false);
       setForm({ seekerName: '', seekerPhone: '', seekerCI: '', missingName: '', missingCI: '', missingAge: 0, lastSeenLocation: '', description: '', state: 'Caracas' });
@@ -53,6 +69,15 @@ export default function FamilyReunificationModule() {
 
   const updateStatus = async (req: FamilyRequest, newStatus: FamilyRequest['status']) => {
     await updateDoc(doc(db, 'family_requests', req.id), { status: newStatus, updatedAt: Date.now() });
+  };
+
+  const userRole = localStorage.getItem('sismovzla_volunteer_role') || '';
+  const canDelete = userRole === 'admin' || userRole === 'operator';
+
+  const deleteRecord = async (collectionName: string, id: string) => {
+    if (window.confirm('¿Eliminar este registro?')) {
+      try { await deleteDoc(doc(db, collectionName, id)); } catch (err) { console.error(err); }
+    }
   };
 
   const exportPDF = () => {
@@ -118,22 +143,29 @@ export default function FamilyReunificationModule() {
       )}
 
       <div className="space-y-2">
-        {filtered.map(req => (
-          <div key={req.id} className="bg-white/5 border border-white/10 rounded-xl p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-mono font-bold text-white text-xs">Busca: {req.seekerName}</h3>
-                  <span className="text-white/30">→</span>
-                  <span className="font-mono text-pink-400 text-xs">{req.missingName}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-mono font-bold border ${STATUS_COLORS[req.status]}`}>{req.status}</span>
+        {filtered.map(req => {
+          const match = findPersonMatch(req.missingName);
+          return (
+            <div key={req.id} className={`bg-white/5 border rounded-xl p-4 ${match ? 'border-green-500/40' : 'border-white/10'}`}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-mono font-bold text-white text-xs">Busca: {req.seekerName}</h3>
+                    <span className="text-white/30">→</span>
+                    <span className="font-mono text-pink-400 text-xs">{req.missingName}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-mono font-bold border ${STATUS_COLORS[req.status]}`}>{req.status}</span>
+                    {match && (
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold border bg-green-500/20 text-green-400 border-green-500/30 animate-pulse">
+                        ✓ COINCIDENCIA EN BÚSQUEDA ({match.status})
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-white/50 mt-1">Ultima vez: {req.lastSeenLocation} | {req.description}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Phone className="w-3 h-3 text-white/30" />
+                    <span className="text-[9px] font-mono text-white/40">{req.seekerPhone}</span>
+                  </div>
                 </div>
-                <p className="text-[10px] text-white/50 mt-1">Ultima vez: {req.lastSeenLocation} | {req.description}</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <Phone className="w-3 h-3 text-white/30" />
-                  <span className="text-[9px] font-mono text-white/40">{req.seekerPhone}</span>
-                </div>
-              </div>
               <div className="flex gap-1">
                 {req.status === 'Buscando' && (
                   <button onClick={() => updateStatus(req, 'En Contacto')} className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded text-[9px] font-mono font-bold border border-blue-500/30 cursor-pointer">CONTACTAR</button>
@@ -141,10 +173,18 @@ export default function FamilyReunificationModule() {
                 {req.status === 'En Contacto' && (
                   <button onClick={() => updateStatus(req, 'Reunificado')} className="px-2 py-1 bg-green-600/20 text-green-400 rounded text-[9px] font-mono font-bold border border-green-500/30 cursor-pointer">REUNIFICAR</button>
                 )}
+                {canDelete && (
+                  <button onClick={() => deleteRecord('family_requests', req.id)}
+                    className="px-2 py-1 bg-red-600/20 text-red-400 rounded text-[9px] font-mono font-bold border border-red-500/30 cursor-pointer hover:bg-red-600/40"
+                    title="Eliminar">
+                    ✕
+                  </button>
+                )}
               </div>
             </div>
           </div>
-        ))}
+        );
+        })}
         {filtered.length === 0 && <p className="text-center text-white/30 text-xs font-mono py-8">No hay solicitudes</p>}
       </div>
     </div>

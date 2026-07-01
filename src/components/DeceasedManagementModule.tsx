@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, orderBy, addDoc, updateDoc, doc, Timestamp } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { DeceasedPerson } from '../types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -53,7 +53,7 @@ export default function DeceasedManagementModule() {
         morgueLocation: form.morgueLocation || null, bodyTag: form.bodyTag || null,
         personalEffects: form.personalEffects || null, familyNotified: false,
         familyContact: form.familyContact || null, status: 'Recuperado',
-        reportedBy: 'Anon', createdAt: Date.now(), updatedAt: Date.now(),
+        reportedBy: auth.currentUser?.email || auth.currentUser?.uid || 'Anon', createdAt: Date.now(), updatedAt: Date.now(),
       });
       setShowForm(false);
       setForm({ fullName: '', ci: '', age: 0, gender: '', recoveryAddress: '', causeOfDeath: '', identified: false, identificationMethod: '', morgueLocation: '', bodyTag: '', personalEffects: '', familyContact: '', notes: '' });

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, orderBy, addDoc, updateDoc, doc, Timestamp } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { InteragencyTask } from '../types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -35,7 +35,7 @@ export default function InteragencyModule() {
     try {
       await addDoc(collection(db, 'interagency_tasks'), {
         ...form, contactName: form.contactName || null, contactPhone: form.contactPhone || null,
-        assignedZone: form.assignedZone || null, status: 'Pendiente', reportedBy: 'Anon', createdAt: Date.now(),
+        assignedZone: form.assignedZone || null, status: 'Pendiente', reportedBy: auth.currentUser?.email || auth.currentUser?.uid || 'Anon', createdAt: Date.now(),
       });
       setShowForm(false);
       setForm({ agencyName: 'Protección Civil', contactName: '', contactPhone: '', cluster: 'Coordinación General', task: '', assignedZone: '', priority: 'Media' });

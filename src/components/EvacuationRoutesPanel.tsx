@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, orderBy, addDoc, updateDoc, doc, Timestamp } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { EvacuationRoute } from '../types';
 import { Route, MapPin, AlertTriangle, CheckCircle, XCircle, AlertCircle, Download, Plus, RefreshCw } from 'lucide-react';
 import { useGeolocation } from '../hooks/useGeolocation';
@@ -65,7 +65,7 @@ export default function EvacuationRoutesPanel() {
         estimatedClearTime: formData.estimatedClearTime || null,
         clearingAgency: formData.clearingAgency || null,
         alternativeRoute: formData.alternativeRoute || null,
-        reportedBy: 'Anon',
+        reportedBy: auth.currentUser?.email || auth.currentUser?.uid || 'Anon',
         createdAt: Date.now(),
         updatedAt: Date.now(),
       });

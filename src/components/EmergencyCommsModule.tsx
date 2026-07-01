@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, orderBy, addDoc, updateDoc, doc, Timestamp } from 'firebase/firestore';
-import { db } from '../firebase';
+import { collection, query, onSnapshot, orderBy, addDoc, updateDoc, deleteDoc, doc, Timestamp } from 'firebase/firestore';
+import { db, auth } from '../firebase';
 import { EmergencyComm } from '../types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -46,7 +46,7 @@ export default function EmergencyCommsModule() {
         operatorName: form.operatorName || null, operatorContact: form.operatorContact || null,
         coverage: form.coverage || null, powerSource: form.powerSource || null,
         batteryHours: form.batteryHours || null, notes: form.notes || null,
-        reportedBy: 'Anon', createdAt: Date.now(),
+        reportedBy: auth.currentUser?.email || auth.currentUser?.uid || 'Anon', createdAt: Date.now(),
       });
       setShowForm(false);
       setForm({ type: 'Radioaficionado', callsign: '', frequency: 0, mode: '', location: '', operatorName: '', operatorContact: '', coverage: '', status: 'Activo', powerSource: '', batteryHours: 0, messageRelay: false, notes: '' });
@@ -56,6 +56,15 @@ export default function EmergencyCommsModule() {
 
   const updateComm = async (id: string, data: Partial<EmergencyComm>) => {
     try { await updateDoc(doc(db, 'emergency_comms', id), data); } catch (err) { console.error(err); }
+  };
+
+  const userRole = localStorage.getItem('sismovzla_volunteer_role') || '';
+  const canDelete = userRole === 'admin' || userRole === 'operator';
+
+  const deleteRecord = async (collectionName: string, id: string) => {
+    if (window.confirm('¿Eliminar este registro?')) {
+      try { await deleteDoc(doc(db, collectionName, id)); } catch (err) { console.error(err); }
+    }
   };
 
   const filtered = comms.filter(c => filterStatus === 'Todos' || c.status === filterStatus);
@@ -267,6 +276,13 @@ export default function EmergencyCommsModule() {
                       c.status === s ? 'bg-white/20 border-white/30 text-white' : 'bg-black/20 border-white/10 text-white/40'
                     }`}>{s === 'Fuera de Servicio' ? 'FUERA' : s === 'Standby' ? 'STBY' : s.slice(0, 4)}</button>
                 ))}
+                {canDelete && (
+                  <button onClick={() => deleteRecord('emergency_comms', c.id)}
+                    className="px-2 py-1 bg-red-600/20 text-red-400 rounded text-[9px] font-mono font-bold border border-red-500/30 cursor-pointer hover:bg-red-600/40"
+                    title="Eliminar">
+                    ✕
+                  </button>
+                )}
               </div>
             </div>
           </div>
