@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, orderBy, addDoc, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, onSnapshot, orderBy, addDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ResourceLocation } from '../types';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import { MapPin, Plus, Filter, List } from 'lucide-react';
+import { MapPin, Plus, Download, X, List, Phone } from 'lucide-react';
 import { useGeolocation } from '../hooks/useGeolocation';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
@@ -17,7 +15,7 @@ const createIcon = (color: string) => L.divIcon({
   iconAnchor: [12, 24],
 });
 
-const typeColors: Record<string, string> = {
+const TYPE_COLORS: Record<string, string> = {
   'Almacén': '#3B82F6',
   'Punto de Distribución': '#10B981',
   'Centro Médico': '#EF4444',
@@ -25,6 +23,12 @@ const typeColors: Record<string, string> = {
   'Generador': '#F59E0B',
   'Base de Operaciones': '#8B5CF6',
   'Otro': '#6B7280',
+};
+
+const STATUS_COLORS: Record<string, string> = {
+  Activo: 'bg-green-500/20 text-green-400 border-green-500/30',
+  Parcial: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+  Inactivo: 'bg-red-500/20 text-red-400 border-red-500/30',
 };
 
 export default function ResourceMapModule() {
@@ -43,6 +47,12 @@ export default function ResourceMapModule() {
     });
     return unsub;
   }, []);
+
+  const filtered = resources.filter(r => {
+    if (filterType !== 'Todos' && r.type !== filterType) return false;
+    if (filterStatus !== 'Todos' && r.status !== filterStatus) return false;
+    return true;
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,106 +83,77 @@ export default function ResourceMapModule() {
     setSubmitting(false);
   };
 
-  const filteredResources = resources.filter(r => {
-    if (filterType !== 'Todos' && r.type !== filterType) return false;
-    if (filterStatus !== 'Todos' && r.status !== filterStatus) return false;
-    return true;
-  });
-
   const exportCSV = () => {
     const headers = ['Nombre', 'Tipo', 'Estado', 'Capacidad', 'Stock', 'Contacto'];
-    const rows = filteredResources.map(r => [r.name, r.type, r.state, r.capacity, r.currentStock, r.contactPhone]);
+    const rows = filtered.map(r => [r.name, r.type, r.state, r.capacity, r.currentStock, r.contactPhone]);
     const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = 'recursos.csv';
-    a.click();
-  };
-
-  const statusColor = (status: string) => {
-    switch (status) {
-      case 'Activo': return 'bg-green-100 text-green-800';
-      case 'Parcial': return 'bg-yellow-100 text-yellow-800';
-      case 'Inactivo': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-600';
-    }
+    a.href = url; a.download = 'recursos.csv'; a.click();
   };
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold flex items-center gap-2">
-          <MapPin className="w-5 h-5" /> Mapa de Recursos
-        </h2>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <MapPin className="w-5 h-5 text-orange-400" />
+          <h2 className="font-mono font-bold text-white text-sm uppercase tracking-wider">Mapa de Recursos</h2>
+          <span className="text-[10px] font-mono text-white/40 bg-white/5 px-2 py-0.5 rounded">{filtered.length} recursos</span>
+        </div>
         <div className="flex gap-2">
-          <button onClick={exportCSV} className="px-3 py-1 bg-green-500 text-white rounded text-sm">CSV</button>
-          <button onClick={() => setShowForm(true)} className="px-3 py-1 bg-blue-500 text-white rounded text-sm flex items-center gap-1">
-            <Plus className="w-4 h-4" /> Nuevo Recurso
+          <button onClick={exportCSV} className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/70 rounded-lg font-mono text-[10px] border border-white/10 cursor-pointer">
+            <Download className="w-3.5 h-3.5" /> CSV
+          </button>
+          <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-600 hover:bg-orange-500 text-white rounded-lg font-mono text-[10px] font-bold cursor-pointer">
+            {showForm ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />} {showForm ? 'CANCELAR' : 'NUEVO RECURSO'}
           </button>
         </div>
       </div>
 
-      <div className="flex gap-2">
-        <select value={filterType} onChange={e => setFilterType(e.target.value)} className="border rounded px-2 py-1 text-sm">
-          <option>Todos</option>
-          {Object.keys(typeColors).map(t => <option key={t}>{t}</option>)}
+      <div className="flex gap-2 flex-wrap">
+        <select value={filterType} onChange={e => setFilterType(e.target.value)}
+          className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white text-[10px] font-mono cursor-pointer">
+          <option value="Todos">Todos los tipos</option>
+          {Object.keys(TYPE_COLORS).map(t => <option key={t} value={t}>{t}</option>)}
         </select>
-        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="border rounded px-2 py-1 text-sm">
-          <option>Todos</option>
-          <option>Activo</option>
-          <option>Parcial</option>
-          <option>Inactivo</option>
+        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
+          className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white text-[10px] font-mono cursor-pointer">
+          <option value="Todos">Todos los estados</option>
+          <option value="Activo">Activo</option><option value="Parcial">Parcial</option><option value="Inactivo">Inactivo</option>
         </select>
-        <button onClick={() => setViewMode(viewMode === 'map' ? 'list' : 'map')} className="px-2 py-1 border rounded text-sm">
+        <button onClick={() => setViewMode(viewMode === 'map' ? 'list' : 'map')}
+          className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white/50 hover:bg-white/10 cursor-pointer">
           {viewMode === 'map' ? <List className="w-4 h-4" /> : <MapPin className="w-4 h-4" />}
         </button>
       </div>
 
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg w-full max-w-md">
-            <h3 className="text-lg font-bold mb-4">Nuevo Recurso</h3>
-            <form onSubmit={handleSubmit} className="space-y-3">
-              <input name="name" placeholder="Nombre" required className="w-full border rounded px-3 py-2" />
-              <select name="type" className="w-full border rounded px-3 py-2">
-                {Object.keys(typeColors).map(t => <option key={t}>{t}</option>)}
-              </select>
-              <select name="state" className="w-full border rounded px-3 py-2">
-                <option>Caracas</option>
-                <option>La Guaira</option>
-                <option>Aragua</option>
-                <option>Carabobo</option>
-                <option>Otros</option>
-              </select>
-              <input name="capacity" placeholder="Capacidad" className="w-full border rounded px-3 py-2" />
-              <input name="currentStock" placeholder="Stock actual" className="w-full border rounded px-3 py-2" />
-              <input name="contactName" placeholder="Contacto" className="w-full border rounded px-3 py-2" />
-              <input name="contactPhone" placeholder="Teléfono" className="w-full border rounded px-3 py-2" />
-              <input name="operatingHours" placeholder="Horario" className="w-full border rounded px-3 py-2" />
-              <textarea name="notes" placeholder="Notas" className="w-full border rounded px-3 py-2" />
-              <div className="flex gap-2 justify-end">
-                <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 border rounded">Cancelar</button>
-                <button type="submit" disabled={submitting} className="px-4 py-2 bg-blue-500 text-white rounded">
-                  {submitting ? 'Guardando...' : 'Guardar'}
-                </button>
-              </div>
-            </form>
+        <form onSubmit={handleSubmit} className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <input name="name" placeholder="Nombre" required className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs font-mono" />
+            <select name="type" className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs font-mono">
+              {Object.keys(TYPE_COLORS).map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+            <select name="state" className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs font-mono">
+              <option>Caracas</option><option>La Guaira</option><option>Aragua</option><option>Carabobo</option><option>Otros</option>
+            </select>
+            <input name="capacity" placeholder="Capacidad" className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs font-mono" />
+            <input name="contactName" placeholder="Contacto" className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs font-mono" />
+            <input name="contactPhone" placeholder="Telefono" className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs font-mono" />
           </div>
-        </div>
+          <button type="submit" disabled={submitting} className="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-lg font-mono text-xs font-bold disabled:opacity-50 cursor-pointer">
+            {submitting ? 'CREANDO...' : 'CREAR RECURSO'}
+          </button>
+        </form>
       )}
 
       {viewMode === 'map' ? (
-        <div className="h-96 rounded overflow-hidden border">
+        <div className="h-96 rounded-xl overflow-hidden border border-white/10">
           <MapContainer center={[10.5, -66.9]} zoom={9} style={{ height: '100%', width: '100%' }}>
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            {filteredResources.map(r => (
-              <Marker
-                key={r.id}
-                position={[r.latitude, r.longitude]}
-                icon={createIcon(typeColors[r.type] || '#6B7280')}
-              >
+            {filtered.map(r => (
+              <Marker key={r.id} position={[r.latitude, r.longitude]} icon={createIcon(TYPE_COLORS[r.type] || '#6B7280')}>
                 <Popup>
                   <div className="text-sm">
                     <p className="font-bold">{r.name}</p>
@@ -191,34 +172,33 @@ export default function ResourceMapModule() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b">
-                <th className="text-left p-2">Nombre</th>
-                <th className="text-left p-2">Tipo</th>
-                <th className="text-left p-2">Estado</th>
-                <th className="text-left p-2">Capacidad</th>
-                <th className="text-left p-2">Stock</th>
-                <th className="text-left p-2">Contacto</th>
+              <tr className="border-b border-white/10">
+                <th className="text-left p-2 font-mono text-[10px] text-white/50 uppercase">Nombre</th>
+                <th className="text-left p-2 font-mono text-[10px] text-white/50 uppercase">Tipo</th>
+                <th className="text-left p-2 font-mono text-[10px] text-white/50 uppercase">Estado</th>
+                <th className="text-left p-2 font-mono text-[10px] text-white/50 uppercase">Capacidad</th>
+                <th className="text-left p-2 font-mono text-[10px] text-white/50 uppercase">Stock</th>
+                <th className="text-left p-2 font-mono text-[10px] text-white/50 uppercase">Contacto</th>
               </tr>
             </thead>
             <tbody>
-              {filteredResources.map(r => (
-                <tr key={r.id} className="border-b hover:bg-gray-50">
-                  <td className="p-2">{r.name}</td>
-                  <td className="p-2">{r.type}</td>
+              {filtered.map(r => (
+                <tr key={r.id} className="border-b border-white/5 hover:bg-white/5">
+                  <td className="p-2 text-white text-xs font-mono">{r.name}</td>
+                  <td className="p-2 text-white/70 text-xs font-mono">{r.type}</td>
                   <td className="p-2">
-                    <span className={`px-2 py-1 rounded text-xs ${statusColor(r.status)}`}>
-                      {r.status}
-                    </span>
+                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-mono font-bold border ${STATUS_COLORS[r.status] || ''}`}>{r.status}</span>
                   </td>
-                  <td className="p-2">{r.capacity}</td>
-                  <td className="p-2">{r.currentStock}</td>
-                  <td className="p-2">{r.contactPhone}</td>
+                  <td className="p-2 text-white/50 text-xs font-mono">{r.capacity}</td>
+                  <td className="p-2 text-white/50 text-xs font-mono">{r.currentStock}</td>
+                  <td className="p-2 text-white/50 text-[10px] font-mono flex items-center gap-1"><Phone className="w-3 h-3" />{r.contactPhone}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
+      {filtered.length === 0 && <p className="text-center text-white/30 text-xs font-mono py-8">No hay recursos registrados</p>}
     </div>
   );
 }
