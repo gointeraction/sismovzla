@@ -19,7 +19,7 @@
 
 **SismoVZLA** es una Aplicación Web Progresiva (**PWA**) de código abierto diseñada para operar como una red de contingencia humanitaria en Venezuela tras eventos sísmicos de gran escala.
 
-La plataforma cubre **23 módulos tácticos** organizados en 3 capas: **Coordinación**, **Apoyo** y **Logística**, con **26 colecciones Firestore** y un sistema de **7 roles tácticos** especializados.
+La plataforma cubre **35 módulos tácticos** organizados en 3 capas: **Coordinación**, **Apoyo** y **Logística**, con **38 colecciones Firestore** y un sistema de **7 roles tácticos** especializados.
 
 Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones colapsan. SismoVZLA resuelve este problema mediante una arquitectura **Offline-First** que permite a los ciudadanos guardar reportes, consultar manuales de auxilio y buscar familiares **completamente sin internet**.
 
@@ -64,6 +64,23 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
 | 20 | 🤝 **Coordinación Interagencial** | Tareas inter-agencia con asignación y seguimiento | `interagency_tasks` |
 | 21 | 🚁 **Operaciones Aéreas** | Drones, helicópteros, zonas prohibidas, misiones | `aerial_operations` |
 | 22 | ⛽ **Combustible y Energía** | Gasolineras, generadores, estado de combustible | `fuel_energy_points` |
+| 31 | 📅 **Turnos de Voluntarios** | Calendario de turnos con asistencia y ubicación | `volunteer_shifts` |
+| 32 | 🗺️ **Mapa de Recursos** | Mapa consolidado de almacenes, centros médicos, bases | `resource_locations` |
+| 33 | 🏫 **Educación y Escuelas** | Daños escolares, evaluación estructural, estadísticas | `school_damage_reports` |
+| 34 | 🏠 **Vivienda Temporal** | Registro de viviendas temporales con capacidad y servicios | `temporary_housing` |
+
+### Capa 4 — Apoyo Ciudadano
+
+| # | Módulo | Descripción | Colección Firestore |
+|---|--------|-------------|---------------------|
+| 23 | 🌦️ **Alertas Meteorológicas** | Alertas manuales con severidad, radio de afectación, mapa | `weather_alerts` |
+| 24 | 🚨 **Alertas Públicas** | Centro de alertas con prioridad y estados afectados | `public_alerts` |
+| 25 | 👨‍👩‍👧 **Reunificación Familiar** | Búsqueda bidireccional de familiares desaparecidos | `family_requests` |
+| 26 | 👶 **Protección Infantil** | Menores no acompañados, asignación a refugios | `child_protection_cases` |
+| 27 | 📋 **Asistencia Legal** | Trámites documentales post-desastre | `legal_aid_requests` |
+| 28 | 📢 **Centro de Prensa** | Comunicados oficiales con RSS-like feed | `press_releases` |
+| 29 | 🎓 **Capacitación** | Simulacros, talleres, entrenamiento SAR | `training_sessions` |
+| 30 | 📊 **Lecciones Aprendidas** | Revisiones post-incidente y mejoras continuas | `after_action_reviews` |
 
 ---
 
@@ -73,7 +90,7 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
 
 | Característica | Detalle |
 |---|---|
-| **Code-Splitting** | 23 módulos lazy-loaded con `React.lazy` + `Suspense` |
+| **Code-Splitting** | 35 módulos lazy-loaded con `React.lazy` + `Suspense` |
 | **Skeletons Contextuales** | Esqueleto visual por módulo durante carga (tabla, mapa, dashboard, formulario) |
 | **Error Boundary** | Captura de errores por módulo con botón de reintento |
 | **Chunk Optimization** | Main bundle: 213 kB (vs 1,699 kB v1) — **-87%** |
@@ -143,9 +160,9 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
 | Núcleo | React 19 + TypeScript 5.8 |
 | Empaquetador | Vite 6.4 |
 | UI | Tailwind CSS v4 + Lucide React |
-| Mapas | Leaflet |
+| Mapas | Leaflet + react-leaflet |
 | PDF | jsPDF + jspdf-autotable |
-| Base de Datos | Firebase Firestore (26 colecciones) |
+| Base de Datos | Firebase Firestore (38 colecciones) |
 | Hosting | Firebase Hosting (2 nodos) |
 | Admin SDK | Firebase Admin v14 |
 | PWA | serviceWorker + localStorage + IndexedDB |
@@ -154,15 +171,15 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
 
 ## 📊 Métricas de Rendimiento
 
-| Métrica | v1.0 | v2.0 | Mejora |
-|---------|------|------|--------|
-| Main bundle | 1,699 kB | 213 kB | **-87%** |
-| Chunks lucide | 27 × 0.3kB | 1 × 45kB | Consolidados |
-| Firebase | En main | Chunk separado | Cache independiente |
-| Build time | ~7s | ~5s | -28% |
-| Módulos | 8 | 23 | +15 |
-| Colecciones | 14 | 26 | +12 |
-| Roles | 4 | 11 | +7 |
+| Métrica | v1.0 | v2.0 | v3.0 | Mejora |
+|---------|------|------|------|--------|
+| Main bundle | 1,699 kB | 213 kB | 222 kB | **-87%** |
+| Chunks lucide | 27 × 0.3kB | 1 × 45kB | 1 × 50kB | Consolidados |
+| Firebase | En main | Chunk separado | Chunk separado | Cache independiente |
+| Build time | ~7s | ~5s | ~8s | +15% (12 módulos) |
+| Módulos | 8 | 23 | 35 | +27 |
+| Colecciones | 14 | 26 | 38 | +24 |
+| Roles | 4 | 11 | 11 | +7 |
 
 ---
 
