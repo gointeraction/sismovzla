@@ -30,13 +30,26 @@ const VolunteerDonationsModule = React.lazy(() => import('./components/Volunteer
 const InteragencyModule = React.lazy(() => import('./components/InteragencyModule'));
 const AerialOpsModule = React.lazy(() => import('./components/AerialOpsModule'));
 const FuelEnergyModule = React.lazy(() => import('./components/FuelEnergyModule'));
+const WeatherAlertsModule = React.lazy(() => import('./components/WeatherAlertsModule'));
+const PublicAlertsModule = React.lazy(() => import('./components/PublicAlertsModule'));
+const FamilyReunificationModule = React.lazy(() => import('./components/FamilyReunificationModule'));
+const ChildProtectionModule = React.lazy(() => import('./components/ChildProtectionModule'));
+const LegalAidModule = React.lazy(() => import('./components/LegalAidModule'));
+const PressCenterModule = React.lazy(() => import('./components/PressCenterModule'));
+const TrainingModule = React.lazy(() => import('./components/TrainingModule'));
+const LessonsLearnedModule = React.lazy(() => import('./components/LessonsLearnedModule'));
+const VolunteerShiftsModule = React.lazy(() => import('./components/VolunteerShiftsModule'));
+const ResourceMapModule = React.lazy(() => import('./components/ResourceMapModule'));
+const EducationModule = React.lazy(() => import('./components/EducationModule'));
+const TemporaryHousingModule = React.lazy(() => import('./components/TemporaryHousingModule'));
 import ErrorBoundary from './components/ErrorBoundary';
 import { 
   ShieldAlert, Wifi, WifiOff, Activity, AlertTriangle, Heart, Compass,
   ShieldCheck, Clock, Database, MapPin, Flame, UserCheck, Building,
   Sun, Moon, Send, Share2, Check, Droplet, Printer, Crosshair,
   Route, HeartPulse, LayoutDashboard, Search, Package, Droplets,
-  HeartOff, Radio, Users, GitMerge, Plane, Fuel
+  HeartOff, Radio, Users, GitMerge, Plane, Fuel, CloudLightning, Megaphone,
+  Baby, Scale, Newspaper, GraduationCap, ClipboardCheck, CalendarDays, School, Home
 } from 'lucide-react';
 
 export default function App() {
@@ -77,7 +90,10 @@ export default function App() {
     | 'shelter_tactical' | 'blood_donors' | 'hospital_patients' | 'reports_console' | 'volunteer_gate'
     | 'evacuation_routes' | 'triage' | 'cascade_events' | 'search_rescue' | 'supply_logistics'
     | 'eoc' | 'water_sanitation' | 'deceased' | 'psychosocial' | 'comms'
-    | 'volunteers' | 'interagency' | 'aerial_ops' | 'fuel_energy';
+    | 'volunteers' | 'interagency' | 'aerial_ops' | 'fuel_energy'
+    | 'weather_alerts' | 'public_alerts' | 'family_reunification' | 'child_protection'
+    | 'legal_aid' | 'press_center' | 'training' | 'lessons_learned'
+    | 'volunteer_shifts' | 'resource_map' | 'education' | 'temporary_housing';
 
   const [activeTab, setActiveTab] = useState<TabKey>('map_reports');
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
@@ -179,6 +195,12 @@ export default function App() {
       psychosocial: '17 · Apoyo Psicosocial', comms: '18 · Comunicaciones',
       volunteers: '19 · Voluntarios', interagency: '20 · Coordinación Interagencial',
       aerial_ops: '21 · Operaciones Aéreas', fuel_energy: '22 · Combustible y Energía',
+      weather_alerts: '23 · Alertas Meteorológicas', public_alerts: '24 · Alertas Públicas',
+      family_reunification: '25 · Reunificación Familiar', child_protection: '26 · Protección Infantil',
+      legal_aid: '27 · Asistencia Legal', press_center: '28 · Centro de Prensa',
+      training: '29 · Capacitación', lessons_learned: '30 · Lecciones Aprendidas',
+      volunteer_shifts: '31 · Turnos de Voluntarios', resource_map: '32 · Mapa de Recursos',
+      education: '33 · Educación y Escuelas', temporary_housing: '34 · Vivienda Temporal',
     };
     return labels[key] || key;
   };
@@ -325,6 +347,18 @@ export default function App() {
             {renderTab('blood_donors', 'SANGRE', <Droplet className="w-4 h-4 shrink-0" />, 'bg-red-700', 'rgba(185,28,28,0.4)')}
             {renderTab('hospital_patients', 'HOSPITALES', <Activity className="w-4 h-4 shrink-0" />, 'bg-amber-600', 'rgba(217,119,6,0.4)')}
             {renderTab('reports_console', 'REPORTES', <Printer className="w-4 h-4 shrink-0" />, 'bg-violet-600', 'rgba(139,92,246,0.4)')}
+            {renderTab('weather_alerts', 'CLIMA', <CloudLightning className="w-4 h-4 shrink-0" />, 'bg-cyan-600', 'rgba(6,182,212,0.4)')}
+            {renderTab('public_alerts', 'ALERTAS', <Megaphone className="w-4 h-4 shrink-0" />, 'bg-red-600', 'rgba(220,38,38,0.4)')}
+            {renderTab('family_reunification', 'FAMILIAS', <Heart className="w-4 h-4 shrink-0" />, 'bg-pink-600', 'rgba(219,39,119,0.4)')}
+            {renderTab('child_protection', 'INFANTIL', <Baby className="w-4 h-4 shrink-0" />, 'bg-yellow-600', 'rgba(202,138,4,0.4)')}
+            {renderTab('legal_aid', 'LEGAL', <Scale className="w-4 h-4 shrink-0" />, 'bg-indigo-600', 'rgba(79,70,229,0.4)')}
+            {renderTab('press_center', 'PRENSA', <Newspaper className="w-4 h-4 shrink-0" />, 'bg-slate-600', 'rgba(71,85,105,0.4)')}
+            {renderTab('training', 'CAPACITACIÓN', <GraduationCap className="w-4 h-4 shrink-0" />, 'bg-teal-600', 'rgba(13,148,136,0.4)')}
+            {renderTab('lessons_learned', 'LECCIONES', <ClipboardCheck className="w-4 h-4 shrink-0" />, 'bg-emerald-600', 'rgba(5,150,105,0.4)')}
+            {renderTab('volunteer_shifts', 'TURNOS', <CalendarDays className="w-4 h-4 shrink-0" />, 'bg-blue-600', 'rgba(37,99,235,0.4)')}
+            {renderTab('resource_map', 'RECURSOS', <MapPin className="w-4 h-4 shrink-0" />, 'bg-orange-600', 'rgba(234,88,12,0.4)')}
+            {renderTab('education', 'EDUCACIÓN', <School className="w-4 h-4 shrink-0" />, 'bg-violet-600', 'rgba(139,92,246,0.4)')}
+            {renderTab('temporary_housing', 'VIVIENDA', <Home className="w-4 h-4 shrink-0" />, 'bg-amber-600', 'rgba(217,119,6,0.4)')}
             <div className="flex-1 hidden sm:block" />
             {renderTab('volunteer_gate', 'COORDINADOR', <ShieldCheck className="w-4 h-4 shrink-0" />, 'bg-blue-600', 'rgba(37,99,235,0.4)')}
           </div>
@@ -467,6 +501,19 @@ export default function App() {
             )}
           </div>
         )}
+
+        {activeTab === 'weather_alerts' && <WeatherAlertsModule />}
+        {activeTab === 'public_alerts' && <PublicAlertsModule />}
+        {activeTab === 'family_reunification' && <FamilyReunificationModule />}
+        {activeTab === 'child_protection' && <ChildProtectionModule />}
+        {activeTab === 'legal_aid' && <LegalAidModule />}
+        {activeTab === 'press_center' && <PressCenterModule />}
+        {activeTab === 'training' && <TrainingModule />}
+        {activeTab === 'lessons_learned' && <LessonsLearnedModule />}
+        {activeTab === 'volunteer_shifts' && <VolunteerShiftsModule />}
+        {activeTab === 'resource_map' && <ResourceMapModule />}
+        {activeTab === 'education' && <EducationModule />}
+        {activeTab === 'temporary_housing' && <TemporaryHousingModule />}
 
         </Suspense>
         </ErrorBoundary>

@@ -542,3 +542,221 @@ export interface FuelEnergyPoint {
   reportedBy: string;
   createdAt: number;
 }
+
+export interface WeatherAlert {
+  id: string;
+  title: string;
+  type: 'Lluvia Fuerte' | 'Tormenta' | 'Viento Fuerte' | 'Inundación' | 'Deslizamiento' | 'Tsunami' | 'Réplica Significativa' | 'Otro';
+  severity: 'Verde' | 'Amarillo' | 'Naranja' | 'Rojo';
+  state: 'Caracas' | 'La Guaira' | 'Aragua' | 'Carabobo' | 'Otros';
+  description: string;
+  source: string;
+  latitude?: number;
+  longitude?: number;
+  radiusKm?: number;
+  active: boolean;
+  expiresAt?: number;
+  reportedBy: string;
+  createdAt: number;
+  updatedAt?: number;
+}
+
+export interface PublicAlert {
+  id: string;
+  title: string;
+  message: string;
+  type: 'Evacuación' | 'Refugio' | 'Ruta Segura' | 'Agua Segura' | 'Peligro' | 'Informativa';
+  priority: 'Crítica' | 'Alta' | 'Media' | 'Baja';
+  states: string[];
+  latitude?: number;
+  longitude?: number;
+  active: boolean;
+  broadcastCount: number;
+  sentBy: string;
+  createdAt: number;
+  expiresAt?: number;
+}
+
+export interface FamilyRequest {
+  id: string;
+  seekerName: string;
+  seekerPhone: string;
+  seekerCI?: string;
+  missingName: string;
+  missingCI?: string;
+  missingAge?: number;
+  lastSeenLocation: string;
+  lastSeenDate: number;
+  description: string;
+  state: 'Caracas' | 'La Guaira' | 'Aragua' | 'Carabobo' | 'Otros';
+  status: 'Buscando' | 'En Contacto' | 'Reunificado' | 'Cerrado';
+  matchId?: string;
+  notes?: string;
+  reportedBy: string;
+  createdAt: number;
+  updatedAt?: number;
+}
+
+export interface ChildCase {
+  id: string;
+  childName: string;
+  childAge: number;
+  childGender: 'M' | 'F' | 'Otro';
+  parentName?: string;
+  parentPhone?: string;
+  parentCI?: string;
+  status: 'No Acompañado' | 'En Protección' | 'Con Familia' | 'Derivado' | 'Resuelto';
+  location: string;
+  state: 'Caracas' | 'La Guaira' | 'Aragua' | 'Carabobo' | 'Otros';
+  shelterId?: string;
+  assignedTo?: string;
+  medicalNeeds?: string;
+  notes?: string;
+  reportedBy: string;
+  createdAt: number;
+  updatedAt?: number;
+}
+
+export interface LegalAidRequest {
+  id: string;
+  petitionerName: string;
+  petitionerCI: string;
+  petitionerPhone: string;
+  requestType: 'Acta de Defunción' | 'Acta de Nacimiento' | 'Identificación' | 'Propiedad' | 'Seguro' | 'Otro';
+  description: string;
+  state: 'Caracas' | 'La Guaira' | 'Aragua' | 'Carabobo' | 'Otros';
+  status: 'Registrado' | 'En Trámite' | 'Resuelto' | 'Derivado';
+  assignedTo?: string;
+  institution?: string;
+  documentsNeeded?: string[];
+  notes?: string;
+  reportedBy: string;
+  createdAt: number;
+  updatedAt?: number;
+}
+
+export interface PressRelease {
+  id: string;
+  title: string;
+  summary: string;
+  content: string;
+  category: 'Oficial' | 'Situación' | 'Operativo' | 'Salud' | 'Logística' | 'Otro';
+  states: string[];
+  author: string;
+  source: string;
+  published: boolean;
+  viewCount: number;
+  createdAt: number;
+  updatedAt?: number;
+}
+
+export interface TrainingSession {
+  id: string;
+  title: string;
+  type: 'Simulacro' | 'Capacitación' | 'Taller' | 'Entrenamiento SAR' | 'Prueba de Comunicaciones';
+  description: string;
+  date: number;
+  duration: string;
+  location: string;
+  state: 'Caracas' | 'La Guaira' | 'Aragua' | 'Carabobo' | 'Otros';
+  instructor: string;
+  maxParticipants: number;
+  enrolledCount: number;
+  status: 'Programado' | 'En Curso' | 'Completado' | 'Cancelado';
+  participants: string[];
+  evaluation?: string;
+  reportedBy: string;
+  createdAt: number;
+}
+
+export interface AfterActionReview {
+  id: string;
+  title: string;
+  incidentDate: number;
+  reviewDate: number;
+  module: string;
+  whatWorkedWell: string;
+  whatNeedsImprovement: string;
+  recommendations: string;
+  priority: 'Alta' | 'Media' | 'Baja';
+  status: 'Pendiente' | 'En Implementación' | 'Completado';
+  assignedTo?: string;
+  reportedBy: string;
+  createdAt: number;
+  updatedAt?: number;
+}
+
+export interface VolunteerShift {
+  id: string;
+  volunteerId: string;
+  volunteerName: string;
+  shiftType: 'Mañana' | 'Tarde' | 'Noche' | '24h';
+  date: number;
+  startTime: string;
+  endTime: string;
+  location: string;
+  role: string;
+  status: 'Programado' | 'En Curso' | 'Completado' | 'Cancelado' | 'No Asistió';
+  shelterId?: string;
+  notes?: string;
+  reportedBy: string;
+  createdAt: number;
+}
+
+export interface ResourceLocation {
+  id: string;
+  name: string;
+  type: 'Almacén' | 'Punto de Distribución' | 'Centro Médico' | 'Punto de Agua' | 'Generador' | 'Base de Operaciones' | 'Otro';
+  state: 'Caracas' | 'La Guaira' | 'Aragua' | 'Carabobo' | 'Otros';
+  latitude: number;
+  longitude: number;
+  capacity?: string;
+  currentStock?: string;
+  status: 'Activo' | 'Parcial' | 'Inactivo';
+  contactPhone?: string;
+  contactName?: string;
+  operatingHours?: string;
+  notes?: string;
+  reportedBy: string;
+  createdAt: number;
+  updatedAt?: number;
+}
+
+export interface SchoolDamage {
+  id: string;
+  schoolName: string;
+  schoolType: 'Urbana' | 'Rural' | 'Privada' | 'Bolivariana' | 'Liceo' | 'Universidad';
+  state: 'Caracas' | 'La Guaira' | 'Aragua' | 'Carabobo' | 'Otros';
+  address: string;
+  latitude?: number;
+  longitude?: number;
+  studentCount: number;
+  structuralStatus: 'Operativo' | 'Parcial' | 'No Operativo' | 'Colapsado';
+  damageLevel: 'Ninguno' | 'Leve' | 'Moderado' | 'Severo' | 'Colapso';
+  needsAssessment?: string;
+  temporaryShelter?: string;
+  status: 'Registrado' | 'Evaluado' | 'En Reparación' | 'Operativo';
+  reportedBy: string;
+  createdAt: number;
+  updatedAt?: number;
+}
+
+export interface TemporaryHousing {
+  id: string;
+  name: string;
+  type: 'Casa Temporal' | 'Carpa' | 'Contenedor' | 'Casa de Familia' | 'Otro';
+  state: 'Caracas' | 'La Guaira' | 'Aragua' | 'Carabobo' | 'Otros';
+  latitude: number;
+  longitude: number;
+  capacity: number;
+  currentOccupancy: number;
+  status: 'Disponible' | 'Parcial' | 'Lleno' | 'Mantenimiento';
+  contactName?: string;
+  contactPhone?: string;
+  services: string[];
+  maxStayDays?: number;
+  notes?: string;
+  reportedBy: string;
+  createdAt: number;
+  updatedAt?: number;
+}

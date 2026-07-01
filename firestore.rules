@@ -249,5 +249,101 @@ service cloud.firestore {
       allow update: if true;
       allow delete: if request.auth != null;
     }
+
+    /* Alertas Meteorológicas */
+    match /weather_alerts/{alertId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['title', 'type', 'severity', 'state', 'description', 'active', 'createdAt']);
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    /* Centro de Alertas Públicas */
+    match /public_alerts/{alertId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['title', 'message', 'type', 'priority', 'active', 'createdAt']);
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    /* Reunificación Familiar */
+    match /family_requests/{requestId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['seekerName', 'seekerPhone', 'missingName', 'lastSeenLocation', 'lastSeenDate', 'status', 'createdAt']);
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    /* Protección de la Infancia */
+    match /child_protection_cases/{caseId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['childName', 'childAge', 'status', 'location', 'createdAt']);
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    /* Asistencia Legal Documental */
+    match /legal_aid_requests/{requestId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['petitionerName', 'petitionerCI', 'requestType', 'status', 'createdAt']);
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    /* Centro de Prensa */
+    match /press_releases/{releaseId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['title', 'summary', 'content', 'category', 'published', 'createdAt']);
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    /* Capacitación y Simulacros */
+    match /training_sessions/{sessionId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['title', 'type', 'date', 'status', 'createdAt']);
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    /* Lecciones Aprendidas */
+    match /after_action_reviews/{reviewId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['title', 'incidentDate', 'reviewDate', 'module', 'status', 'createdAt']);
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    /* Turnos de Voluntarios */
+    match /volunteer_shifts/{shiftId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['volunteerId', 'volunteerName', 'date', 'startTime', 'endTime', 'status', 'createdAt']);
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    /* Mapa de Recursos */
+    match /resource_locations/{locationId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['name', 'type', 'state', 'latitude', 'longitude', 'status', 'createdAt']);
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    /* Educación y Escuelas */
+    match /school_damage_reports/{schoolId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['schoolName', 'schoolType', 'state', 'studentCount', 'status', 'createdAt']);
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
+
+    /* Vivienda Temporal */
+    match /temporary_housing/{housingId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['name', 'type', 'state', 'latitude', 'longitude', 'capacity', 'status', 'createdAt']);
+      allow update: if true;
+      allow delete: if request.auth != null;
+    }
   }
 }

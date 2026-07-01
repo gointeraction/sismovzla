@@ -140,6 +140,18 @@ const SKELETONS: Record<string, React.ReactNode> = {
   interagency: <TableSkeleton rows={4} />,
   aerial_ops: <TableSkeleton rows={5} />,
   fuel_energy: <TableSkeleton rows={5} />,
+  weather_alerts: <MapSkeleton />,
+  public_alerts: <TableSkeleton rows={5} />,
+  family_reunification: <TableSkeleton rows={5} />,
+  child_protection: <TableSkeleton rows={5} />,
+  legal_aid: <TableSkeleton rows={5} />,
+  press_center: <TableSkeleton rows={4} />,
+  training: <TableSkeleton rows={5} />,
+  lessons_learned: <TableSkeleton rows={4} />,
+  volunteer_shifts: <TableSkeleton rows={5} />,
+  resource_map: <MapSkeleton />,
+  education: <TableSkeleton rows={5} />,
+  temporary_housing: <MapSkeleton />,
 };
 
 export default function ModuleSkeleton({ tabKey, label }: { tabKey: string; label: string }) {
