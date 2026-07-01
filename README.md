@@ -6,7 +6,7 @@
 [![Plataforma Oficial](https://img.shields.io/badge/Plataforma-ayudasismovzla.web.app-FF9800?style=for-the-badge&logo=firebase&logoColor=black)](https://ayudasismovzla.web.app)
 [![PWA Offline-First](https://img.shields.io/badge/Arquitectura-PWA_Resiliente-4CAF50?style=for-the-badge&logo=pwa&logoColor=white)](#-arquitectura-resiliente-offline-first)
 [![Stack](https://img.shields.io/badge/Frontend-React_19_%2B_TypeScript-3178C6?style=for-the-badge&logo=react&logoColor=white)](https://react.dev)
-[![Versión](https://img.shields.io/badge/Versión-2.0-D32F2F?style=for-the-badge)](https://ayudasismovzla.web.app)
+[![Versión](https://img.shields.io/badge/Versión-3.0-D32F2F?style=for-the-badge)](https://ayudasismovzla.web.app)
 
 <br />
 </div>
@@ -19,13 +19,13 @@
 
 **SismoVZLA** es una Aplicación Web Progresiva (**PWA**) de código abierto diseñada para operar como una red de contingencia humanitaria en Venezuela tras eventos sísmicos de gran escala.
 
-La plataforma cubre **35 módulos tácticos** organizados en 3 capas: **Coordinación**, **Apoyo** y **Logística**, con **38 colecciones Firestore** y un sistema de **7 roles tácticos** especializados.
+La plataforma cubre **35 módulos tácticos** organizados en **4 capas**: **Coordinación**, **Apoyo Táctico**, **Logística** y **Apoyo Ciudadano**, con **38 colecciones Firestore** y un sistema de **12 roles tácticos** especializados.
 
 Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones colapsan. SismoVZLA resuelve este problema mediante una arquitectura **Offline-First** que permite a los ciudadanos guardar reportes, consultar manuales de auxilio y buscar familiares **completamente sin internet**.
 
 ---
 
-## 🗂️ Mapa de Módulos Tácticos (v2.0)
+## 🗂️ Mapa de Módulos Tácticos (v3.0)
 
 ### Capa 1 — Coordinación
 
@@ -64,42 +64,43 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
 | 20 | 🤝 **Coordinación Interagencial** | Tareas inter-agencia con asignación y seguimiento | `interagency_tasks` |
 | 21 | 🚁 **Operaciones Aéreas** | Drones, helicópteros, zonas prohibidas, misiones | `aerial_operations` |
 | 22 | ⛽ **Combustible y Energía** | Gasolineras, generadores, estado de combustible | `fuel_energy_points` |
-| 31 | 📅 **Turnos de Voluntarios** | Calendario de turnos con asistencia y ubicación | `volunteer_shifts` |
-| 32 | 🗺️ **Mapa de Recursos** | Mapa consolidado de almacenes, centros médicos, bases | `resource_locations` |
-| 33 | 🏫 **Educación y Escuelas** | Daños escolares, evaluación estructural, estadísticas | `school_damage_reports` |
-| 34 | 🏠 **Vivienda Temporal** | Registro de viviendas temporales con capacidad y servicios | `temporary_housing` |
 
-### Capa 4 — Apoyo Ciudadano
+### Capa 4 — Apoyo Ciudadano (NUEVOS)
 
 | # | Módulo | Descripción | Colección Firestore |
 |---|--------|-------------|---------------------|
-| 23 | 🌦️ **Alertas Meteorológicas** | Alertas manuales con severidad, radio de afectación, mapa | `weather_alerts` |
-| 24 | 🚨 **Alertas Públicas** | Centro de alertas con prioridad y estados afectados | `public_alerts` |
-| 25 | 👨‍👩‍👧 **Reunificación Familiar** | Búsqueda bidireccional de familiares desaparecidos | `family_requests` |
-| 26 | 👶 **Protección Infantil** | Menores no acompañados, asignación a refugios | `child_protection_cases` |
-| 27 | 📋 **Asistencia Legal** | Trámites documentales post-desastre | `legal_aid_requests` |
-| 28 | 📢 **Centro de Prensa** | Comunicados oficiales con RSS-like feed | `press_releases` |
-| 29 | 🎓 **Capacitación** | Simulacros, talleres, entrenamiento SAR | `training_sessions` |
-| 30 | 📊 **Lecciones Aprendidas** | Revisiones post-incidente y mejoras continuas | `after_action_reviews` |
+| 23 | 🌦️ **Alertas Meteorológicas** | Alertas manuales con severidad (Verde/Amarillo/Naranja/Rojo), radio de afectación, mapa Leaflet | `weather_alerts` |
+| 24 | 🚨 **Alertas Públicas** | Centro de alertas con prioridad (Crítica/Alta/Media/Baja), estados afectados, contador de vistas | `public_alerts` |
+| 25 | 👨‍👩‍👧 **Reunificación Familiar** | Búsqueda bidireccional de familiares desaparecidos con fuzzy match por nombre | `family_requests` |
+| 26 | 👶 **Protección Infantil** | Registro de menores no acompañados, asignación a refugios, flujo de estados | `child_protection_cases` |
+| 27 | 📋 **Asistencia Legal** | Trámites documentales post-desastre: actas, identificación, propiedad | `legal_aid_requests` |
+| 28 | 📢 **Centro de Prensa** | Comunicados oficiales con categoría, publicar/ocultar, contador de vistas | `press_releases` |
+| 29 | 🎓 **Capacitación** | Simulacros, talleres, entrenamiento SAR con inscripción de voluntarios | `training_sessions` |
+| 30 | 📊 **Lecciones Aprendidas** | Revisiones post-incidente: qué funcionó, qué mejorar, recomendaciones | `after_action_reviews` |
+| 31 | 📅 **Turnos de Voluntarios** | Calendario de turnos con fecha, hora inicio/fin, ubicación, registro de asistencia | `volunteer_shifts` |
+| 32 | 🗺️ **Mapa de Recursos** | Mapa consolidado de almacenes, centros médicos, bases con marcadores SVG por tipo | `resource_locations` |
+| 33 | 🏫 **Educación y Escuelas** | Daños escolares, evaluación estructural, estadísticas de estudiantes afectados | `school_damage_reports` |
+| 34 | 🏠 **Vivienda Temporal** | Registro de viviendas temporales con capacidad, ocupación, servicios y mapa | `temporary_housing` |
 
 ---
 
-## ✨ Características de la Plataforma v2.0
+## ✨ Características de la Plataforma v3.0
 
 ### 🏗️ Arquitectura Técnica
 
 | Característica | Detalle |
 |---|---|
 | **Code-Splitting** | 35 módulos lazy-loaded con `React.lazy` + `Suspense` |
-| **Skeletons Contextuales** | Esqueleto visual por módulo durante carga (tabla, mapa, dashboard, formulario) |
+| **Skeletons Contextuales** | 36 esqueletos visuales por módulo durante carga (tabla, mapa, dashboard, formulario) |
 | **Error Boundary** | Captura de errores por módulo con botón de reintento |
-| **Chunk Optimization** | Main bundle: 213 kB (vs 1,699 kB v1) — **-87%** |
-| **Firebase SDK Separado** | Chunk independiente de 772 kB con cache propia |
-| **Geolocalización Centralizada** | Hook `useGeolocation` compartido en 9 módulos |
+| **Chunk Optimization** | Main: 222 kB \| lucide: 50 kB \| jspdf: 422 kB \| firebase-core: 0.7 kB \| firebase-auth: 111 kB \| firebase-firestore: 661 kB |
+| **Geolocalización Centralizada** | Hook `useGeolocation` compartido en 12+ módulos |
 | **Exportación PDF** | `jsPDF` + `jspdf-autotable` en todos los módulos con theme rojo institucional |
+| **Exportación CSV** | Módulos de logística y recursos con exportación CSV nativa |
 
 ### 🗺️ Mapa Táctico Georeferenciado
 - Marcadores de colores por gravedad (**Gravedad 1 a 5**)
+- Marcadores SVG por tipo de recurso (Almacén, Centro Médico, Generador, etc.)
 - Control de estado en memoria — no salta ni recentra ante actualizaciones masivas
 - Popups persistentes con ventana emergente
 - Filtros regionales: Caracas, La Guaira, Aragua, Carabobo, Otros
@@ -125,6 +126,20 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
 - Mapa táctico con marcadores SVG por tipo
 - Plantillas CSV para carga masiva
 
+### 🆕 Nuevos Módulos v3.0
+- **Alertas Meteorológicas**: Alertas con severidad 4 niveles, radio de afectación en km, toggle activar/desactivar
+- **Alertas Públicas**: Prioridad crítica con parpadeo visual, estados afectados, contador de visualizaciones
+- **Reunificación Familiar**: Búsqueda fuzzy por nombre, flujo Buscando → En Contacto → Reunificado
+- **Protección Infantil**: Casos urgentes con borde rojo, flujo No Acompañado → En Protección → Con Familia
+- **Asistencia Legal**: Directorio de instituciones, seguimiento de trámites documentales
+- **Centro de Prensa**: Publicar/ocultar comunicados, RSS-like feed para ciudadanos
+- **Capacitación**: Calendario de sesiones, inscripción de voluntarios, seguimiento de asistencia
+- **Lecciones Aprendidas**: Formulario estructurado: qué funcionó, qué mejorar, recomendaciones
+- **Turnos de Voluntarios**: Calendario con turno Mañana/Tarde/Noche/24h, registro de asistencia
+- **Mapa de Recursos**: Mapa Leaflet con marcadores coloreados por tipo, vista lista alternativa
+- **Educación y Escuelas**: Estadísticas de daño escolar, evaluación estructural, estudiantes afectados
+- **Vivienda Temporal**: Semáforo de ocupación, mapa de ubicaciones, servicios disponibles
+
 ---
 
 ## 🛡️ Matriz de Roles y Seguridad
@@ -139,17 +154,17 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
 | Operador Táctico | `TACTICO_2026` | Creación, actualización, eliminación |
 | Admin | `SISMO_CRISIS_ADMIN` | Administración absoluta |
 
-### Roles Tácticos Nuevos (v2.0)
+### Roles Tácticos
 
-| Rol | Token | Especialidad |
-|---|---|---|
-| 🏥 Triage Médico | `TRIAGE_MEDICO` | Triaje de víctimas, gestión de pacientes |
-| 🚑 Coordinador Rescate | `RESCATE_COORD` | Búsqueda y rescate, sectores SAR |
-| 📦 Logística Admin | `LOGISTICA_ADMIN` | Inventario, suministros, distribución |
-| 📡 Operador Radio | `RADIO_OP` | Comunicaciones de emergencia |
-| 🔬 Forense | `FORENSE` | Gestión de fallecidos, cadena de custodia |
-| 🧠 Psicosocial | `PSICOSOCIAL` | Apoyo psicológico, derivación |
-| 🚁 Coordinador Aéreo | `AEREO_COORD` | Operaciones con drones y helicópteros |
+| Rol | Token | Especialidad | Módulos Asignados |
+|---|---|---|---|
+| 🏥 Triage Médico | `TRIAGE_MEDICO` | Triaje de víctimas, gestión de pacientes | Triage, Hospital, Sangre |
+| 🚑 Coordinador Rescate | `RESCATE_COORD` | Búsqueda y rescate, sectores SAR | Búsqueda y Rescate, EOC |
+| 📦 Logística Admin | `LOGISTICA_ADMIN` | Inventario, suministros, distribución | Logística, Combustible, Agua |
+| 📡 Operador Radio | `RADIO_OP` | Comunicaciones de emergencia | Comunicaciones, EOC |
+| 🔬 Forense | `FORENSE` | Gestión de fallecidos, cadena de custodia | Fallecidos, EOC |
+| 🧠 Psicosocial | `PSICOSOCIAL` | Apoyo psicológico, derivación | Psicosocial, Protección Infantil |
+| 🚁 Coordinador Aéreo | `AEREO_COORD` | Operaciones con drones y helicópteros | Operaciones Aéreas, EOC |
 
 ---
 
@@ -175,11 +190,12 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
 |---------|------|------|------|--------|
 | Main bundle | 1,699 kB | 213 kB | 222 kB | **-87%** |
 | Chunks lucide | 27 × 0.3kB | 1 × 45kB | 1 × 50kB | Consolidados |
-| Firebase | En main | Chunk separado | Chunk separado | Cache independiente |
-| Build time | ~7s | ~5s | ~8s | +15% (12 módulos) |
+| Firebase | En main | 1 chunk 772kB | 3 chunks (0.7+111+661kB) | Mejor cache |
+| Build time | ~7s | ~5s | ~6s | +20% (12 módulos) |
 | Módulos | 8 | 23 | 35 | +27 |
 | Colecciones | 14 | 26 | 38 | +24 |
-| Roles | 4 | 11 | 11 | +7 |
+| Roles | 4 | 11 | 12 | +8 |
+| Capas | 2 | 3 | 4 | +2 |
 
 ---
 
@@ -199,11 +215,41 @@ npm run dev
 # Build
 npm run build
 
+# Verificar tipos
+npx tsc --noEmit
+
 # Desplegar nodo principal
 npx firebase deploy --only hosting --project sismovzla
 
 # Desplegar nodo espejo
 npx firebase deploy --only hosting --project ayudasismovzla
+
+# Desplegar reglas Firestore
+npx firebase deploy --only firestore:rules --project sismovzla
+npx firebase deploy --only firestore:rules --project ayudasismovzla
+```
+
+---
+
+## 📁 Estructura del Proyecto
+
+```
+sismovzla/
+├── src/
+│   ├── components/           # 35+ módulos React
+│   │   ├── *.Module.tsx      # Módulos tácticos
+│   │   ├── ModuleSkeleton.tsx # Esqueletos contextuales
+│   │   └── ErrorBoundary.tsx  # Captura de errores
+│   ├── hooks/
+│   │   └── useGeolocation.ts # Hook centralizado
+│   ├── types.ts              # 38 interfaces TypeScript
+│   ├── firebase.ts           # Configuración Firebase
+│   └── App.tsx               # Orquestador principal
+├── server/
+│   └── firebaseAdmin.ts      # Firebase Admin v14
+├── firestore.rules           # 38 reglas de colección
+├── vite.config.ts            # Configuración Vite + chunks
+└── package.json              # Dependencias
 ```
 
 ---
