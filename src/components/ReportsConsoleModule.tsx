@@ -32,7 +32,7 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
   const [severityFilter, setSeverityFilter] = useState<string>('Todos');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
 
-  // External Firestore collections state
+  // External Firestore collections state - all lazy loaded on tab switch
   const [patients, setPatients] = useState<HospitalPatient[]>([]);
   const [donors, setDonors] = useState<BloodDonor[]>([]);
   const [shelters, setShelters] = useState<Shelter[]>([]);
@@ -72,6 +72,9 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
   const [resourceLocations, setResourceLocations] = useState<ResourceLocation[]>([]);
   const [showMoreTabs, setShowMoreTabs] = useState(false);
 
+  // Track which tabs have been loaded to avoid re-fetching
+  const [loadedTabs, setLoadedTabs] = useState<Set<string>>(new Set());
+
   const tabLabels: Record<ReportTypeTab, string> = {
     incidents_damage: '1. DAÑOS', covenin_structural: '2. COVENIN', hospital_patients: '3. PACIENTES',
     blood_donors: '4. SANGRE', shelters_log: '5. ALBERGUES', global_suite: '6. SUITE GLOBAL',
@@ -86,83 +89,215 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
     lessons_learned: 'LECCIONES', volunteer_shifts: 'TURNOS', resource_map: 'RECURSOS', donations: 'DONACIONES',
   };
 
-  // Fetch external collections when tab switches
+// Lazy load collections on tab switch - ALL tabs now load on-demand
   useEffect(() => {
-    const fetchExternalData = async () => {
+    const fetchTabData = async () => {
+      // Don't re-fetch if already loaded
+      if (loadedTabs.has(activeTab)) return;
+      
       setIsLoadingExternal(true);
       try {
-        if (activeTab === 'hospital_patients' && patients.length === 0) {
+        // Legacy tabs (3)
+        if (activeTab === 'hospital_patients') {
           const snap = await getDocs(collection(db, 'hospital_patients'));
           const list: HospitalPatient[] = [];
           snap.forEach(doc => list.push({ id: doc.id, ...doc.data() } as HospitalPatient));
           setPatients(list);
-        } else if (activeTab === 'blood_donors' && donors.length === 0) {
+        } else if (activeTab === 'blood_donors') {
           const snap = await getDocs(collection(db, 'blood_donors'));
           const list: BloodDonor[] = [];
           snap.forEach(doc => list.push({ id: doc.id, ...doc.data() } as BloodDonor));
           setDonors(list);
-        } else if (activeTab === 'shelters_log' && shelters.length === 0) {
+        } else if (activeTab === 'shelters_log') {
           const snap = await getDocs(collection(db, 'shelters'));
           const list: Shelter[] = [];
           snap.forEach(doc => list.push({ id: doc.id, ...doc.data() } as Shelter));
           setShelters(list);
-
           const occSnap = await getDocs(collection(db, 'shelter_occupants'));
           const occList: ShelterOccupant[] = [];
           occSnap.forEach(doc => occList.push({ id: doc.id, ...doc.data() } as ShelterOccupant));
           setOccupants(occList);
         }
+        // New tabs (28) - lazy load on first access
+        else if (activeTab === 'person_search') {
+          const snap = await getDocs(collection(db, 'person_searches'));
+          const list: PersonSearch[] = [];
+          snap.forEach(doc => list.push({ id: doc.id, ...doc.data() } as PersonSearch));
+          setPersonSearches(list);
+        } else if (activeTab === 'evacuation_routes') {
+          const snap = await getDocs(collection(db, 'evacuation_routes'));
+          const list: EvacuationRoute[] = [];
+          snap.forEach(doc => list.push({ id: doc.id, ...doc.data() } as EvacuationRoute));
+          setEvacRoutes(list);
+        } else if (activeTab === 'triage_manifest') {
+          const [patientsSnap, teamsSnap] = await Promise.all([
+            getDocs(collection(db, 'triage_patients')),
+            getDocs(collection(db, 'triage_teams'))
+          ]);
+          const pList: TriagePatient[] = [];
+          patientsSnap.forEach(doc => pList.push({ id: doc.id, ...doc.data() } as TriagePatient));
+          setTriagePatients(pList);
+          const tList: TriageTeam[] = [];
+          teamsSnap.forEach(doc => tList.push({ id: doc.id, ...doc.data() } as TriageTeam));
+          setTriageTeams(tList);
+        } else if (activeTab === 'cascade_events') {
+          const snap = await getDocs(collection(db, 'cascade_events'));
+          const list: CascadeEvent[] = [];
+          snap.forEach(doc => list.push({ id: doc.id, ...doc.data() } as CascadeEvent));
+          setCascadeEvents(list);
+        } else if (activeTab === 'search_rescue') {
+          const [sectorsSnap, teamsSnap] = await Promise.all([
+            getDocs(collection(db, 'search_sectors')),
+            getDocs(collection(db, 'rescue_teams'))
+          ]);
+          const sList: SearchSector[] = [];
+          sectorsSnap.forEach(doc => sList.push({ id: doc.id, ...doc.data() } as SearchSector));
+          setSearchSectors(sList);
+          const tList: RescueTeam[] = [];
+          teamsSnap.forEach(doc => tList.push({ id: doc.id, ...doc.data() } as RescueTeam));
+          setRescueTeams(tList);
+        } else if (activeTab === 'supply_logistics') {
+          const [invSnap, reqSnap] = await Promise.all([
+            getDocs(collection(db, 'supply_inventory')),
+            getDocs(collection(db, 'supply_requests'))
+          ]);
+          const iList: SupplyInventory[] = [];
+          invSnap.forEach(doc => iList.push({ id: doc.id, ...doc.data() } as SupplyInventory));
+          setSupplyInventory(iList);
+          const rList: SupplyRequest[] = [];
+          reqSnap.forEach(doc => rList.push({ id: doc.id, ...doc.data() } as SupplyRequest));
+          setSupplyRequests(rList);
+        } else if (activeTab === 'water_sanitation') {
+          const [waterSnap, sanSnap] = await Promise.all([
+            getDocs(collection(db, 'water_points')),
+            getDocs(collection(db, 'sanitation_points'))
+          ]);
+          const wList: WaterPoint[] = [];
+          waterSnap.forEach(doc => wList.push({ id: doc.id, ...doc.data() } as WaterPoint));
+          setWaterPoints(wList);
+          const sList: SanitationPoint[] = [];
+          sanSnap.forEach(doc => sList.push({ id: doc.id, ...doc.data() } as SanitationPoint));
+          setSanitationPoints(sList);
+        } else if (activeTab === 'deceased') {
+          const snap = await getDocs(collection(db, 'deceased_persons'));
+          const list: DeceasedPerson[] = [];
+          snap.forEach(doc => list.push({ id: doc.id, ...doc.data() } as DeceasedPerson));
+          setDeceasedPersons(list);
+        } else if (activeTab === 'psychosocial') {
+          const snap = await getDocs(collection(db, 'psychosocial_cases'));
+          const list: PsychosocialCase[] = [];
+          snap.forEach(doc => list.push({ id: doc.id, ...doc.data() } as PsychosocialCase));
+          setPsychosocialCases(list);
+        } else if (activeTab === 'comms_network') {
+          const snap = await getDocs(collection(db, 'emergency_comms'));
+          const list: EmergencyComm[] = [];
+          snap.forEach(doc => list.push({ id: doc.id, ...doc.data() } as EmergencyComm));
+          setEmergencyComms(list);
+        } else if (activeTab === 'volunteers') {
+          const [volSnap, donSnap] = await Promise.all([
+            getDocs(collection(db, 'volunteers')),
+            getDocs(collection(db, 'donations'))
+          ]);
+          const vList: VolunteerRegistry[] = [];
+          volSnap.forEach(doc => vList.push({ id: doc.id, ...doc.data() } as VolunteerRegistry));
+          setVolunteerRegs(vList);
+          const dList: Donation[] = [];
+          donSnap.forEach(doc => dList.push({ id: doc.id, ...doc.data() } as Donation));
+          setDonations(dList);
+        } else if (activeTab === 'interagency') {
+          const snap = await getDocs(collection(db, 'interagency_tasks'));
+          const list: InteragencyTask[] = [];
+          snap.forEach(doc => list.push({ id: doc.id, ...doc.data() } as InteragencyTask));
+          setInteragencyTasks(list);
+        } else if (activeTab === 'aerial_ops') {
+          const snap = await getDocs(collection(db, 'aerial_operations'));
+          const list: AerialOperation[] = [];
+          snap.forEach(doc => list.push({ id: doc.id, ...doc.data() } as AerialOperation));
+          setAerialOps(list);
+        } else if (activeTab === 'fuel_energy') {
+          const snap = await getDocs(collection(db, 'fuel_energy_points'));
+          const list: FuelEnergyPoint[] = [];
+          snap.forEach(doc => list.push({ id: doc.id, ...doc.data() } as FuelEnergyPoint));
+          setFuelEnergyPoints(list);
+        } else if (activeTab === 'child_protection') {
+          const snap = await getDocs(collection(db, 'child_protection_cases'));
+          const list: ChildCase[] = [];
+          snap.forEach(doc => list.push({ id: doc.id, ...doc.data() } as ChildCase));
+          setChildCases(list);
+        } else if (activeTab === 'temporary_housing') {
+          const snap = await getDocs(collection(db, 'temporary_housing'));
+          const list: TemporaryHousing[] = [];
+          snap.forEach(doc => list.push({ id: doc.id, ...doc.data() } as TemporaryHousing));
+          setTempHousing(list);
+        } else if (activeTab === 'education') {
+          const snap = await getDocs(collection(db, 'school_damage_reports'));
+          const list: SchoolDamage[] = [];
+          snap.forEach(doc => list.push({ id: doc.id, ...doc.data() } as SchoolDamage));
+          setSchoolDamages(list);
+        } else if (activeTab === 'weather_alerts_report') {
+          const snap = await getDocs(collection(db, 'weather_alerts'));
+          const list: WeatherAlert[] = [];
+          snap.forEach(doc => list.push({ id: doc.id, ...doc.data() } as WeatherAlert));
+          setWeatherAlertsList(list);
+        } else if (activeTab === 'public_alerts_report') {
+          const snap = await getDocs(collection(db, 'public_alerts'));
+          const list: PublicAlert[] = [];
+          snap.forEach(doc => list.push({ id: doc.id, ...doc.data() } as PublicAlert));
+          setPublicAlertsList(list);
+        } else if (activeTab === 'family_reunification') {
+          const snap = await getDocs(collection(db, 'family_requests'));
+          const list: FamilyRequest[] = [];
+          snap.forEach(doc => list.push({ id: doc.id, ...doc.data() } as FamilyRequest));
+          setFamilyRequestsList(list);
+        } else if (activeTab === 'legal_aid') {
+          const snap = await getDocs(collection(db, 'legal_aid_requests'));
+          const list: LegalAidRequest[] = [];
+          snap.forEach(doc => list.push({ id: doc.id, ...doc.data() } as LegalAidRequest));
+          setLegalAidList(list);
+        } else if (activeTab === 'press_center') {
+          const snap = await getDocs(collection(db, 'press_releases'));
+          const list: PressRelease[] = [];
+          snap.forEach(doc => list.push({ id: doc.id, ...doc.data() } as PressRelease));
+          setPressReleasesList(list);
+        } else if (activeTab === 'training_sessions') {
+          const snap = await getDocs(collection(db, 'training_sessions'));
+          const list: TrainingSession[] = [];
+          snap.forEach(doc => list.push({ id: doc.id, ...doc.data() } as TrainingSession));
+          setTrainingSessionsList(list);
+        } else if (activeTab === 'lessons_learned') {
+          const snap = await getDocs(collection(db, 'after_action_reviews'));
+          const list: AfterActionReview[] = [];
+          snap.forEach(doc => list.push({ id: doc.id, ...doc.data() } as AfterActionReview));
+          setAarList(list);
+        } else if (activeTab === 'volunteer_shifts') {
+          const snap = await getDocs(collection(db, 'volunteer_shifts'));
+          const list: VolunteerShift[] = [];
+          snap.forEach(doc => list.push({ id: doc.id, ...doc.data() } as VolunteerShift));
+          setVolunteerShiftsList(list);
+        } else if (activeTab === 'resource_map') {
+          const snap = await getDocs(collection(db, 'resource_locations'));
+          const list: ResourceLocation[] = [];
+          snap.forEach(doc => list.push({ id: doc.id, ...doc.data() } as ResourceLocation));
+          setResourceLocations(list);
+        } else if (activeTab === 'eoc_dashboard') {
+          // EOC Dashboard uses incidents prop (already loaded) + cascade events
+          const snap = await getDocs(collection(db, 'cascade_events'));
+          const list: CascadeEvent[] = [];
+          snap.forEach(doc => list.push({ id: doc.id, ...doc.data() } as CascadeEvent));
+          setCascadeEvents(list);
+        }
+        
+        // Mark tab as loaded
+        setLoadedTabs(prev => new Set(prev).add(activeTab));
       } catch (e) {
-        console.error('Error fetching external reports data:', e);
+        console.error('Error fetching tab data:', e);
       } finally {
         setIsLoadingExternal(false);
       }
     };
 
-    if (['hospital_patients', 'blood_donors', 'shelters_log'].includes(activeTab)) {
-      fetchExternalData();
-    }
-  }, [activeTab]);
-
-  useEffect(() => {
-    const fetchAllNewCollections = async () => {
-      setIsLoadingExternal(true);
-      try {
-        const collectionMap: { [key: string]: React.Dispatch<React.SetStateAction<any[]>> } = {
-          'person_searches': setPersonSearches, 'evacuation_routes': setEvacRoutes,
-          'triage_patients': setTriagePatients, 'triage_teams': setTriageTeams,
-          'cascade_events': setCascadeEvents, 'search_sectors': setSearchSectors,
-          'rescue_teams': setRescueTeams, 'supply_inventory': setSupplyInventory,
-          'supply_requests': setSupplyRequests, 'water_points': setWaterPoints,
-          'sanitation_points': setSanitationPoints, 'deceased_persons': setDeceasedPersons,
-          'psychosocial_cases': setPsychosocialCases, 'emergency_comms': setEmergencyComms,
-          'volunteers': setVolunteerRegs, 'donations': setDonations,
-          'interagency_tasks': setInteragencyTasks, 'aerial_operations': setAerialOps,
-          'fuel_energy_points': setFuelEnergyPoints, 'child_protection_cases': setChildCases,
-          'temporary_housing': setTempHousing, 'school_damage_reports': setSchoolDamages,
-          'weather_alerts': setWeatherAlertsList, 'public_alerts': setPublicAlertsList,
-          'family_requests': setFamilyRequestsList, 'legal_aid_requests': setLegalAidList,
-          'press_releases': setPressReleasesList, 'training_sessions': setTrainingSessionsList,
-          'after_action_reviews': setAarList, 'volunteer_shifts': setVolunteerShiftsList,
-          'resource_locations': setResourceLocations,
-        };
-        const fetchPromises = Object.entries(collectionMap).map(async ([colName, setter]) => {
-          try {
-            const snap = await getDocs(collection(db, colName));
-            const list: any[] = [];
-            snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
-            setter(list);
-          } catch { }
-        });
-        await Promise.all(fetchPromises);
-      } catch (e) {
-        console.error('Error fetching report collections:', e);
-      } finally {
-        setIsLoadingExternal(false);
-      }
-    };
-    fetchAllNewCollections();
-  }, []);
+    fetchTabData();
+  }, [activeTab, loadedTabs]);
 
   // Filtered incidents
   const filteredIncidents = incidents.filter(inc => {
