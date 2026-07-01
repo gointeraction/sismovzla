@@ -6,7 +6,7 @@
 [![Plataforma Oficial](https://img.shields.io/badge/Plataforma-ayudasismovzla.web.app-FF9800?style=for-the-badge&logo=firebase&logoColor=black)](https://ayudasismovzla.web.app)
 [![PWA Offline-First](https://img.shields.io/badge/Arquitectura-PWA_Resiliente-4CAF50?style=for-the-badge&logo=pwa&logoColor=white)](#-arquitectura-resiliente-offline-first)
 [![Stack](https://img.shields.io/badge/Frontend-React_19_%2B_TypeScript-3178C6?style=for-the-badge&logo=react&logoColor=white)](https://react.dev)
-[![Versión](https://img.shields.io/badge/Versión-3.0-D32F2F?style=for-the-badge)](https://ayudasismovzla.web.app)
+[![Versión](https://img.shields.io/badge/Versión-3.1-D32F2F?style=for-the-badge)](https://ayudasismovzla.web.app)
 
 <br />
 </div>
@@ -19,13 +19,13 @@
 
 **SismoVZLA** es una Aplicación Web Progresiva (**PWA**) de código abierto diseñada para operar como una red de contingencia humanitaria en Venezuela tras eventos sísmicos de gran escala.
 
-La plataforma cubre **35 módulos tácticos** organizados en **4 capas**: **Coordinación**, **Apoyo Táctico**, **Logística** y **Apoyo Ciudadano**, con **38 colecciones Firestore** y un sistema de **12 roles tácticos** especializados.
+La plataforma cubre **35 módulos tácticos** organizados en **4 capas**: **Coordinación**, **Apoyo Táctico**, **Logística** y **Apoyo Ciudadano**, con **38 colecciones Firestore**, **43 reportes PDF** y un sistema de **12 roles tácticos** especializados.
 
 Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones colapsan. SismoVZLA resuelve este problema mediante una arquitectura **Offline-First** que permite a los ciudadanos guardar reportes, consultar manuales de auxilio y buscar familiares **completamente sin internet**.
 
 ---
 
-## 🗂️ Mapa de Módulos Tácticos (v3.0)
+## 🗂️ Mapa de Módulos Tácticos (v3.1)
 
 ### Capa 1 — Coordinación
 
@@ -34,11 +34,11 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
 | 00 | 🏢 **Centro de Operaciones (EOC)** | Dashboard ejecutivo con KPIs en tiempo real: incidentes, triaje, rutas evacuación, refugios, búsqueda y rescate | `incidents`, `triage_patients`, `evacuation_routes`, `shelters`, `search_sectors`, `cascade_events` |
 | 01 | 🗺️ **Mapa de Incidentes** | Mapa táctico georeferenciado con filtros por estado, gravedad y tipo | `incidents` |
 | 02 | 📝 **Formulario de Reporte** | Registro ciudadano con GPS automático, notas de voz y fotos comprimidas | `incidents` |
-| 03 | 🔎 **Búsqueda de Personas** | Directorio de ciudadanos buscados, localizados o hospitalizados | `people_search` |
+| 03 | 🔎 **Búsqueda de Personas** | Directorio de ciudadanos buscados, localizados o hospitalizados | `person_searches` |
 | 04 | 🏠 **Directorio de Refugios** | Semáforo de capacidad en tiempo real (🟢🟡🔴) | `shelters`, `shelter_occupants` |
 | 05 | 🗺️ **Mapa Táctico de Refugios** | Marcadores SVG por tipo con popups y Google Maps | `shelters` |
 | 06 | 🆘 **Auxilios y Directorio de Emergencia** | Manuales de supervivencia y contactos de emergencia | Estático |
-| 09 | 📊 **Consola de Reportes** | 13 reportes PDF oficiales incluyendo suite ONU/OCHA | Multi-colección |
+| 09 | 📊 **Consola de Reportes** | 43 reportes PDF oficiales incluyendo suite ONU/OCHA | Multi-colección |
 
 ### Capa 2 — Apoyo Táctico
 
@@ -60,16 +60,16 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
 |---|--------|-------------|---------------------|
 | 14 | 📦 **Logística** | Inventario de suministros y solicitudes entre refugios | `supply_inventory`, `supply_requests` |
 | 15 | 💧 **Agua y Saneamiento** | Puntos de agua potable y letrinas con cloración y capacidad | `water_points`, `sanitation_points` |
-| 19 | 🙋 **Voluntarios y Donaciones** | Registro de voluntarios y donaciones con tracking | `volunteers_registry`, `donations` |
+| 19 | 🙋 **Voluntarios y Donaciones** | Registro de voluntarios y donaciones con tracking | `volunteers`, `donations` |
 | 20 | 🤝 **Coordinación Interagencial** | Tareas inter-agencia con asignación y seguimiento | `interagency_tasks` |
 | 21 | 🚁 **Operaciones Aéreas** | Drones, helicópteros, zonas prohibidas, misiones | `aerial_operations` |
 | 22 | ⛽ **Combustible y Energía** | Gasolineras, generadores, estado de combustible | `fuel_energy_points` |
 
-### Capa 4 — Apoyo Ciudadano (NUEVOS)
+### Capa 4 — Apoyo Ciudadano
 
 | # | Módulo | Descripción | Colección Firestore |
 |---|--------|-------------|---------------------|
-| 23 | 🌦️ **Alertas Meteorológicas** | Alertas manuales con severidad (Verde/Amarillo/Naranja/Rojo), radio de afectación, mapa Leaflet | `weather_alerts` |
+| 23 | 🌦️ **Alertas Meteorológicas** | Alertas manuales con severidad (Verde/Amarillo/Naranja/Rojo), radio de afectación en km, mapa Leaflet | `weather_alerts` |
 | 24 | 🚨 **Alertas Públicas** | Centro de alertas con prioridad (Crítica/Alta/Media/Baja), estados afectados, contador de vistas | `public_alerts` |
 | 25 | 👨‍👩‍👧 **Reunificación Familiar** | Búsqueda bidireccional de familiares desaparecidos con fuzzy match por nombre | `family_requests` |
 | 26 | 👶 **Protección Infantil** | Registro de menores no acompañados, asignación a refugios, flujo de estados | `child_protection_cases` |
@@ -84,7 +84,85 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
 
 ---
 
-## ✨ Características de la Plataforma v3.0
+## 📄 Sistema de Reportes PDF (43 Reportes)
+
+### Consola de Reportes — Módulo 09
+
+La Consola de Reportes es el centro maestro de generación de documentos oficiales. Todos los reportes se generan en formato **A4** con template institucional, firmas y disclaimer legal.
+
+### Suite de Reportes Principales (6 pestañas)
+
+| # | Reporte | Descripción | Datos Fuente |
+|---|---------|-------------|--------------|
+| 1 | **Reporte de Daños** | Listado completo de incidentes con filtros por estado y gravedad | `incidents` |
+| 2 | **Dictámenes COVENIN 1756** | Evaluaciones estructurales individuales con clasificación Verde/Amarillo/Rojo | `incidents.structuralEvaluation` |
+| 3 | **Pacientes Asistenciales** | Censo clínico de heridos con OCR y doble chequeo hospitalario | `hospital_patients` |
+| 4 | **Banco de Sangre** | Manifiesto de donantes aptos OMS por grupo sanguíneo | `blood_donors` |
+| 5 | **Refugios y Acopio** | Balance de capacidad con semáforo y requerimientos urgentes | `shelters`, `shelter_occupants` |
+| 6 | **Reportes Globales** | Suite de 6 reportes consolidados para organismos internacionales | Multi-colección |
+
+### Suite de Reportes Globales (6 reportes ONU/OCHA)
+
+| # | Reporte | Descripción | Norma |
+|---|---------|-------------|-------|
+| G1 | **Densidad Regional por Entidades** | Cuadro estadístico comparativo por Estado con % de colapsos e índice COVENIN | COVENIN 1756 |
+| G2 | **Coordenadas GPS Rescate (SAR)** | Manifiesto militar satelital de objetivos críticos (Gravedad 4-5) para pilotos y brigadas K9 | SAR/INSARAG |
+| G3 | **Catálogo Nacional Etiquetado** | Registro oficial dividido en perímetros Rojo/Amarillo/Verde | COVENIN 1756 |
+| G4 | **Matriz de Patologías Sísmicas** | Estudio sismológico de frecuencia de fallas constructivas A-F | FUNVISIS/CIV |
+| G5 | **Alerta Redes Vitales & Riesgos** | Hoja de despacho urgente para CORPOELEC, PDVSA Gas, Hidrocapital, Vialidad | Protección Civil |
+| G6 | **Boletín Internacional SITREP** | Informe de Situación Humanitaria consolidado para organismos multilaterales | ONU/OCHA/FEMA |
+
+### Reportes por Refugios (4 reportes adicionales)
+
+| # | Reporte | Descripción |
+|---|---------|-------------|
+| R1 | **Ocupantes por Refugio** | Censo detallado por refugio con fechas de ingreso/egreso |
+| R2 | **Consolidado de Refugios** | Directorio unificado de todas las personas albergadas |
+| R3 | **Ingresos Cronológicos** | Desglose por fecha de ingreso a la red de refugios |
+| R4 | **Albergados Activos** | Personas que permanecen actualmente (sin fecha de salida) |
+
+### Reportes por Módulo (28 reportes nuevos)
+
+| # | Reporte | Módulo | Colección Firestore | Descripción |
+|---|---------|--------|---------------------|-------------|
+| M1 | **Resumen Ejecutivo EOC** | Centro Operaciones | incidents + 5 colecciones | KPIs consolidados: total daños, críticos, evacuados, albergados, heridos, fallecidos. Vista de mando única. |
+| M2 | **Manifiesto de Búsqueda de Personas** | Búsqueda | `person_searches` | Listado de personas buscadas con nombre, cédula, último lugar conocido, estado. Para brigadas. |
+| M3 | **Mapa de Rutas de Evacuación** | Vías | `evacuation_routes` | Rutas con puntos de reunión, capacidad, estado (abierta/cerrada), alternativas. Para población civil. |
+| M4 | **Manifiesto de Triaje por Zona** | Triaje | `triage_patients`, `triage_teams` | Pacientes por categoría (rojo/amarillo/verde/negro), ubicación, equipo asignado. |
+| M5 | **Reporte de Rendimiento de Triaje** | Triaje | `triage_patients` | Pacientes atendidos por equipo, tiempo promedio, distribución por código. |
+| M6 | **Línea de Tiempo de Eventos en Cascada** | Cascada | `cascade_events` | Cronología de réplicas, daños secundarios, alertas de tsunami, deslizamientos. |
+| M7 | **Manifiesto de Sectores de Búsqueda** | SAR | `search_sectors` | Sectores asignados, equipos, estatus, coordenadas GPS, hallazgos. |
+| M8 | **Reporte de Rendimiento SAR** | SAR | `rescue_teams` | Víctimas localizadas/rescatadas por equipo, horas invertidas. |
+| M9 | **Inventario de Suministros** | Logística | `supply_inventory` | Stock actual por categoría, ubicación, nivel mínimo, fecha expiración. |
+| M10 | **Manifiesto de Solicitudes** | Logística | `supply_requests` | Solicitudes pendientes, aprobadas, entregadas entre almacenes. |
+| M11 | **Reporte de Calidad de Agua** | WASH | `water_points` | Puntos de agua analizados, estado (potable/no potable), cloración, población servida. |
+| M12 | **Manifiesto de Saneamiento** | WASH | `sanitation_points` | Puntos sanitarios operativos, capacidad, estado, tipo. |
+| M13 | **Censo de Fallecidos** | Fallecidos | `deceased_persons` | Listado con identificación, ubicación hallazgo, fecha, estado de identificación, morgue. |
+| M14 | **Reporte para Fiscalía** | Fallecidos | `deceased_persons` | Documento formal para autoridades judiciales con cadena de custodia. |
+| M15 | **Reporte de Casos Psicosocial** | Psicosocial | `psychosocial_cases` | Casos atendidos, categoría (TEAP, duelo, ansiedad), intervenciones, estado. |
+| M16 | **Estadísticas de Atención Psicosocial** | Psicosocial | `psychosocial_cases` | Resumen por zona, edad, género, tipo de crisis. |
+| M17 | **Estado de la Red de Comunicaciones** | Comunicaciones | `emergency_comms` | Canales activos, satélites, repetidoras, estado de cobertura por zona. |
+| M18 | **Manifiesto de Voluntarios** | Voluntarios | `volunteers` | Listado completo con cédula, nombre, habilidades, estado, fecha de inscripción. |
+| M19 | **Manifiesto de Donaciones** | Donaciones | `donations` | Donaciones por tipo (persona/empresa/ONG/gobierno), monto, estado de distribución. |
+| M20 | **Cuadro de Tareas Interagenciales** | Interagencial | `interagency_tasks` | Tareas por agencia, clúster (Salud, WASH, Alojamiento, etc.), estado, prioridad. |
+| M21 | **Manifiesto de Operaciones Aéreas** | Aéreo | `aerial_operations` | Vuelos programados/ejecutados, tipo aeronave, misión, estado, batería/combustible. |
+| M22 | **Inventario de Combustible y Energía** | Combustible | `fuel_energy_points` | Puntos de distribución, stock, tipo de combustible, estado, acceso prioritario. |
+| M23 | **Censo de Menores Vulnerables** | Protección Infantil | `child_protection_cases` | Menores separados/no acompañados, estado del caso, ubicación, necesidades médicas. |
+| M24 | **Censo de Viviendas Temporales** | Vivienda | `temporary_housing` | Unidades disponibles, ocupadas, capacidad, servicios, contacto. |
+| M25 | **Censo de Daños Educativos** | Educación | `school_damage_reports` | Escuelas dañadas, nivel de daño, estudiantes afectados, estado de rehabilitación. |
+| M26 | **Boletín Meteorológico** | Alertas Meteo | `weather_alerts` | Alertas activas, zonas afectadas, pronóstico, recomendaciones. |
+| M27 | **Boletín de Alertas Públicas** | Alertas Públicas | `public_alerts` | Alertas emitidas, alcance, nivel de prioridad, estado de difusión. |
+| M28 | **Manifiesto de Búsquedas Familiares** | Reunificación | `family_requests` | Solicitudes activas, personas encontradas/no encontradas, coincidencias. |
+| M29 | **Reporte de Asistencia Legal** | Legal | `legal_aid_requests` | Casos atendidos, tipo (propiedad, documentación, laboral), estado, institución. |
+| M30 | **Boletín de Prensa** | Prensa | `press_releases` | Comunicados emitidos, fecha, contenido resumido, medio de difusión. |
+| M31 | **Manifiesto de Capacitación** | Training | `training_sessions` | Sesiones realizadas, participantes, temas, certificados emitidos. |
+| M32 | **Informe de Lecciones Aprendidas** | AAR | `after_action_reviews` | AAR completados, hallazgos, recomendaciones, responsables. |
+| M33 | **Manifiesto de Turnos de Voluntarios** | Turnos | `volunteer_shifts` | Turnos programados, voluntarios asignados, horas trabajadas, asistencia. |
+| M34 | **Inventario de Recursos por Ubicación** | Mapa Recursos | `resource_locations` | Recursos censados, tipo, capacidad, estado, coordenadas, horario. |
+
+---
+
+## ✨ Características de la Plataforma v3.1
 
 ### 🏗️ Arquitectura Técnica
 
@@ -95,8 +173,9 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
 | **Error Boundary** | Captura de errores por módulo con botón de reintento |
 | **Chunk Optimization** | Main: 222 kB \| lucide: 50 kB \| jspdf: 422 kB \| firebase-core: 0.7 kB \| firebase-auth: 111 kB \| firebase-firestore: 661 kB |
 | **Geolocalización Centralizada** | Hook `useGeolocation` compartido en 12+ módulos |
-| **Exportación PDF** | `jsPDF` + `jspdf-autotable` en todos los módulos con theme rojo institucional |
+| **Exportación PDF** | 43 reportes PDF con template institucional A4, firmas y disclaimer legal |
 | **Exportación CSV** | Módulos de logística y recursos con exportación CSV nativa |
+| **Consola de Reportes** | Módulo 09 con interfaz de pestañas colapsables y 34 vistas de datos |
 
 ### 🗺️ Mapa Táctico Georeferenciado
 - Marcadores de colores por gravedad (**Gravedad 1 a 5**)
@@ -125,20 +204,6 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
 - Solicitudes de ayuda con 5 categorías
 - Mapa táctico con marcadores SVG por tipo
 - Plantillas CSV para carga masiva
-
-### 🆕 Nuevos Módulos v3.0
-- **Alertas Meteorológicas**: Alertas con severidad 4 niveles, radio de afectación en km, toggle activar/desactivar
-- **Alertas Públicas**: Prioridad crítica con parpadeo visual, estados afectados, contador de visualizaciones
-- **Reunificación Familiar**: Búsqueda fuzzy por nombre, flujo Buscando → En Contacto → Reunificado
-- **Protección Infantil**: Casos urgentes con borde rojo, flujo No Acompañado → En Protección → Con Familia
-- **Asistencia Legal**: Directorio de instituciones, seguimiento de trámites documentales
-- **Centro de Prensa**: Publicar/ocultar comunicados, RSS-like feed para ciudadanos
-- **Capacitación**: Calendario de sesiones, inscripción de voluntarios, seguimiento de asistencia
-- **Lecciones Aprendidas**: Formulario estructurado: qué funcionó, qué mejorar, recomendaciones
-- **Turnos de Voluntarios**: Calendario con turno Mañana/Tarde/Noche/24h, registro de asistencia
-- **Mapa de Recursos**: Mapa Leaflet con marcadores coloreados por tipo, vista lista alternativa
-- **Educación y Escuelas**: Estadísticas de daño escolar, evaluación estructural, estudiantes afectados
-- **Vivienda Temporal**: Semáforo de ocupación, mapa de ubicaciones, servicios disponibles
 
 ---
 
@@ -186,16 +251,17 @@ Cuando ocurren terremotos severos, las infraestructuras de telecomunicaciones co
 
 ## 📊 Métricas de Rendimiento
 
-| Métrica | v1.0 | v2.0 | v3.0 | Mejora |
-|---------|------|------|------|--------|
-| Main bundle | 1,699 kB | 213 kB | 222 kB | **-87%** |
-| Chunks lucide | 27 × 0.3kB | 1 × 45kB | 1 × 50kB | Consolidados |
-| Firebase | En main | 1 chunk 772kB | 3 chunks (0.7+111+661kB) | Mejor cache |
-| Build time | ~7s | ~5s | ~6s | +20% (12 módulos) |
-| Módulos | 8 | 23 | 35 | +27 |
-| Colecciones | 14 | 26 | 38 | +24 |
-| Roles | 4 | 11 | 12 | +8 |
-| Capas | 2 | 3 | 4 | +2 |
+| Métrica | v1.0 | v2.0 | v3.0 | v3.1 | Mejora Total |
+|---------|------|------|------|------|--------------|
+| Main bundle | 1,699 kB | 213 kB | 222 kB | 222 kB | **-87%** |
+| Chunks lucide | 27 × 0.3kB | 1 × 45kB | 1 × 50kB | 1 × 50kB | Consolidados |
+| Firebase | En main | 1 chunk 772kB | 3 chunks | 3 chunks | Mejor cache |
+| Build time | ~7s | ~5s | ~6s | ~8s | +12 módulos |
+| Módulos | 8 | 23 | 35 | 35 | +27 |
+| Colecciones | 14 | 26 | 38 | 38 | +24 |
+| Reportes PDF | 0 | 6 | 15 | **43** | +43 |
+| Roles | 4 | 11 | 12 | 12 | +8 |
+| Capas | 2 | 3 | 4 | 4 | +2 |
 
 ---
 
@@ -236,20 +302,53 @@ npx firebase deploy --only firestore:rules --project ayudasismovzla
 ```
 sismovzla/
 ├── src/
-│   ├── components/           # 35+ módulos React
-│   │   ├── *.Module.tsx      # Módulos tácticos
-│   │   ├── ModuleSkeleton.tsx # Esqueletos contextuales
-│   │   └── ErrorBoundary.tsx  # Captura de errores
+│   ├── components/
+│   │   ├── ReportsConsoleModule.tsx  # Consola maestra: 43 reportes PDF (3,176 líneas)
+│   │   ├── EOCDashboard.tsx          # Centro de Operaciones
+│   │   ├── MapViewer.tsx             # Mapa de incidentes
+│   │   ├── ReportForm.tsx            # Formulario ciudadano
+│   │   ├── PeopleSearch.tsx          # Búsqueda de personas
+│   │   ├── SheltersModule.tsx        # Directorio de refugios
+│   │   ├── ShelterTacticalMap.tsx    # Mapa táctico de refugios
+│   │   ├── BloodDonorsModule.tsx     # Banco de sangre
+│   │   ├── HospitalPatientsModule.tsx # Registro hospitalario
+│   │   ├── EvacuationRoutesPanel.tsx # Vías y rutas
+│   │   ├── TriageModule.tsx          # Triaje de víctimas
+│   │   ├── CascadeTimeline.tsx       # Eventos en cascada
+│   │   ├── SearchAndRescueModule.tsx # Búsqueda y rescate
+│   │   ├── SupplyLogisticsModule.tsx # Logística
+│   │   ├── WaterSanitationModule.tsx # Agua y saneamiento
+│   │   ├── DeceasedManagementModule.tsx # Gestión de fallecidos
+│   │   ├── PsychosocialModule.tsx    # Apoyo psicosocial
+│   │   ├── EmergencyCommsModule.tsx  # Comunicaciones
+│   │   ├── VolunteerDonationsModule.tsx # Voluntarios y donaciones
+│   │   ├── InteragencyModule.tsx     # Coordinación interagencial
+│   │   ├── AerialOpsModule.tsx       # Operaciones aéreas
+│   │   ├── FuelEnergyModule.tsx      # Combustible y energía
+│   │   ├── WeatherAlertsModule.tsx   # Alertas meteorológicas
+│   │   ├── PublicAlertsModule.tsx    # Alertas públicas
+│   │   ├── FamilyReunificationModule.tsx # Reunificación familiar
+│   │   ├── ChildProtectionModule.tsx # Protección infantil
+│   │   ├── LegalAidModule.tsx        # Asistencia legal
+│   │   ├── PressCenterModule.tsx     # Centro de prensa
+│   │   ├── TrainingModule.tsx        # Capacitación
+│   │   ├── LessonsLearnedModule.tsx  # Lecciones aprendidas
+│   │   ├── VolunteerShiftsModule.tsx # Turnos de voluntarios
+│   │   ├── ResourceMapModule.tsx     # Mapa de recursos
+│   │   ├── EducationModule.tsx       # Educación y escuelas
+│   │   ├── TemporaryHousingModule.tsx # Vivienda temporal
+│   │   ├── ModuleSkeleton.tsx        # 36 esqueletos contextuales
+│   │   └── ErrorBoundary.tsx         # Captura de errores
 │   ├── hooks/
-│   │   └── useGeolocation.ts # Hook centralizado
-│   ├── types.ts              # 38 interfaces TypeScript
-│   ├── firebase.ts           # Configuración Firebase
-│   └── App.tsx               # Orquestador principal
+│   │   └── useGeolocation.ts         # Hook centralizado
+│   ├── types.ts                      # 38 interfaces TypeScript
+│   ├── firebase.ts                   # Configuración Firebase
+│   └── App.tsx                       # Orquestador principal (35 tabs)
 ├── server/
-│   └── firebaseAdmin.ts      # Firebase Admin v14
-├── firestore.rules           # 38 reglas de colección
-├── vite.config.ts            # Configuración Vite + chunks
-└── package.json              # Dependencias
+│   └── firebaseAdmin.ts              # Firebase Admin v14
+├── firestore.rules                   # 38 reglas de colección
+├── vite.config.ts                    # Configuración Vite + chunks
+└── package.json                      # Dependencias
 ```
 
 ---
