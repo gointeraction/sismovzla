@@ -51,7 +51,15 @@ service cloud.firestore {
                     && request.resource.data.capacityStatus in ['Verde', 'Amarillo', 'Rojo']
                     && (!('maxCapacity' in request.resource.data) || (request.resource.data.maxCapacity is number && request.resource.data.maxCapacity >= 0 && request.resource.data.maxCapacity <= 100000))
                     && (!('occupantCount' in request.resource.data) || (request.resource.data.occupantCount is number && request.resource.data.occupantCount >= 0));
-      allow update: if request.auth != null;
+      allow update: if request.auth != null
+                    || (
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['occupantCount', 'updatedAt'])
+                      && request.resource.data.occupantCount is number
+                      && request.resource.data.occupantCount >= 0
+                      && request.resource.data.occupantCount <= 100000
+                      && ('updatedAt' in request.resource.data)
+                      && request.resource.data.updatedAt is number
+                    );
       allow delete: if request.auth != null;
     }
 
@@ -60,11 +68,29 @@ service cloud.firestore {
       allow create: if request.resource.data.keys().hasAll(['shelterId', 'fullName', 'ci', 'physicalCondition', 'medicalNeeds', 'registeredBy', 'createdAt', 'status'])
                     && isShortStr(request.resource.data.fullName, 200)
                     && isShortStr(request.resource.data.ci, 20)
-                    && request.resource.data.status in ['Albergado', 'Salida']
+                    && request.resource.data.status == 'Albergado'
                     && (!('age' in request.resource.data) || (request.resource.data.age is number && request.resource.data.age >= 0 && request.resource.data.age <= 150))
                     && (!('contactPhone' in request.resource.data) || isShortStr(request.resource.data.contactPhone, 20))
-                    && (!('exitDate' in request.resource.data) || request.resource.data.exitDate is number);
-      allow update: if request.auth != null;
+                    && (!('origen' in request.resource.data) || isShortStr(request.resource.data.origen, 200));
+      allow update: if request.auth != null
+                    || (
+                      resource.data.status == 'Albergado'
+                      && request.resource.data.status == 'Salida'
+                      && ('exitDate' in request.resource.data)
+                      && request.resource.data.exitDate is number
+                      && request.resource.data.exitDate >= resource.data.createdAt
+                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'exitDate'])
+                    )
+                    || (
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                        'fullName', 'ci', 'age', 'contactPhone', 'physicalCondition', 'medicalNeeds', 'origen'
+                      ])
+                      && isShortStr(request.resource.data.fullName, 100)
+                      && isShortStr(request.resource.data.ci, 20)
+                      && (!('age' in request.resource.data) || (request.resource.data.age is number && request.resource.data.age >= 0 && request.resource.data.age <= 150))
+                      && (!('contactPhone' in request.resource.data) || isShortStr(request.resource.data.contactPhone, 20))
+                      && (!('origen' in request.resource.data) || isShortStr(request.resource.data.origen, 200))
+                    );
       allow delete: if request.auth != null;
     }
 

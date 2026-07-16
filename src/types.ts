@@ -179,6 +179,7 @@ export interface ShelterOccupant {
   contactPhone?: string;
   physicalCondition: string;
   medicalNeeds: string;
+  origen?: string;
   notes?: string;
   registeredBy: string;
   createdAt: number;

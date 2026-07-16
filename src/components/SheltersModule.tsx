@@ -63,8 +63,10 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
   const [occContact, setOccContact] = useState('');
   const [occPhysical, setOccPhysical] = useState('');
   const [occMedical, setOccMedical] = useState('');
+  const [occOrigen, setOccOrigen] = useState('');
   const [occEntryDate, setOccEntryDate] = useState('');
   const [isOccSubmitting, setIsOccSubmitting] = useState(false);
+  const [editingOccupant, setEditingOccupant] = useState<ShelterOccupant | null>(null);
 
   // Requests State
   const [selectedShelterForRequests, setSelectedShelterForRequests] = useState<Shelter | null>(null);
@@ -75,6 +77,7 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
 
   // Global person search
   const [personSearchQuery, setPersonSearchQuery] = useState('');
+  const [searchShelterFilter, setSearchShelterFilter] = useState('');
   const [allOccupants, setAllOccupants] = useState<ShelterOccupant[]>([]);
   const [isSearchActive, setIsSearchActive] = useState(false);
 
@@ -275,6 +278,7 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
       ...(occContact.trim() ? { contactPhone: occContact.trim() } : {}),
       physicalCondition: occPhysical.trim() || 'Estable',
       medicalNeeds: occMedical.trim() || 'Ninguna',
+      ...(occOrigen.trim() ? { origen: occOrigen.trim() } : {}),
       registeredBy: userId || 'Ciudadano',
       status: 'Albergado',
       createdAt: occEntryDate ? new Date(occEntryDate).getTime() : Date.now()
@@ -306,12 +310,34 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
       setOccContact('');
       setOccPhysical('');
       setOccMedical('');
+      setOccOrigen('');
       setOccEntryDate('');
     } catch (err) {
       console.warn("Failed to save occupant:", err);
       alert("Error al guardar la persona. Revise su conexión.");
     } finally {
       setIsOccSubmitting(false);
+    }
+  };
+
+  const handleUpdateOccupant = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingOccupant || !editingOccupant.fullName.trim() || !editingOccupant.ci.trim()) return;
+
+    try {
+      await updateDoc(doc(db, 'shelter_occupants', editingOccupant.id), {
+        fullName: editingOccupant.fullName.trim(),
+        ci: editingOccupant.ci.trim().toUpperCase(),
+        ...(editingOccupant.age ? { age: editingOccupant.age } : {}),
+        ...(editingOccupant.contactPhone ? { contactPhone: editingOccupant.contactPhone.trim() } : {}),
+        physicalCondition: editingOccupant.physicalCondition.trim() || 'Estable',
+        medicalNeeds: editingOccupant.medicalNeeds.trim() || 'Ninguna',
+        ...(editingOccupant.origen ? { origen: editingOccupant.origen.trim() } : {}),
+      });
+      setEditingOccupant(null);
+    } catch (err) {
+      console.warn("Failed to update occupant:", err);
+      alert("Error al actualizar la persona.");
     }
   };
 
@@ -444,33 +470,54 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
 
       {/* Global Person Search */}
       <div className="bg-gradient-to-r from-[#121212] to-[#0d0d0d] border border-white/10 rounded-xl p-4 shadow-xl">
-        <div className="flex items-center gap-3">
-          <Search className="w-4 h-4 text-cyan-400 shrink-0" />
-          <input
-            type="text"
-            value={personSearchQuery}
-            onChange={e => {
-              setPersonSearchQuery(e.target.value);
-              setIsSearchActive(e.target.value.trim().length >= 2);
+        <h4 className="font-display font-black text-emerald-400 text-sm uppercase flex items-center gap-2 mb-3">
+          <Search className="w-4 h-4" />
+          BUSCADOR GLOBAL DE PERSONAS
+        </h4>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex items-center gap-3 flex-1 bg-black/40 border border-white/10 rounded-lg px-4 focus-within:border-cyan-500 focus-within:ring-1 focus-within:ring-cyan-500/30 transition-all">
+            <Search className="w-4 h-4 text-cyan-400 shrink-0" />
+            <input
+              type="text"
+              value={personSearchQuery}
+              onChange={e => {
+                setPersonSearchQuery(e.target.value);
+                setIsSearchActive(e.target.value.trim().length >= 2 || searchShelterFilter !== '');
+              }}
+              placeholder="BUSCAR PERSONA POR NOMBRE O CÉDULA..."
+              className="flex-1 bg-transparent py-2.5 text-white text-xs font-mono uppercase placeholder:text-white/30 focus:outline-none"
+            />
+            {personSearchQuery && (
+              <button
+                onClick={() => { setPersonSearchQuery(''); if(!searchShelterFilter) setIsSearchActive(false); }}
+                className="text-white/40 hover:text-white transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          <select
+            value={searchShelterFilter}
+            onChange={(e) => {
+              setSearchShelterFilter(e.target.value);
+              setIsSearchActive(personSearchQuery.trim().length >= 2 || e.target.value !== '');
             }}
-            placeholder="BUSCAR PERSONA POR NOMBRE O CÉDULA EN TODOS LOS REFUGIOS..."
-            className="flex-1 bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white text-xs font-mono uppercase placeholder:text-white/30 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500/30 transition-all"
-          />
-          {personSearchQuery && (
-            <button
-              onClick={() => { setPersonSearchQuery(''); setIsSearchActive(false); }}
-              className="text-white/40 hover:text-white transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
+            className="bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-white text-xs font-mono uppercase focus:border-cyan-500 focus:outline-none sm:w-64"
+          >
+            <option value="">TODOS LOS REFUGIOS</option>
+            {shelters.map(s => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
         </div>
 
         {isSearchActive && (() => {
           const q = personSearchQuery.toUpperCase().trim();
-          const results = allOccupants.filter(o =>
-            o.fullName.toUpperCase().includes(q) || (o.ci && o.ci.toUpperCase().includes(q))
-          ).slice(0, 50);
+          const results = allOccupants.filter(o => {
+            const matchesShelter = searchShelterFilter === '' || o.shelterId === searchShelterFilter;
+            const matchesQuery = q === '' || o.fullName.toUpperCase().includes(q) || (o.ci && o.ci.toUpperCase().includes(q));
+            return matchesShelter && matchesQuery;
+          }).slice(0, 50);
           return (
             <div className="mt-4 space-y-2 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
               <p className="text-[10px] font-mono text-white/40 uppercase mb-2">
@@ -512,6 +559,16 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
                           <div className="text-red-400/80 mt-0.5"><span className="text-red-400">SALIDA:</span> {new Date(o.exitDate).toLocaleString('es-VE')}</div>
                         )}
                       </div>
+                      <button
+                        onClick={() => {
+                          setEditingOccupant(o);
+                          setIsSearchActive(false);
+                          setPersonSearchQuery('');
+                        }}
+                        className="self-start sm:self-center shrink-0 px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white text-[10px] font-bold uppercase rounded border border-white/10 transition-all"
+                      >
+                        EDITAR
+                      </button>
                     </div>
                   );
                 })
@@ -616,6 +673,16 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
                     className="w-full bg-[#121212] border border-white/10 rounded p-2 text-white text-xs focus:border-emerald-500 focus:outline-none"
                   />
                 </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">ORIGEN (OPCIONAL)</label>
+                  <input
+                    type="text"
+                    value={occOrigen}
+                    onChange={e => setOccOrigen(e.target.value)}
+                    placeholder="Ej: Sector Centro, Edificio A..."
+                    className="w-full bg-[#121212] border border-white/10 rounded p-2 text-white text-xs focus:border-emerald-500 focus:outline-none"
+                  />
+                </div>
                 <button
                   type="submit"
                   disabled={isOccSubmitting}
@@ -652,6 +719,11 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
                         <span className="bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/20 w-fit">
                           Médico: {o.medicalNeeds}
                         </span>
+                        {o.origen && (
+                          <span className="bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded border border-cyan-500/20 w-fit">
+                            Origen: {o.origen}
+                          </span>
+                        )}
                       </div>
                       
                       {/* Entry and Exit Dates */}
@@ -664,15 +736,23 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
                     </div>
                     
                     {/* Action Button */}
-                    {(role === 'shelter_coordinator' || role === 'operator' || role === 'admin') && o.status !== 'Salida' && (
+                    <div className="flex flex-col sm:flex-row gap-2 shrink-0 self-start sm:self-center">
                       <button
-                        onClick={() => handleRemoveOccupant(o.id)}
-                        className="self-start sm:self-center shrink-0 px-3 py-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 text-[10px] font-bold uppercase rounded border border-red-500/30 transition-all"
-                        title="Marcar como Salida / Dar de baja"
+                        onClick={() => setEditingOccupant(o)}
+                        className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white text-[10px] font-bold uppercase rounded border border-white/10 transition-all"
                       >
-                        REGISTRAR SALIDA
+                        EDITAR
                       </button>
-                    )}
+                      {(role === 'shelter_coordinator' || role === 'operator' || role === 'admin') && o.status !== 'Salida' && (
+                        <button
+                          onClick={() => handleRemoveOccupant(o.id)}
+                          className="px-3 py-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 text-[10px] font-bold uppercase rounded border border-red-500/30 transition-all"
+                          title="Marcar como Salida / Dar de baja"
+                        >
+                          REGISTRAR SALIDA
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))
               )}
@@ -1073,6 +1153,100 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Edit Occupant Modal */}
+      {editingOccupant && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
+          <div className="bg-[#1a1a1a] border border-white/10 rounded-xl max-w-md w-full p-6 shadow-2xl relative">
+            <button
+              onClick={() => setEditingOccupant(null)}
+              className="absolute top-4 right-4 text-white/50 hover:text-white"
+            >
+              ✕
+            </button>
+            <h3 className="text-lg font-bold text-white uppercase tracking-wider mb-4 border-b border-white/10 pb-2">
+              Editar Datos de Persona
+            </h3>
+            <form onSubmit={handleUpdateOccupant} className="space-y-4">
+              <div>
+                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">NOMBRES Y APELLIDOS</label>
+                <input
+                  type="text"
+                  value={editingOccupant.fullName}
+                  onChange={e => setEditingOccupant({ ...editingOccupant, fullName: e.target.value })}
+                  required
+                  className="w-full bg-[#121212] border border-white/10 rounded p-2 text-white text-xs"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">CÉDULA O ID</label>
+                  <input
+                    type="text"
+                    value={editingOccupant.ci}
+                    onChange={e => setEditingOccupant({ ...editingOccupant, ci: e.target.value })}
+                    required
+                    className="w-full bg-[#121212] border border-white/10 rounded p-2 text-white text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">EDAD</label>
+                  <input
+                    type="number"
+                    value={editingOccupant.age || ''}
+                    onChange={e => setEditingOccupant({ ...editingOccupant, age: e.target.value ? parseInt(e.target.value) : undefined })}
+                    className="w-full bg-[#121212] border border-white/10 rounded p-2 text-white text-xs"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">TELÉFONO (OPCIONAL)</label>
+                <input
+                  type="text"
+                  value={editingOccupant.contactPhone || ''}
+                  onChange={e => setEditingOccupant({ ...editingOccupant, contactPhone: e.target.value })}
+                  className="w-full bg-[#121212] border border-white/10 rounded p-2 text-white text-xs"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">CONDICIONES FÍSICAS</label>
+                <input
+                  type="text"
+                  value={editingOccupant.physicalCondition || ''}
+                  onChange={e => setEditingOccupant({ ...editingOccupant, physicalCondition: e.target.value })}
+                  className="w-full bg-[#121212] border border-white/10 rounded p-2 text-white text-xs"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">NECESIDADES MÉDICAS</label>
+                <input
+                  type="text"
+                  value={editingOccupant.medicalNeeds || ''}
+                  onChange={e => setEditingOccupant({ ...editingOccupant, medicalNeeds: e.target.value })}
+                  className="w-full bg-[#121212] border border-white/10 rounded p-2 text-white text-xs"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1.5">ORIGEN</label>
+                <input
+                  type="text"
+                  value={editingOccupant.origen || ''}
+                  onChange={e => setEditingOccupant({ ...editingOccupant, origen: e.target.value })}
+                  className="w-full bg-[#121212] border border-white/10 rounded p-2 text-white text-xs"
+                />
+              </div>
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-black font-black uppercase text-xs py-3 rounded transition-all"
+                >
+                  Guardar Cambios
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

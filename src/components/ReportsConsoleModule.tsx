@@ -375,6 +375,7 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
           .sig-title { font-weight: bold; text-transform: uppercase; color: #111; font-size: 13px; }
           .footer-note { margin-top: 50px; font-size: 10px; color: #9ca3af; text-align: center; border-t: 1px dashed #d1d5db; padding-top: 15px; }
           @media print {
+            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             body { margin: 15px; }
             .no-print { display: none !important; }
           }
@@ -1085,6 +1086,288 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
     `;
 
     printDocument(`Reporte_Albergados_Activos`, content);
+  };
+
+  // --- REPORT N° 10: ALBERGADOS ACTIVOS POR REFUGIO (SIN SALIDA, AGRUPADOS) ---
+  const exportActiveOccupantsByRefugioPdf = () => {
+    const activeOccupants = occupants.filter(o => o.status !== 'Salida');
+
+    if (activeOccupants.length === 0) {
+      alert('No hay personas albergadas activamente en este momento (todas tienen fecha de salida).');
+      return;
+    }
+
+    const fmtDateShort = (ts: number) => new Date(ts).toLocaleDateString('es-VE', {
+      year: 'numeric', month: '2-digit', day: '2-digit'
+    });
+
+    // Get shelters that have active occupants
+    const shelterIdsWithActive = new Set(activeOccupants.map(o => o.shelterId));
+    const sheltersWithActive = shelters.filter(s => shelterIdsWithActive.has(s.id));
+
+    let shelterSections = '';
+    sheltersWithActive.forEach(s => {
+      const occs = activeOccupants
+        .filter(o => o.shelterId === s.id)
+        .sort((a, b) => b.createdAt - a.createdAt);
+
+      if (occs.length === 0) return;
+
+      let rows = '';
+      occs.forEach((o, i) => {
+        const ingreso = o.createdAt ? fmtDateShort(o.createdAt) : 'N/R';
+        const diasAlbergado = o.createdAt ? Math.floor((Date.now() - o.createdAt) / (1000 * 60 * 60 * 24)) : 0;
+        rows += `
+          <tr>
+            <td style="text-align: center;">${i + 1}</td>
+            <td><strong>${o.fullName}</strong></td>
+            <td style="font-family: monospace;">${o.ci}</td>
+            <td>${o.age || '—'}</td>
+            <td>${o.contactPhone || '—'}</td>
+            <td>${ingreso}</td>
+            <td style="text-align: center; font-weight: bold;">${diasAlbergado}d</td>
+            <td>${o.physicalCondition}</td>
+            <td>${o.medicalNeeds}</td>
+          </tr>
+        `;
+      });
+
+      const capacityInfo = s.maxCapacity
+        ? `${occs.length} / ${s.maxCapacity} (${Math.round((occs.length / s.maxCapacity) * 100)}%)`
+        : `${occs.length} personas`;
+      const capacityBadge = s.capacityStatus === 'Verde'
+        ? '<span class="badge-green">DISPONIBLE</span>'
+        : s.capacityStatus === 'Amarillo'
+        ? '<span class="badge-yellow">ALTO</span>'
+        : '<span class="badge-red">LLENO</span>';
+
+      shelterSections += `
+        <div class="section-title">${s.name} (${s.state}) — ${occs.length} activos ${capacityBadge}</div>
+        <div class="meta-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr; margin-bottom: 10px;">
+          <div class="meta-item"><span class="meta-label">Dirección</span><span class="meta-val" style="font-size: 11px;">${s.address}</span></div>
+          <div class="meta-item"><span class="meta-label">Tipo</span><span class="meta-val">${s.type}</span></div>
+          <div class="meta-item"><span class="meta-label">Ocupación</span><span class="meta-val">${capacityInfo}</span></div>
+          <div class="meta-item"><span class="meta-label">Contacto</span><span class="meta-val">${s.contact || 'Coordinación local'}</span></div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 3%;">#</th>
+              <th style="width: 18%;">Nombre Completo</th>
+              <th style="width: 10%;">Cédula</th>
+              <th style="width: 4%;">Edad</th>
+              <th style="width: 10%;">Teléfono</th>
+              <th style="width: 10%;">Ingreso</th>
+              <th style="width: 6%;">Días</th>
+              <th style="width: 18%;">Condición Física</th>
+              <th style="width: 21%;">Necesidades Médicas</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+      `;
+    });
+
+    const totalActivos = activeOccupants.length;
+    const totalRefugios = sheltersWithActive.length;
+    const conMedicas = activeOccupants.filter(o => o.medicalNeeds && o.medicalNeeds !== 'Ninguna').length;
+
+    const content = `
+      <div class="header">
+        <div>
+          <div class="title">SISMOVZLA — ALBERGADOS ACTIVOS POR REFUGIO</div>
+          <div class="subtitle">Censo vigente de personas actualmente albergadas, desglosado por centro de asistencia a la fecha ${new Date().toLocaleDateString('es-VE')}</div>
+        </div>
+        <div class="stamp" style="border-color: #16a34a; color: #16a34a;">ACTIVOS POR REFUGIO</div>
+      </div>
+
+      <div class="meta-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+        <div class="meta-item"><span class="meta-label">Total Personas Activas</span><span class="meta-val" style="color: #16a34a; font-size: 18px;">${totalActivos}</span></div>
+        <div class="meta-item"><span class="meta-label">Refugios Operativos</span><span class="meta-val">${totalRefugios} centros</span></div>
+        <div class="meta-item"><span class="meta-label">Promedio por Centro</span><span class="meta-val">${totalRefugios > 0 ? Math.round(totalActivos / totalRefugios) : 0} personas</span></div>
+        <div class="meta-item"><span class="meta-label">Con Necesidades Médicas</span><span class="meta-val" style="color: #dc2626;">${conMedicas} personas</span></div>
+      </div>
+
+      ${shelterSections}
+
+      <div class="signatures">
+        <div class="sig-box">
+          <div class="sig-title">Coordinador de Albergues</div>
+          <div>Red de Refugios SISMOVZLA</div>
+          <div style="margin-top: 25px; border-top: 1px dotted #ccc; font-size: 10px;">Firma y Sello</div>
+        </div>
+        <div class="sig-box">
+          <div class="sig-title">Responsable de Censo Civil</div>
+          <div>Protección Civil / Defensa Civil</div>
+          <div style="margin-top: 25px; border-top: 1px dotted #ccc; font-size: 10px;">Firma y Sello</div>
+        </div>
+      </div>
+    `;
+
+    printDocument(`Albergados_Activos_Por_Refugio_${new Date().toISOString().slice(0,10)}`, content);
+  };
+
+  // --- REPORT N° 11: DASHBOARD GRÁFICO ESTADÍSTICO DE ALBERGUES ---
+  const exportGraphicalDashboardPdf = () => {
+    const activeOccupants = occupants.filter(o => o.status !== 'Salida');
+    
+    // 1. KPIs
+    const totalRefugios = shelters.length;
+    let capacidadTotal = 0;
+    let conCapacidadFija = 0;
+    shelters.forEach(s => {
+      if (s.maxCapacity) {
+        capacidadTotal += s.maxCapacity;
+        conCapacidadFija++;
+      }
+    });
+    
+    const ocupacionGlobal = conCapacidadFija > 0 && capacidadTotal > 0 
+      ? Math.round((activeOccupants.length / capacidadTotal) * 100) 
+      : 0;
+
+    // 2. Semáforo de Capacidad
+    const estadoVerde = shelters.filter(s => s.capacityStatus === 'Verde').length;
+    const estadoAmarillo = shelters.filter(s => s.capacityStatus === 'Amarillo').length;
+    const estadoRojo = shelters.filter(s => s.capacityStatus === 'Rojo').length;
+
+    // 3. Ocupación por Refugio (Barras Horizontales)
+    let barrasRefugiosHtml = '';
+    shelters.sort((a, b) => {
+      const occA = activeOccupants.filter(o => o.shelterId === a.id).length;
+      const occB = activeOccupants.filter(o => o.shelterId === b.id).length;
+      return occB - occA; // Descending
+    }).forEach(s => {
+      const occ = activeOccupants.filter(o => o.shelterId === s.id).length;
+      const pct = s.maxCapacity ? Math.min(100, Math.round((occ / s.maxCapacity) * 100)) : (occ > 0 ? 50 : 0); // Faux % if no max capacity
+      const color = s.capacityStatus === 'Verde' ? '#16a34a' : s.capacityStatus === 'Amarillo' ? '#ca8a04' : '#dc2626';
+      const maxCapStr = s.maxCapacity ? s.maxCapacity : 'N/D';
+      
+      barrasRefugiosHtml += `
+        <div style="margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; margin-bottom: 3px;">
+            <span>${s.name} (${s.state})</span>
+            <span>${occ} / ${maxCapStr} ${s.maxCapacity ? `(${pct}%)` : 'personas'}</span>
+          </div>
+          <div style="width: 100%; background: #e5e7eb; height: 16px; border-radius: 4px; overflow: hidden;">
+            <div style="width: ${s.maxCapacity ? pct : (pct > 0 ? 100 : 0)}%; background: ${color}; height: 100%;"></div>
+          </div>
+        </div>
+      `;
+    });
+
+    // 4. Ingresos Diarios (Barras Verticales SVG)
+    const fmtDateShort = (ts: number) => new Date(ts).toLocaleDateString('es-VE', { month: 'short', day: 'numeric' });
+    const ingresosPorDia: { [key: string]: number } = {};
+    occupants.forEach(o => {
+      if (o.createdAt) {
+        const d = fmtDateShort(o.createdAt);
+        ingresosPorDia[d] = (ingresosPorDia[d] || 0) + 1;
+      }
+    });
+    
+    const diasArray = Object.entries(ingresosPorDia);
+    const maxIngresos = Math.max(...diasArray.map(d => d[1]), 1);
+    
+    let barrasVerticalesHtml = '';
+    diasArray.forEach(([dia, count]) => {
+      const heightPct = Math.round((count / maxIngresos) * 100);
+      barrasVerticalesHtml += `
+        <div style="display: flex; flex-direction: column; justify-content: flex-end; align-items: center; width: 40px; height: 120px;">
+          <span style="font-size: 10px; font-weight: bold; margin-bottom: 4px;">${count}</span>
+          <div style="width: 20px; height: ${heightPct}%; background: #2563eb; border-radius: 2px 2px 0 0;"></div>
+          <span style="font-size: 9px; margin-top: 4px; text-align: center; color: #4b5563; word-break: break-word;">${dia}</span>
+        </div>
+      `;
+    });
+
+    if (barrasVerticalesHtml === '') {
+      barrasVerticalesHtml = '<div style="color: #6b7280; font-size: 12px; text-align: center; width: 100%; margin-top: 40px;">No hay datos de ingreso.</div>';
+    }
+
+    const content = `
+      <div class="header">
+        <div>
+          <div class="title">SISMOVZLA — DASHBOARD ANALÍTICO DE ALBERGUES</div>
+          <div class="subtitle">Reporte Gráfico Estadístico de Ocupación y Tendencias</div>
+        </div>
+        <div class="stamp" style="border-color: #2563eb; color: #2563eb;">REPORTE VISUAL</div>
+      </div>
+
+      <!-- KPIs ROW -->
+      <div style="display: flex; gap: 15px; margin-bottom: 25px;">
+        <div style="flex: 1; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 8px; padding: 15px; text-align: center;">
+          <div style="font-size: 11px; font-weight: bold; color: #6b7280; text-transform: uppercase;">Total Albergados Activos</div>
+          <div style="font-size: 28px; font-weight: 900; color: #111; margin-top: 5px;">${activeOccupants.length}</div>
+        </div>
+        <div style="flex: 1; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 8px; padding: 15px; text-align: center;">
+          <div style="font-size: 11px; font-weight: bold; color: #6b7280; text-transform: uppercase;">Total Refugios Activos</div>
+          <div style="font-size: 28px; font-weight: 900; color: #111; margin-top: 5px;">${totalRefugios}</div>
+        </div>
+        <div style="flex: 1; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 8px; padding: 15px; text-align: center;">
+          <div style="font-size: 11px; font-weight: bold; color: #6b7280; text-transform: uppercase;">Ocupación Global Est.</div>
+          <div style="font-size: 28px; font-weight: 900; color: ${ocupacionGlobal > 80 ? '#dc2626' : '#16a34a'}; margin-top: 5px;">${ocupacionGlobal}%</div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 20px;">
+        
+        <!-- LEFT COLUMN -->
+        <div style="flex: 2;">
+          <div class="section-title" style="margin-top: 0;">OCUPACIÓN POR REFUGIO</div>
+          <div style="border: 1px solid #d1d5db; border-radius: 6px; padding: 15px;">
+            ${barrasRefugiosHtml || '<p style="font-size: 12px; color: #6b7280;">No hay refugios registrados.</p>'}
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div style="flex: 1;">
+          <div class="section-title" style="margin-top: 0;">ESTADO DE CAPACIDAD</div>
+          <div style="border: 1px solid #d1d5db; border-radius: 6px; padding: 15px; text-align: center;">
+            <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;">
+              <!-- Simple donut approximation using conic-gradient (CSS3) -->
+              <div style="width: 120px; height: 120px; border-radius: 50%; background: conic-gradient(
+                #16a34a 0% ${(estadoVerde / totalRefugios) * 100}%, 
+                #ca8a04 ${(estadoVerde / totalRefugios) * 100}% ${((estadoVerde + estadoAmarillo) / totalRefugios) * 100}%, 
+                #dc2626 ${((estadoVerde + estadoAmarillo) / totalRefugios) * 100}% 100%);
+                display: flex; align-items: center; justify-content: center;
+              ">
+                <div style="width: 70px; height: 70px; background: white; border-radius: 50%;"></div>
+              </div>
+            </div>
+            
+            <div style="text-align: left; font-size: 12px; display: flex; flex-direction: column; gap: 8px;">
+              <div style="display: flex; justify-content: space-between;">
+                <span><span style="display: inline-block; width: 10px; height: 10px; background: #16a34a; border-radius: 50%; margin-right: 5px;"></span> Verde (Disponible)</span>
+                <strong>${estadoVerde}</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span><span style="display: inline-block; width: 10px; height: 10px; background: #ca8a04; border-radius: 50%; margin-right: 5px;"></span> Amarillo (Alto)</span>
+                <strong>${estadoAmarillo}</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span><span style="display: inline-block; width: 10px; height: 10px; background: #dc2626; border-radius: 50%; margin-right: 5px;"></span> Rojo (Lleno)</span>
+                <strong>${estadoRojo}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">TENDENCIA DE INGRESOS (POR DÍA)</div>
+      <div style="border: 1px solid #d1d5db; border-radius: 6px; padding: 15px; display: flex; gap: 15px; justify-content: center; min-height: 140px; overflow-x: auto;">
+        ${barrasVerticalesHtml}
+      </div>
+
+      <div class="footer-note" style="margin-top: 30px;">
+        Dashboard generado con datos en tiempo real de la base de datos de SISMOVZLA.<br>
+        Fecha de corte: ${new Date().toLocaleString('es-VE')}
+      </div>
+    `;
+
+    printDocument(`Dashboard_Grafico_Albergues_${new Date().toISOString().slice(0,10)}`, content);
   };
 
   // --- GLOBAL REPORT 1: DENSIDAD REGIONAL DE DAÑOS POR ESTADO ---
@@ -2193,6 +2476,20 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
               >
                 <Printer className="w-4 h-4" />
                 🟢 ALBERGADOS
+              </button>
+              <button
+                onClick={exportActiveOccupantsByRefugioPdf}
+                className="py-2.5 px-4 bg-green-700 hover:bg-green-600 text-white rounded-xl font-mono font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg cursor-pointer transition-all"
+              >
+                <Printer className="w-4 h-4" />
+                🏨 ACTIVOS X REFUGIO
+              </button>
+              <button
+                onClick={exportGraphicalDashboardPdf}
+                className="py-2.5 px-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-mono font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg cursor-pointer transition-all"
+              >
+                <BarChart3 className="w-4 h-4" />
+                📊 DASHBOARD
               </button>
             </div>
           </div>
