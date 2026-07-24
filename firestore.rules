@@ -85,7 +85,7 @@ service cloud.firestore {
                       request.resource.data.diff(resource.data).affectedKeys().hasOnly([
                         'fullName', 'ci', 'age', 'contactPhone', 'physicalCondition', 'medicalNeeds', 'origen'
                       ])
-                      && isShortStr(request.resource.data.fullName, 100)
+                      && isShortStr(request.resource.data.fullName, 200)
                       && isShortStr(request.resource.data.ci, 20)
                       && (!('age' in request.resource.data) || (request.resource.data.age is number && request.resource.data.age >= 0 && request.resource.data.age <= 150))
                       && (!('contactPhone' in request.resource.data) || isShortStr(request.resource.data.contactPhone, 20))

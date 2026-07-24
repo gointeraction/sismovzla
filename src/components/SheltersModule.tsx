@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, addDoc, updateDoc, doc, deleteDoc, increment } from 'firebase/firestore';
+import { collection, query, onSnapshot, addDoc, updateDoc, doc, deleteDoc, increment, deleteField } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Shelter, ShelterOccupant, ShelterRequest } from '../types';
 import { 
@@ -328,11 +328,11 @@ export default function SheltersModule({ isVolunteerVerified, role = 'none', use
       await updateDoc(doc(db, 'shelter_occupants', editingOccupant.id), {
         fullName: editingOccupant.fullName.trim(),
         ci: editingOccupant.ci.trim().toUpperCase(),
-        ...(editingOccupant.age ? { age: editingOccupant.age } : {}),
-        ...(editingOccupant.contactPhone ? { contactPhone: editingOccupant.contactPhone.trim() } : {}),
+        age: editingOccupant.age || deleteField(),
+        contactPhone: editingOccupant.contactPhone?.trim() || deleteField(),
         physicalCondition: editingOccupant.physicalCondition.trim() || 'Estable',
         medicalNeeds: editingOccupant.medicalNeeds.trim() || 'Ninguna',
-        ...(editingOccupant.origen ? { origen: editingOccupant.origen.trim() } : {}),
+        origen: editingOccupant.origen?.trim() || deleteField(),
       });
       setEditingOccupant(null);
     } catch (err) {

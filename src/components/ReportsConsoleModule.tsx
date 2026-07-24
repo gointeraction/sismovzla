@@ -804,6 +804,7 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
             <td><span class="badge-${o.status === 'Salida' ? 'red' : 'green'}">${o.status || 'Albergado'}</span></td>
             <td>${o.physicalCondition}</td>
             <td>${o.medicalNeeds}</td>
+            <td>${o.origen || '—'}</td>
           </tr>
         `;
       });
@@ -820,8 +821,9 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
               <th style="width: 11%;">Ingreso</th>
               <th style="width: 11%;">Salida</th>
               <th style="width: 10%;">Estatus</th>
-              <th style="width: 14%;">Condición Física</th>
-              <th style="width: 15%;">Necesidades Médicas</th>
+              <th style="width: 12%;">Condición Física</th>
+              <th style="width: 12%;">Necesidades Médicas</th>
+              <th style="width: 11%;">Origen</th>
             </tr>
           </thead>
           <tbody>
@@ -889,6 +891,7 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
           <td><span class="badge-${o.status === 'Salida' ? 'red' : 'green'}">${o.status || 'Albergado'}</span></td>
           <td>${o.physicalCondition}</td>
           <td>${o.medicalNeeds}</td>
+          <td>${o.origen || '—'}</td>
         </tr>
       `;
     });
@@ -924,8 +927,9 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
             <th style="width: 10%;">Ingreso</th>
             <th style="width: 10%;">Salida</th>
             <th style="width: 9%;">Estatus</th>
-            <th style="width: 11%;">Condición Física</th>
-            <th style="width: 11%;">Necesidades Médicas</th>
+            <th style="width: 9%;">Condición Física</th>
+            <th style="width: 9%;">Necesidades Médicas</th>
+            <th style="width: 9%;">Origen</th>
           </tr>
         </thead>
         <tbody>
@@ -973,6 +977,7 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
             <td><strong>${shelter?.name || 'Refugio eliminado'}</strong></td>
             <td>${salida}</td>
             <td><span class="badge-${o.status === 'Salida' ? 'red' : 'green'}">${o.status || 'Albergado'}</span></td>
+            <td>${o.origen || '—'}</td>
           </tr>
         `;
       });
@@ -988,7 +993,8 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
               <th style="width: 6%;">Edad</th>
               <th style="width: 25%;">Refugio Asignado</th>
               <th style="width: 12%;">Salida</th>
-              <th style="width: 13%;">Estatus</th>
+              <th style="width: 11%;">Estatus</th>
+              <th style="width: 11%;">Origen</th>
             </tr>
           </thead>
           <tbody>
@@ -1044,6 +1050,7 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
           <td><span class="badge-green">Albergado</span></td>
           <td>${o.physicalCondition}</td>
           <td>${o.medicalNeeds}</td>
+          <td>${o.origen || '—'}</td>
         </tr>
       `;
     });
@@ -1075,8 +1082,9 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
             <th style="width: 18%;">Refugio Actual</th>
             <th style="width: 10%;">Fecha Ingreso</th>
             <th style="width: 10%;">Estatus</th>
-            <th style="width: 14%;">Condición Física</th>
-            <th style="width: 14%;">Necesidades Médicas</th>
+            <th style="width: 11%;">Condición Física</th>
+            <th style="width: 11%;">Necesidades Médicas</th>
+            <th style="width: 10%;">Origen</th>
           </tr>
         </thead>
         <tbody>
@@ -1128,6 +1136,7 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
             <td style="text-align: center; font-weight: bold;">${diasAlbergado}d</td>
             <td>${o.physicalCondition}</td>
             <td>${o.medicalNeeds}</td>
+            <td>${o.origen || '—'}</td>
           </tr>
         `;
       });
@@ -1159,8 +1168,9 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
               <th style="width: 10%;">Teléfono</th>
               <th style="width: 10%;">Ingreso</th>
               <th style="width: 6%;">Días</th>
-              <th style="width: 18%;">Condición Física</th>
-              <th style="width: 21%;">Necesidades Médicas</th>
+              <th style="width: 14%;">Condición Física</th>
+              <th style="width: 15%;">Necesidades Médicas</th>
+              <th style="width: 10%;">Origen</th>
             </tr>
           </thead>
           <tbody>
@@ -1209,24 +1219,115 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
     printDocument(`Albergados_Activos_Por_Refugio_${new Date().toISOString().slice(0,10)}`, content);
   };
 
+  const exportOccupancyByShelterPerDayPdf = () => {
+    if (occupants.length === 0) {
+      alert('No hay registros de personas albergadas.');
+      return;
+    }
+
+    const fmtDateShort = (ts: number) => new Date(ts).toLocaleDateString('es-VE', {
+      year: 'numeric', month: '2-digit', day: '2-digit'
+    });
+
+    const minTs = occupants.reduce((min, o) => (o.createdAt && o.createdAt < min ? o.createdAt : min), Date.now());
+    const days: number[] = [];
+    for (let d = new Date(minTs).setHours(0,0,0,0); d <= new Date().setHours(23,59,59,999); d += 86400000) {
+      days.push(d);
+    }
+
+    let shelterSections = '';
+    shelters.forEach(s => {
+      const shelterOccupants = occupants.filter(o => o.shelterId === s.id);
+      if (shelterOccupants.length === 0) return;
+
+      let rows = '';
+      days.forEach(dayTs => {
+        const dayStart = new Date(dayTs).setHours(0,0,0,0);
+        const dayEnd = new Date(dayTs).setHours(23,59,59,999);
+        
+        const activeOnDay = shelterOccupants.filter(o => {
+          const entered = o.createdAt && o.createdAt <= dayEnd;
+          const isSalida = o.status === 'Salida';
+          const notExitedYetProper = !isSalida || (isSalida && o.exitDate && o.exitDate > dayEnd);
+          return entered && notExitedYetProper;
+        });
+
+        const entriesOnDay = shelterOccupants.filter(o => o.createdAt && o.createdAt >= dayStart && o.createdAt <= dayEnd).length;
+        const exitsOnDay = shelterOccupants.filter(o => o.status === 'Salida' && o.exitDate && o.exitDate >= dayStart && o.exitDate <= dayEnd).length;
+
+        if (activeOnDay.length > 0 || entriesOnDay > 0 || exitsOnDay > 0) {
+          rows += `
+            <tr>
+              <td style="text-align: center;">${fmtDateShort(dayTs)}</td>
+              <td style="text-align: center; color: #16a34a;">+${entriesOnDay}</td>
+              <td style="text-align: center; color: #dc2626;">-${exitsOnDay}</td>
+              <td style="text-align: center; font-weight: bold;">${activeOnDay.length}</td>
+            </tr>
+          `;
+        }
+      });
+
+      if (rows) {
+        shelterSections += `
+          <div class="section-title" style="margin-top: 20px;">${s.name} (${s.state})</div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 25%;">Fecha</th>
+                <th style="width: 25%;">Ingresos</th>
+                <th style="width: 25%;">Salidas</th>
+                <th style="width: 25%;">Ocupación al Cierre</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+        `;
+      }
+    });
+
+    if (!shelterSections) {
+      shelterSections = '<p style="text-align: center; margin-top: 40px; color: #666;">No hay datos de ocupación histórica para generar este reporte.</p>';
+    }
+
+    const content = `
+      <div class="header">
+        <div>
+          <div class="title">SISMOVZLA — HISTÓRICO DE OCUPACIÓN POR REFUGIO</div>
+          <div class="subtitle">Reporte diario de ocupación desde el primer registro hasta la fecha actual</div>
+        </div>
+        <div class="stamp" style="border-color: #2563eb; color: #2563eb;">HISTÓRICO DIARIO</div>
+      </div>
+      
+      ${shelterSections}
+      
+      <div class="signatures">
+        <div class="sig-box">
+          <div class="sig-title">Coordinador de Albergues</div>
+          <div>Red de Refugios SISMOVZLA</div>
+          <div style="margin-top: 25px; border-top: 1px dotted #ccc; font-size: 10px;">Firma y Sello</div>
+        </div>
+        <div class="sig-box">
+          <div class="sig-title">Responsable de Censo Civil</div>
+          <div>Protección Civil / Defensa Civil</div>
+          <div style="margin-top: 25px; border-top: 1px dotted #ccc; font-size: 10px;">Firma y Sello</div>
+        </div>
+      </div>
+    `;
+
+    printDocument(`Ocupacion_Historica_Por_Refugio_${new Date().toISOString().slice(0,10)}`, content);
+  };
+
   // --- REPORT N° 11: DASHBOARD GRÁFICO ESTADÍSTICO DE ALBERGUES ---
   const exportGraphicalDashboardPdf = () => {
-    const activeOccupants = occupants.filter(o => o.status !== 'Salida');
+    const reportDate = Date.now();
+    const filteredOccupants = occupants.filter(o => (o.createdAt || 0) <= reportDate);
+
+    const activeOccupants = filteredOccupants.filter(o => o.status !== 'Salida');
     
     // 1. KPIs
     const totalRefugios = shelters.length;
-    let capacidadTotal = 0;
-    let conCapacidadFija = 0;
-    shelters.forEach(s => {
-      if (s.maxCapacity) {
-        capacidadTotal += s.maxCapacity;
-        conCapacidadFija++;
-      }
-    });
-    
-    const ocupacionGlobal = conCapacidadFija > 0 && capacidadTotal > 0 
-      ? Math.round((activeOccupants.length / capacidadTotal) * 100) 
-      : 0;
 
     // 2. Semáforo de Capacidad
     const estadoVerde = shelters.filter(s => s.capacityStatus === 'Verde').length;
@@ -1258,10 +1359,37 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
       `;
     });
 
+    // 3.5 Ingresos Históricos por Refugio
+    let ingresosHistoricosRefugiosHtml = '';
+    const shelterHistorical: { id: string, name: string, state: string, count: number }[] = [];
+    
+    shelters.forEach(s => {
+      const count = filteredOccupants.filter(o => o.shelterId === s.id).length;
+      shelterHistorical.push({ id: s.id, name: s.name, state: s.state, count });
+    });
+    
+    shelterHistorical.sort((a, b) => b.count - a.count);
+    const maxHistEntries = Math.max(...shelterHistorical.map(s => s.count), 1);
+    
+    shelterHistorical.forEach(s => {
+      const pct = Math.round((s.count / maxHistEntries) * 100);
+      ingresosHistoricosRefugiosHtml += `
+        <div style="margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; margin-bottom: 3px;">
+            <span>${s.name} (${s.state})</span>
+            <span>${s.count} ingresos</span>
+          </div>
+          <div style="width: 100%; background: #e5e7eb; height: 16px; border-radius: 4px; overflow: hidden;">
+            <div style="width: ${pct}%; background: #6366f1; height: 100%;"></div>
+          </div>
+        </div>
+      `;
+    });
+
     // 4. Ingresos Diarios (Barras Verticales SVG)
     const fmtDateShort = (ts: number) => new Date(ts).toLocaleDateString('es-VE', { month: 'short', day: 'numeric' });
     const ingresosPorDia: { [key: string]: number } = {};
-    occupants.forEach(o => {
+    filteredOccupants.forEach(o => {
       if (o.createdAt) {
         const d = fmtDateShort(o.createdAt);
         ingresosPorDia[d] = (ingresosPorDia[d] || 0) + 1;
@@ -1287,6 +1415,90 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
       barrasVerticalesHtml = '<div style="color: #6b7280; font-size: 12px; text-align: center; width: 100%; margin-top: 40px;">No hay datos de ingreso.</div>';
     }
 
+    // 5. Ingresos Diarios por Refugio
+    let tendenciaPorRefugioHtml = '';
+    
+    shelters.forEach(s => {
+      const shelterOccupants = filteredOccupants.filter(o => o.shelterId === s.id);
+      if (shelterOccupants.length === 0) return;
+      
+      const ingresosPorDiaLocal: { [key: string]: number } = {};
+      shelterOccupants.forEach(o => {
+        if (o.createdAt) {
+          const d = fmtDateShort(o.createdAt);
+          ingresosPorDiaLocal[d] = (ingresosPorDiaLocal[d] || 0) + 1;
+        }
+      });
+      
+      const diasArrayLocal = Object.entries(ingresosPorDiaLocal);
+      if (diasArrayLocal.length === 0) return;
+      
+      const maxIngresosLocal = Math.max(...diasArrayLocal.map(d => d[1]), 1);
+      
+      let barrasHtml = '';
+      diasArrayLocal.forEach(([dia, count]) => {
+        const heightPct = Math.round((count / maxIngresosLocal) * 100);
+        barrasHtml += `
+          <div style="display: flex; flex-direction: column; justify-content: flex-end; align-items: center; width: 35px; height: 80px; flex-shrink: 0;">
+            <span style="font-size: 9px; font-weight: bold; margin-bottom: 2px;">${count}</span>
+            <div style="width: 15px; height: ${heightPct}%; background: #16a34a; border-radius: 2px 2px 0 0;"></div>
+            <span style="font-size: 8px; margin-top: 2px; text-align: center; color: #4b5563;">${dia}</span>
+          </div>
+        `;
+      });
+      
+      tendenciaPorRefugioHtml += `
+        <div style="margin-bottom: 15px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px;">
+          <div style="font-size: 11px; font-weight: bold; margin-bottom: 10px; color: #374151; text-transform: uppercase;">${s.name} (${s.state})</div>
+          <div style="display: flex; gap: 10px; overflow-x: auto; min-height: 90px;">
+            ${barrasHtml}
+          </div>
+        </div>
+      `;
+    });
+
+    // 6. Salidas Diarias por Refugio
+    let tendenciaSalidaPorRefugioHtml = '';
+    
+    shelters.forEach(s => {
+      const shelterOccupants = filteredOccupants.filter(o => o.shelterId === s.id && o.status === 'Salida' && o.exitDate);
+      if (shelterOccupants.length === 0) return;
+      
+      const salidasPorDiaLocal: { [key: string]: number } = {};
+      shelterOccupants.forEach(o => {
+        if (o.exitDate) {
+          const d = fmtDateShort(o.exitDate);
+          salidasPorDiaLocal[d] = (salidasPorDiaLocal[d] || 0) + 1;
+        }
+      });
+      
+      const diasArrayLocal = Object.entries(salidasPorDiaLocal);
+      if (diasArrayLocal.length === 0) return;
+      
+      const maxSalidasLocal = Math.max(...diasArrayLocal.map(d => d[1]), 1);
+      
+      let barrasHtml = '';
+      diasArrayLocal.forEach(([dia, count]) => {
+        const heightPct = Math.round((count / maxSalidasLocal) * 100);
+        barrasHtml += `
+          <div style="display: flex; flex-direction: column; justify-content: flex-end; align-items: center; width: 35px; height: 80px; flex-shrink: 0;">
+            <span style="font-size: 9px; font-weight: bold; margin-bottom: 2px;">${count}</span>
+            <div style="width: 15px; height: ${heightPct}%; background: #dc2626; border-radius: 2px 2px 0 0;"></div>
+            <span style="font-size: 8px; margin-top: 2px; text-align: center; color: #4b5563;">${dia}</span>
+          </div>
+        `;
+      });
+      
+      tendenciaSalidaPorRefugioHtml += `
+        <div style="margin-bottom: 15px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px;">
+          <div style="font-size: 11px; font-weight: bold; margin-bottom: 10px; color: #374151; text-transform: uppercase;">${s.name} (${s.state})</div>
+          <div style="display: flex; gap: 10px; overflow-x: auto; min-height: 90px;">
+            ${barrasHtml}
+          </div>
+        </div>
+      `;
+    });
+
     const content = `
       <div class="header">
         <div>
@@ -1305,10 +1517,6 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
         <div style="flex: 1; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 8px; padding: 15px; text-align: center;">
           <div style="font-size: 11px; font-weight: bold; color: #6b7280; text-transform: uppercase;">Total Refugios Activos</div>
           <div style="font-size: 28px; font-weight: 900; color: #111; margin-top: 5px;">${totalRefugios}</div>
-        </div>
-        <div style="flex: 1; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 8px; padding: 15px; text-align: center;">
-          <div style="font-size: 11px; font-weight: bold; color: #6b7280; text-transform: uppercase;">Ocupación Global Est.</div>
-          <div style="font-size: 28px; font-weight: 900; color: ${ocupacionGlobal > 80 ? '#dc2626' : '#16a34a'}; margin-top: 5px;">${ocupacionGlobal}%</div>
         </div>
       </div>
 
@@ -1356,9 +1564,24 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
         </div>
       </div>
 
+      <div class="section-title">INGRESOS HISTÓRICOS POR REFUGIO (HASTA LA FECHA)</div>
+      <div style="border: 1px solid #d1d5db; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
+        ${ingresosHistoricosRefugiosHtml || '<p style="font-size: 12px; color: #6b7280;">No hay ingresos registrados.</p>'}
+      </div>
+
       <div class="section-title">TENDENCIA DE INGRESOS (POR DÍA)</div>
-      <div style="border: 1px solid #d1d5db; border-radius: 6px; padding: 15px; display: flex; gap: 15px; justify-content: center; min-height: 140px; overflow-x: auto;">
+      <div style="border: 1px solid #d1d5db; border-radius: 6px; padding: 15px; display: flex; gap: 15px; justify-content: center; min-height: 140px; overflow-x: auto; margin-bottom: 20px;">
         ${barrasVerticalesHtml}
+      </div>
+
+      <div class="section-title">TENDENCIA DE INGRESOS (POR DÍA Y REFUGIO)</div>
+      <div style="border: 1px solid #d1d5db; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
+        ${tendenciaPorRefugioHtml || '<p style="font-size: 12px; color: #6b7280;">No hay ingresos registrados.</p>'}
+      </div>
+
+      <div class="section-title">TENDENCIA DE SALIDA (POR DÍA Y REFUGIO)</div>
+      <div style="border: 1px solid #d1d5db; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
+        ${tendenciaSalidaPorRefugioHtml || '<p style="font-size: 12px; color: #6b7280;">No hay salidas registradas.</p>'}
       </div>
 
       <div class="footer-note" style="margin-top: 30px;">
@@ -2483,6 +2706,13 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
               >
                 <Printer className="w-4 h-4" />
                 🏨 ACTIVOS X REFUGIO
+              </button>
+              <button
+                onClick={exportOccupancyByShelterPerDayPdf}
+                className="py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-mono font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg cursor-pointer transition-all"
+              >
+                <Calendar className="w-4 h-4" />
+                📅 OCUPACIÓN DIARIA
               </button>
               <button
                 onClick={exportGraphicalDashboardPdf}
