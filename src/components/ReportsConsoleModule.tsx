@@ -1518,7 +1518,7 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
       tendenciaPorRefugioHtml += `
         <div style="margin-bottom: 15px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px;">
           <div style="font-size: 11px; font-weight: bold; margin-bottom: 10px; color: #374151; text-transform: uppercase;">${s.name} (${s.state})</div>
-          <div style="display: flex; gap: 5px; overflow-x: auto; min-height: 105px;">
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: flex-end; padding-top: 10px; row-gap: 25px; min-height: 105px;">
             ${barrasHtml}
           </div>
         </div>
@@ -1605,7 +1605,7 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
           <span><span style="color: #2563eb;">■</span> Ingresos</span>
           <span><span style="color: #dc2626;">■</span> Salidas</span>
         </div>
-        <div style="display: flex; gap: 10px; overflow-x: auto; min-height: 125px;">
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: flex-end; padding-top: 10px; row-gap: 25px; min-height: 125px;">
           ${barrasComparativasGlobalHtml}
         </div>
       </div>
