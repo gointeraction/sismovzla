@@ -70,6 +70,8 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
   const [aarList, setAarList] = useState<AfterActionReview[]>([]);
   const [volunteerShiftsList, setVolunteerShiftsList] = useState<VolunteerShift[]>([]);
   const [resourceLocations, setResourceLocations] = useState<ResourceLocation[]>([]);
+  const [dashboardStartDate, setDashboardStartDate] = useState<string>('');
+  const [dashboardEndDate, setDashboardEndDate] = useState<string>('');
   const [showMoreTabs, setShowMoreTabs] = useState(false);
 
   // Track which tabs have been loaded to avoid re-fetching
@@ -1322,7 +1324,13 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
   // --- REPORT N° 11: DASHBOARD GRÁFICO ESTADÍSTICO DE ALBERGUES ---
   const exportGraphicalDashboardPdf = () => {
     const reportDate = Date.now();
-    const filteredOccupants = occupants.filter(o => (o.createdAt || 0) <= reportDate);
+    const start = dashboardStartDate ? new Date(dashboardStartDate + 'T00:00:00').getTime() : 0;
+    const end = dashboardEndDate ? new Date(dashboardEndDate + 'T23:59:59.999').getTime() : reportDate;
+    
+    const filteredOccupants = occupants.filter(o => {
+      const t = o.createdAt || 0;
+      return t >= start && t <= end;
+    });
 
     const activeOccupants = filteredOccupants.filter(o => o.status !== 'Salida');
     
@@ -1575,7 +1583,7 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
       </div>
 
       <div class="section-title">TENDENCIA DE INGRESOS (POR DÍA Y REFUGIO)</div>
-      <div style="border: 1px solid #d1d5db; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
+            <div style="border: 1px solid #d1d5db; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
         ${tendenciaPorRefugioHtml || '<p style="font-size: 12px; color: #6b7280;">No hay ingresos registrados.</p>'}
       </div>
 
@@ -1586,7 +1594,8 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
 
       <div class="footer-note" style="margin-top: 30px;">
         Dashboard generado con datos en tiempo real de la base de datos de SISMOVZLA.<br>
-        Fecha de corte: ${new Date().toLocaleString('es-VE')}
+        Período del reporte: ${dashboardStartDate ? dashboardStartDate : 'Inicio'} al ${dashboardEndDate ? dashboardEndDate : 'Actualidad'}<br>
+        Fecha de emisión: ${new Date().toLocaleString('es-VE')}
       </div>
     `;
 
@@ -2714,13 +2723,30 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
                 <Calendar className="w-4 h-4" />
                 📅 OCUPACIÓN DIARIA
               </button>
-              <button
-                onClick={exportGraphicalDashboardPdf}
-                className="py-2.5 px-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-mono font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg cursor-pointer transition-all"
-              >
-                <BarChart3 className="w-4 h-4" />
-                📊 DASHBOARD
-              </button>
+              <div className="flex items-center gap-2 bg-black/20 p-1.5 rounded-lg border border-white/5 ml-auto">
+                <input 
+                  type="date" 
+                  className="bg-black/40 border border-white/10 text-white text-xs rounded px-2 py-1 outline-none focus:border-teal-500 transition-colors"
+                  value={dashboardStartDate}
+                  onChange={(e) => setDashboardStartDate(e.target.value)}
+                  title="Fecha desde"
+                />
+                <span className="text-white/40 text-[10px]">a</span>
+                <input 
+                  type="date" 
+                  className="bg-black/40 border border-white/10 text-white text-xs rounded px-2 py-1 outline-none focus:border-teal-500 transition-colors"
+                  value={dashboardEndDate}
+                  onChange={(e) => setDashboardEndDate(e.target.value)}
+                  title="Fecha hasta"
+                />
+                <button
+                  onClick={exportGraphicalDashboardPdf}
+                  className="py-1.5 px-3 bg-blue-600 hover:bg-blue-500 text-white rounded-md font-mono font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg cursor-pointer transition-all ml-1"
+                >
+                  <BarChart3 className="w-3.5 h-3.5" />
+                  DASHBOARD
+                </button>
+              </div>
             </div>
           </div>
 
