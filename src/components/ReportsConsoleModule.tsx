@@ -1378,90 +1378,139 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
       `;
     });
 
-    // 3.5 Ingresos Históricos por Refugio
-    let ingresosHistoricosRefugiosHtml = '';
-    const shelterHistorical: { id: string, name: string, state: string, count: number }[] = [];
-    
-    shelters.forEach(s => {
-      const count = periodEntries.filter(o => o.shelterId === s.id).length;
-      shelterHistorical.push({ id: s.id, name: s.name, state: s.state, count });
-    });
-    
-    shelterHistorical.sort((a, b) => b.count - a.count);
-    const maxHistEntries = Math.max(...shelterHistorical.map(s => s.count), 1);
-    
-    shelterHistorical.forEach(s => {
-      const pct = Math.round((s.count / maxHistEntries) * 100);
-      ingresosHistoricosRefugiosHtml += `
-        <div style="margin-bottom: 12px;">
-          <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; margin-bottom: 3px;">
-            <span>${s.name} (${s.state})</span>
-            <span>${s.count} ingresos</span>
-          </div>
-          <div style="width: 100%; background: #e5e7eb; height: 16px; border-radius: 4px; overflow: hidden;">
-            <div style="width: ${pct}%; background: #6366f1; height: 100%;"></div>
-          </div>
-        </div>
-      `;
-    });
-
-    // 4. Ingresos Diarios (Barras Verticales SVG)
-    const fmtDateShort = (ts: number) => new Date(ts).toLocaleDateString('es-VE', { month: 'short', day: 'numeric' });
-    const ingresosPorDia: { [key: string]: number } = {};
-    periodEntries.forEach(o => {
-      if (o.createdAt) {
-        const d = fmtDateShort(o.createdAt);
-        ingresosPorDia[d] = (ingresosPorDia[d] || 0) + 1;
+    // 3.5 Demografía de Ocupantes Activos
+    let menores = 0, adultos = 0, mayores = 0;
+    activeOccupants.forEach(o => {
+      if (typeof o.age === 'number') {
+        if (o.age < 18) menores++;
+        else if (o.age < 60) adultos++;
+        else mayores++;
       }
     });
+    const totalEdades = menores + adultos + mayores;
+    const pctMenores = totalEdades ? Math.round((menores / totalEdades) * 100) : 0;
+    const pctAdultos = totalEdades ? Math.round((adultos / totalEdades) * 100) : 0;
+    const pctMayores = totalEdades ? Math.round((mayores / totalEdades) * 100) : 0;
     
-    const diasArray = Object.entries(ingresosPorDia);
-    const maxIngresos = Math.max(...diasArray.map(d => d[1]), 1);
+    let demografiaHtml = '';
+    if (totalEdades > 0) {
+      demografiaHtml = `
+        <div style="margin-bottom: 5px;">
+          <div style="display: flex; gap: 10px; margin-bottom: 5px; font-size: 11px;">
+            <div style="flex: 1; text-align: center;"><span style="color: #3b82f6; font-weight: bold;">${pctMenores}%</span> Menores (< 18)</div>
+            <div style="flex: 1; text-align: center;"><span style="color: #10b981; font-weight: bold;">${pctAdultos}%</span> Adultos (18-59)</div>
+            <div style="flex: 1; text-align: center;"><span style="color: #8b5cf6; font-weight: bold;">${pctMayores}%</span> Adultos Mayores (60+)</div>
+          </div>
+          <div style="width: 100%; height: 24px; display: flex; border-radius: 6px; overflow: hidden; background: #e5e7eb;">
+            <div style="width: ${pctMenores}%; background: #3b82f6; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: bold;">${menores > 0 ? menores : ''}</div>
+            <div style="width: ${pctAdultos}%; background: #10b981; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: bold;">${adultos > 0 ? adultos : ''}</div>
+            <div style="width: ${pctMayores}%; background: #8b5cf6; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: bold;">${mayores > 0 ? mayores : ''}</div>
+          </div>
+        </div>
+      `;
+    } else {
+      demografiaHtml = '<p style="font-size: 12px; color: #6b7280;">No hay datos de edad registrados.</p>';
+    }
+
+    // 4. Dinámica Global (Ingresos vs Salidas por Día)
+    const fmtDateShort = (ts: number) => new Date(ts).toLocaleDateString('es-VE', { month: 'short', day: 'numeric' });
+    const startOfDay = (ts: number) => {
+      const d = new Date(ts);
+      d.setHours(0,0,0,0);
+      return d.getTime();
+    };
     
-    let barrasVerticalesHtml = '';
-    diasArray.forEach(([dia, count]) => {
-      const heightPct = Math.round((count / maxIngresos) * 100);
-      barrasVerticalesHtml += `
-        <div style="display: flex; flex-direction: column; justify-content: flex-end; align-items: center; width: 40px; height: 120px;">
-          <span style="font-size: 10px; font-weight: bold; margin-bottom: 4px;">${count}</span>
-          <div style="width: 20px; height: ${heightPct}%; background: #2563eb; border-radius: 2px 2px 0 0;"></div>
-          <span style="font-size: 9px; margin-top: 4px; text-align: center; color: #4b5563; word-break: break-word;">${dia}</span>
+    const statsPorDia: { [ts: number]: { dateStr: string, in: number, out: number } } = {};
+    
+    periodEntries.forEach(o => {
+      if (o.createdAt) {
+        const d = startOfDay(o.createdAt);
+        if(!statsPorDia[d]) statsPorDia[d] = { dateStr: fmtDateShort(o.createdAt), in: 0, out: 0 };
+        statsPorDia[d].in++;
+      }
+    });
+    periodExits.forEach(o => {
+      if (o.exitDate) {
+        const d = startOfDay(o.exitDate);
+        if(!statsPorDia[d]) statsPorDia[d] = { dateStr: fmtDateShort(o.exitDate), in: 0, out: 0 };
+        statsPorDia[d].out++;
+      }
+    });
+
+    const diasArrayGlobal = Object.keys(statsPorDia).map(Number).sort((a,b) => a - b).map(ts => statsPorDia[ts]);
+    const maxValGlobal = Math.max(...diasArrayGlobal.map(d => Math.max(d.in, d.out)), 1);
+    
+    let barrasComparativasGlobalHtml = '';
+    diasArrayGlobal.forEach(d => {
+      const hIn = Math.round((d.in / maxValGlobal) * 100);
+      const hOut = Math.round((d.out / maxValGlobal) * 100);
+      barrasComparativasGlobalHtml += `
+        <div style="display: flex; flex-direction: column; justify-content: flex-end; align-items: center; margin: 0 6px; height: 120px;">
+          <div style="display: flex; gap: 4px; align-items: flex-end; height: 95px;">
+             <div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%;">
+               <span style="font-size: 9px; color: #2563eb; font-weight: bold; margin-bottom: 2px;">${d.in > 0 ? d.in : ''}</span>
+               <div style="width: 14px; height: ${hIn}%; background: #2563eb; border-radius: 3px 3px 0 0;"></div>
+             </div>
+             <div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%;">
+               <span style="font-size: 9px; color: #dc2626; font-weight: bold; margin-bottom: 2px;">${d.out > 0 ? d.out : ''}</span>
+               <div style="width: 14px; height: ${hOut}%; background: #dc2626; border-radius: 3px 3px 0 0;"></div>
+             </div>
+          </div>
+          <span style="font-size: 10px; margin-top: 5px; text-align: center; color: #4b5563;">${d.dateStr}</span>
         </div>
       `;
     });
 
-    if (barrasVerticalesHtml === '') {
-      barrasVerticalesHtml = '<div style="color: #6b7280; font-size: 12px; text-align: center; width: 100%; margin-top: 40px;">No hay datos de ingreso.</div>';
+    if (barrasComparativasGlobalHtml === '') {
+      barrasComparativasGlobalHtml = '<div style="color: #6b7280; font-size: 12px; text-align: center; width: 100%; margin-top: 40px;">No hay datos en el período.</div>';
     }
 
-    // 5. Ingresos Diarios por Refugio
+    // 5. Dinámica por Refugio (Ingresos vs Salidas)
     let tendenciaPorRefugioHtml = '';
     
     shelters.forEach(s => {
-      const shelterOccupants = periodEntries.filter(o => o.shelterId === s.id);
-      if (shelterOccupants.length === 0) return;
+      const sEntries = periodEntries.filter(o => o.shelterId === s.id);
+      const sExits = periodExits.filter(o => o.shelterId === s.id);
       
-      const ingresosPorDiaLocal: { [key: string]: number } = {};
-      shelterOccupants.forEach(o => {
+      if (sEntries.length === 0 && sExits.length === 0) return;
+      
+      const statsLocal: { [ts: number]: { dateStr: string, in: number, out: number } } = {};
+      
+      sEntries.forEach(o => {
         if (o.createdAt) {
-          const d = fmtDateShort(o.createdAt);
-          ingresosPorDiaLocal[d] = (ingresosPorDiaLocal[d] || 0) + 1;
+          const d = startOfDay(o.createdAt);
+          if(!statsLocal[d]) statsLocal[d] = { dateStr: fmtDateShort(o.createdAt), in: 0, out: 0 };
+          statsLocal[d].in++;
+        }
+      });
+      sExits.forEach(o => {
+        if (o.exitDate) {
+          const d = startOfDay(o.exitDate);
+          if(!statsLocal[d]) statsLocal[d] = { dateStr: fmtDateShort(o.exitDate), in: 0, out: 0 };
+          statsLocal[d].out++;
         }
       });
       
-      const diasArrayLocal = Object.entries(ingresosPorDiaLocal);
-      if (diasArrayLocal.length === 0) return;
-      
-      const maxIngresosLocal = Math.max(...diasArrayLocal.map(d => d[1]), 1);
+      const diasArrayLocal = Object.keys(statsLocal).map(Number).sort((a,b) => a - b).map(ts => statsLocal[ts]);
+      const maxValLocal = Math.max(...diasArrayLocal.map(d => Math.max(d.in, d.out)), 1);
       
       let barrasHtml = '';
-      diasArrayLocal.forEach(([dia, count]) => {
-        const heightPct = Math.round((count / maxIngresosLocal) * 100);
+      diasArrayLocal.forEach(d => {
+        const hIn = Math.round((d.in / maxValLocal) * 100);
+        const hOut = Math.round((d.out / maxValLocal) * 100);
         barrasHtml += `
-          <div style="display: flex; flex-direction: column; justify-content: flex-end; align-items: center; width: 35px; height: 80px; flex-shrink: 0;">
-            <span style="font-size: 9px; font-weight: bold; margin-bottom: 2px;">${count}</span>
-            <div style="width: 15px; height: ${heightPct}%; background: #16a34a; border-radius: 2px 2px 0 0;"></div>
-            <span style="font-size: 8px; margin-top: 2px; text-align: center; color: #4b5563;">${dia}</span>
+          <div style="display: flex; flex-direction: column; justify-content: flex-end; align-items: center; margin: 0 5px; height: 100px;">
+            <div style="display: flex; gap: 3px; align-items: flex-end; height: 75px;">
+               <div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%;">
+                 <span style="font-size: 8px; color: #16a34a; font-weight: bold; margin-bottom: 2px;">${d.in > 0 ? d.in : ''}</span>
+                 <div style="width: 12px; height: ${hIn}%; background: #16a34a; border-radius: 2px 2px 0 0;"></div>
+               </div>
+               <div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%;">
+                 <span style="font-size: 8px; color: #dc2626; font-weight: bold; margin-bottom: 2px;">${d.out > 0 ? d.out : ''}</span>
+                 <div style="width: 12px; height: ${hOut}%; background: #dc2626; border-radius: 2px 2px 0 0;"></div>
+               </div>
+            </div>
+            <span style="font-size: 9px; margin-top: 4px; text-align: center; color: #4b5563; min-width: 35px;">${d.dateStr}</span>
           </div>
         `;
       });
@@ -1469,49 +1518,7 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
       tendenciaPorRefugioHtml += `
         <div style="margin-bottom: 15px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px;">
           <div style="font-size: 11px; font-weight: bold; margin-bottom: 10px; color: #374151; text-transform: uppercase;">${s.name} (${s.state})</div>
-          <div style="display: flex; gap: 10px; overflow-x: auto; min-height: 90px;">
-            ${barrasHtml}
-          </div>
-        </div>
-      `;
-    });
-
-    // 6. Salidas Diarias por Refugio
-    let tendenciaSalidaPorRefugioHtml = '';
-    
-    shelters.forEach(s => {
-      const shelterOccupants = periodExits.filter(o => o.shelterId === s.id);
-      if (shelterOccupants.length === 0) return;
-      
-      const salidasPorDiaLocal: { [key: string]: number } = {};
-      shelterOccupants.forEach(o => {
-        if (o.exitDate) {
-          const d = fmtDateShort(o.exitDate);
-          salidasPorDiaLocal[d] = (salidasPorDiaLocal[d] || 0) + 1;
-        }
-      });
-      
-      const diasArrayLocal = Object.entries(salidasPorDiaLocal);
-      if (diasArrayLocal.length === 0) return;
-      
-      const maxSalidasLocal = Math.max(...diasArrayLocal.map(d => d[1]), 1);
-      
-      let barrasHtml = '';
-      diasArrayLocal.forEach(([dia, count]) => {
-        const heightPct = Math.round((count / maxSalidasLocal) * 100);
-        barrasHtml += `
-          <div style="display: flex; flex-direction: column; justify-content: flex-end; align-items: center; width: 35px; height: 80px; flex-shrink: 0;">
-            <span style="font-size: 9px; font-weight: bold; margin-bottom: 2px;">${count}</span>
-            <div style="width: 15px; height: ${heightPct}%; background: #dc2626; border-radius: 2px 2px 0 0;"></div>
-            <span style="font-size: 8px; margin-top: 2px; text-align: center; color: #4b5563;">${dia}</span>
-          </div>
-        `;
-      });
-      
-      tendenciaSalidaPorRefugioHtml += `
-        <div style="margin-bottom: 15px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px;">
-          <div style="font-size: 11px; font-weight: bold; margin-bottom: 10px; color: #374151; text-transform: uppercase;">${s.name} (${s.state})</div>
-          <div style="display: flex; gap: 10px; overflow-x: auto; min-height: 90px;">
+          <div style="display: flex; gap: 5px; overflow-x: auto; min-height: 105px;">
             ${barrasHtml}
           </div>
         </div>
@@ -1586,24 +1593,31 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
         </div>
       </div>
 
-      <div class="section-title">INGRESOS HISTÓRICOS POR REFUGIO (HASTA LA FECHA)</div>
+      <div class="section-title">COMPOSICIÓN DEMOGRÁFICA (EDADES DE ACTIVOS)</div>
       <div style="border: 1px solid #d1d5db; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
-        ${ingresosHistoricosRefugiosHtml || '<p style="font-size: 12px; color: #6b7280;">No hay ingresos registrados.</p>'}
+        ${demografiaHtml}
       </div>
 
-      <div class="section-title">TENDENCIA DE INGRESOS (POR DÍA)</div>
-      <div style="border: 1px solid #d1d5db; border-radius: 6px; padding: 15px; display: flex; gap: 15px; justify-content: center; min-height: 140px; overflow-x: auto; margin-bottom: 20px;">
-        ${barrasVerticalesHtml}
+      <div class="section-title">DINÁMICA DE INGRESOS VS SALIDAS (GLOBAL)</div>
+      <div style="border: 1px solid #d1d5db; border-radius: 6px; padding: 15px; display: flex; gap: 15px; justify-content: center; min-height: 140px; overflow-x: auto; margin-bottom: 20px; position: relative;">
+        <!-- Leyenda -->
+        <div style="position: absolute; top: 15px; right: 15px; display: flex; gap: 15px; font-size: 10px; font-weight: bold; padding: 5px 10px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 4px;">
+          <span><span style="color: #2563eb;">■</span> Ingresos</span>
+          <span><span style="color: #dc2626;">■</span> Salidas</span>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: flex-end; padding-top: 25px;">
+          ${barrasComparativasGlobalHtml}
+        </div>
       </div>
 
-      <div class="section-title">TENDENCIA DE INGRESOS (POR DÍA Y REFUGIO)</div>
-            <div style="border: 1px solid #d1d5db; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
-        ${tendenciaPorRefugioHtml || '<p style="font-size: 12px; color: #6b7280;">No hay ingresos registrados.</p>'}
-      </div>
-
-      <div class="section-title">TENDENCIA DE SALIDA (POR DÍA Y REFUGIO)</div>
+      <div class="section-title">DINÁMICA COMPARATIVA POR REFUGIO (INGRESOS VS SALIDAS)</div>
       <div style="border: 1px solid #d1d5db; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
-        ${tendenciaSalidaPorRefugioHtml || '<p style="font-size: 12px; color: #6b7280;">No hay salidas registradas.</p>'}
+        <!-- Leyenda -->
+        <div style="display: flex; gap: 15px; font-size: 10px; font-weight: bold; margin-bottom: 15px; padding: 5px 10px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 4px; display: inline-flex;">
+          <span><span style="color: #16a34a;">■</span> Ingresos</span>
+          <span><span style="color: #dc2626;">■</span> Salidas</span>
+        </div>
+        ${tendenciaPorRefugioHtml || '<p style="font-size: 12px; color: #6b7280;">No hay datos en el período.</p>'}
       </div>
 
       <div class="footer-note" style="margin-top: 30px;">
