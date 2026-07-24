@@ -2723,27 +2723,34 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
                 <Calendar className="w-4 h-4" />
                 📅 OCUPACIÓN DIARIA
               </button>
-              <div className="flex items-center gap-2 bg-black/20 p-1.5 rounded-lg border border-white/5 ml-auto">
-                <input 
-                  type="date" 
-                  className="bg-black/40 border border-white/10 text-white text-xs rounded px-2 py-1 outline-none focus:border-teal-500 transition-colors"
-                  value={dashboardStartDate}
-                  onChange={(e) => setDashboardStartDate(e.target.value)}
-                  title="Fecha desde"
-                />
-                <span className="text-white/40 text-[10px]">a</span>
-                <input 
-                  type="date" 
-                  className="bg-black/40 border border-white/10 text-white text-xs rounded px-2 py-1 outline-none focus:border-teal-500 transition-colors"
-                  value={dashboardEndDate}
-                  onChange={(e) => setDashboardEndDate(e.target.value)}
-                  title="Fecha hasta"
-                />
+              <div className="flex flex-wrap items-center gap-3 bg-zinc-900/80 p-2.5 rounded-xl border border-white/10 ml-auto shadow-inner mt-2 sm:mt-0 w-full sm:w-auto justify-end">
+                <div className="flex items-center gap-2">
+                  <span className="text-white/60 text-xs font-mono uppercase tracking-wider font-bold">Desde</span>
+                  <input 
+                    type="date" 
+                    className="bg-black border border-white/20 text-white text-sm rounded-lg px-3 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-mono"
+                    style={{ colorScheme: 'dark' }}
+                    value={dashboardStartDate}
+                    onChange={(e) => setDashboardStartDate(e.target.value)}
+                    title="Fecha desde"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-white/60 text-xs font-mono uppercase tracking-wider font-bold">Hasta</span>
+                  <input 
+                    type="date" 
+                    className="bg-black border border-white/20 text-white text-sm rounded-lg px-3 py-1.5 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-mono"
+                    style={{ colorScheme: 'dark' }}
+                    value={dashboardEndDate}
+                    onChange={(e) => setDashboardEndDate(e.target.value)}
+                    title="Fecha hasta"
+                  />
+                </div>
                 <button
                   onClick={exportGraphicalDashboardPdf}
-                  className="py-1.5 px-3 bg-blue-600 hover:bg-blue-500 text-white rounded-md font-mono font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg cursor-pointer transition-all ml-1"
+                  className="py-2 px-4 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-mono font-bold text-sm uppercase tracking-wider flex items-center gap-2 shadow-lg cursor-pointer transition-all ml-1 border border-blue-400/30"
                 >
-                  <BarChart3 className="w-3.5 h-3.5" />
+                  <BarChart3 className="w-4 h-4" />
                   DASHBOARD
                 </button>
               </div>
