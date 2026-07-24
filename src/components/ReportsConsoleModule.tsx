@@ -1599,13 +1599,13 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
       </div>
 
       <div class="section-title">DINÁMICA DE INGRESOS VS SALIDAS (GLOBAL)</div>
-      <div style="border: 1px solid #d1d5db; border-radius: 6px; padding: 15px; display: flex; gap: 15px; justify-content: center; min-height: 140px; overflow-x: auto; margin-bottom: 20px; position: relative;">
+      <div style="border: 1px solid #d1d5db; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
         <!-- Leyenda -->
-        <div style="position: absolute; top: 15px; right: 15px; display: flex; gap: 15px; font-size: 10px; font-weight: bold; padding: 5px 10px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 4px;">
+        <div style="display: flex; gap: 15px; font-size: 10px; font-weight: bold; margin-bottom: 15px; padding: 5px 10px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 4px; display: inline-flex;">
           <span><span style="color: #2563eb;">■</span> Ingresos</span>
           <span><span style="color: #dc2626;">■</span> Salidas</span>
         </div>
-        <div style="display: flex; gap: 10px; align-items: flex-end; padding-top: 25px;">
+        <div style="display: flex; gap: 10px; overflow-x: auto; min-height: 125px;">
           ${barrasComparativasGlobalHtml}
         </div>
       </div>
