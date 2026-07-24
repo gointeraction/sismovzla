@@ -1512,6 +1512,9 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
         <div>
           <div class="title">SISMOVZLA — DASHBOARD ANALÍTICO DE ALBERGUES</div>
           <div class="subtitle">Reporte Gráfico Estadístico de Ocupación y Tendencias</div>
+          <div style="font-size: 11px; margin-top: 5px; color: #4b5563;">
+            <strong>Período:</strong> ${dashboardStartDate ? new Date(dashboardStartDate + 'T00:00:00').toLocaleDateString('es-VE') : 'Inicio'} al ${dashboardEndDate ? new Date(dashboardEndDate + 'T00:00:00').toLocaleDateString('es-VE') : 'Actualidad'}
+          </div>
         </div>
         <div class="stamp" style="border-color: #2563eb; color: #2563eb;">REPORTE VISUAL</div>
       </div>
