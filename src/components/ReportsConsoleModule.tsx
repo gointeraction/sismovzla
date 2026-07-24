@@ -1327,12 +1327,23 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
     const start = dashboardStartDate ? new Date(dashboardStartDate + 'T00:00:00').getTime() : 0;
     const end = dashboardEndDate ? new Date(dashboardEndDate + 'T23:59:59.999').getTime() : reportDate;
     
-    const filteredOccupants = occupants.filter(o => {
+    const periodEntries = occupants.filter(o => {
       const t = o.createdAt || 0;
       return t >= start && t <= end;
     });
 
-    const activeOccupants = filteredOccupants.filter(o => o.status !== 'Salida');
+    const periodExits = occupants.filter(o => {
+      const t = o.exitDate || 0;
+      return o.status === 'Salida' && t >= start && t <= end;
+    });
+
+    const activeOccupants = occupants.filter(o => {
+      const tEntry = o.createdAt || 0;
+      const tExit = o.exitDate;
+      const enteredBeforeEnd = tEntry <= end;
+      const notExitedBeforeEnd = o.status !== 'Salida' || !tExit || tExit > end;
+      return enteredBeforeEnd && notExitedBeforeEnd;
+    });
     
     // 1. KPIs
     const totalRefugios = shelters.length;
@@ -1372,7 +1383,7 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
     const shelterHistorical: { id: string, name: string, state: string, count: number }[] = [];
     
     shelters.forEach(s => {
-      const count = filteredOccupants.filter(o => o.shelterId === s.id).length;
+      const count = periodEntries.filter(o => o.shelterId === s.id).length;
       shelterHistorical.push({ id: s.id, name: s.name, state: s.state, count });
     });
     
@@ -1397,7 +1408,7 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
     // 4. Ingresos Diarios (Barras Verticales SVG)
     const fmtDateShort = (ts: number) => new Date(ts).toLocaleDateString('es-VE', { month: 'short', day: 'numeric' });
     const ingresosPorDia: { [key: string]: number } = {};
-    filteredOccupants.forEach(o => {
+    periodEntries.forEach(o => {
       if (o.createdAt) {
         const d = fmtDateShort(o.createdAt);
         ingresosPorDia[d] = (ingresosPorDia[d] || 0) + 1;
@@ -1427,7 +1438,7 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
     let tendenciaPorRefugioHtml = '';
     
     shelters.forEach(s => {
-      const shelterOccupants = filteredOccupants.filter(o => o.shelterId === s.id);
+      const shelterOccupants = periodEntries.filter(o => o.shelterId === s.id);
       if (shelterOccupants.length === 0) return;
       
       const ingresosPorDiaLocal: { [key: string]: number } = {};
@@ -1469,7 +1480,7 @@ export const ReportsConsoleModule: React.FC<Props> = ({ incidents, isVerified, r
     let tendenciaSalidaPorRefugioHtml = '';
     
     shelters.forEach(s => {
-      const shelterOccupants = filteredOccupants.filter(o => o.shelterId === s.id && o.status === 'Salida' && o.exitDate);
+      const shelterOccupants = periodExits.filter(o => o.shelterId === s.id);
       if (shelterOccupants.length === 0) return;
       
       const salidasPorDiaLocal: { [key: string]: number } = {};
